@@ -83,9 +83,12 @@ try {
             break;
 
         case 'recent_activity':
-            // Activité récente (par exemple, 10 derniers emprunts ou retours)
-            // Pour simplifier, nous allons chercher les 10 derniers emprunts/retours
-            $stmt = $pdo->query("
+            // Activité récente avec pagination
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 5;
+            $offset = ($page - 1) * $per_page;
+
+            $stmt = $pdo->prepare("
                 SELECT 
                     e.id AS loan_id,
                     l.titre,
@@ -98,25 +101,82 @@ try {
                 JOIN lecteurs le ON e.lecteur_id = le.id
                 JOIN users u ON le.user_id = u.id
                 ORDER BY e.date_emprunt DESC, e.date_retour DESC
-                LIMIT 10
+                LIMIT :per_page OFFSET :offset
             ");
-            $recent_activities_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->bindParam(':per_page', $per_page, PDO::PARAM_INT);
+            $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
+            $raw_activities = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             $recent_activities = [];
-            foreach ($recent_activities_raw as $activity) {
-                if ($activity['rendu']) {
-                    $description = "Livre '{$activity['titre']}' rendu par {$activity['user_name']}.";
-                    $timestamp = $activity['date_retour']; // Ou un champ 'date_rendu' si vous l'ajoutez
-                } else {
-                    $description = "Livre '{$activity['titre']}' emprunté par {$activity['user_name']}.";
-                    $timestamp = $activity['date_emprunt'];
-                }
-                $recent_activities[] = ['description' => $description, 'timestamp' => (int)$timestamp];
+            foreach ($raw_activities as $activity) {
+                $type = $activity['rendu'] ? 'return' : 'loan'; // Déduire le type
+                $description = $activity['rendu'] ? "Livre '{$activity['titre']}' rendu par {$activity['user_name']}." : "Livre '{$activity['titre']}' emprunté par {$activity['user_name']}.";
+                $timestamp = $activity['rendu'] ? $activity['date_retour'] : $activity['date_emprunt']; // Utiliser la date de retour si rendu
+
+                $recent_activities[] = [
+                    'description' => $description,
+                    'timestamp' => (int)$timestamp,
+                    'type' => $type // Ajouter le type
+                ];
             }
 
             echo json_encode([
                 'success' => true,
                 'data' => $recent_activities
+            ]);
+            break;
+
+        case 'chart_data':
+            // Données pour le graphique d'activité (emprunts/retours par jour)
+            $days_range = isset($_GET['days']) ? (int)$_GET['days'] : 7; // Par défaut, 7 jours
+            $start_timestamp = strtotime("-{$days_range} days", time());
+
+            $stmt = $pdo->prepare("
+                SELECT 
+                    TO_CHAR(TO_TIMESTAMP(date_emprunt), 'YYYY-MM-DD') AS activity_date,
+                    COUNT(*) AS total_loans,
+                    SUM(CASE WHEN rendu = TRUE THEN 1 ELSE 0 END) AS total_returns
+                FROM emprunts
+                WHERE date_emprunt >= :start_timestamp OR date_retour >= :start_timestamp
+                GROUP BY activity_date
+                ORDER BY activity_date ASC
+            ");
+            $stmt->bindParam(':start_timestamp', $start_timestamp, PDO::PARAM_INT);
+            $stmt->execute();
+            $daily_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $labels = [];
+            $loan_data = [];
+            $return_data = [];
+
+            // Initialiser toutes les dates du range avec 0
+            for ($i = 0; $i < $days_range; $i++) {
+                $dayrange = $days_range - 1 - $i; // Inverser l'index pour avoir les dates récentes en premier
+                $date = date('Y-m-d', strtotime("-$dayrange days"));
+                // Convertir en temps unix pour la compatibilité
+                $unix_timestamp = strtotime($date);
+                $labels[] = $unix_timestamp; // Ex: Lun 01 Jan
+                $loan_data[$date] = 0;
+                $return_data[$date] = 0;
+            }
+
+            // Remplir avec les données réelles
+            foreach ($daily_data as $row) {
+                $date_key = $row['activity_date'];
+                if (isset($loan_data[$date_key])) { // S'assurer que la date est dans le range
+                    $loan_data[$date_key] = (int)$row['total_loans'];
+                    $return_data[$date_key] = (int)$row['total_returns'];
+                }
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'labels' => $labels,
+                    'loan_data' => array_values($loan_data), // Convertir en tableau indexé
+                    'return_data' => array_values($return_data) // Convertir en tableau indexé
+                ]
             ]);
             break;
 

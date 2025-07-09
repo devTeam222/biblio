@@ -159,7 +159,7 @@ function updateNavBar(type = 'user') {
     switch (type) {
         case 'admin':
             navHtml = `
-                <a href="admin-dashboard.html" class="nav-link bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
+                <a href="/admin" class="nav-link bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard-icon lucide-layout-dashboard">
                         <rect width="7" height="9" x="3" y="3" rx="1" />
                         <rect width="7" height="5" x="14" y="3" rx="1" />
@@ -265,6 +265,9 @@ function updateNavBar(type = 'user') {
             break;
     }
     mainNav.innerHTML = navHtml; // Met à jour la barre de navigation avec le contenu approprié
+    const logoutButton = document.getElementById('logoutButton');
+    // Gestion de la déconnexion
+    logoutButton && (logoutButton.addEventListener('click', handleLogout));
 }
 
 document.addEventListener('authchange', (event) => {

@@ -213,6 +213,30 @@ class TimeFormatter {
     month: 2629800,
     year: 31557600,
   };
+  // Format the date in a calendar-friendly way for month or year views to return a string like "Jan 2023", "01 Jan" or "Mon 01"
+  formatCalendar(
+    // Add options for format leke day, weekday, month, year 
+    type = "day",
+
+  ) {
+    if (!["month", "year", "day", "weekday"].includes(type)) {
+      throw new Error("Le type doit être 'month', 'year', 'day' ou 'weekday'.");
+    }
+    const options = {
+      month: type === "month" ? "short" : undefined,
+      year: type === "year" ? "numeric" : undefined,
+      day: type === "day" ? "numeric" : undefined,
+      weekday: type === "weekday" ? "short" : undefined,
+    };
+    const formattedDate = this.time.toLocaleDateString(this.lang, options);
+    if (type === "day") {
+      return formattedDate.replace(/^\d+\s/, ""); // Remove the day number
+    }
+    if (type === "weekday") {
+      return formattedDate.replace(/^\w+\s/, ""); // Remove the weekday name
+    }
+    return formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+  }
 }
 
 class NumberFormatter {

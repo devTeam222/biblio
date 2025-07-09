@@ -93,7 +93,7 @@
     <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-4 shadow-lg">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
             <h1 class="text-3xl font-bold mb-2 md:mb-0">
-                <i class="fas fa-book-reader mr-2"></i>Bibliothèque
+                Bibliothèque
             </h1>
             <img loading="lazy" src="https://placehold.co/50x50/FFFFFF/000000?text=LIB" alt="Logo de la bibliothèque" class="rounded-full">
         </div>
