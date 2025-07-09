@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Définition des variables CSS personnalisées */
+:root {
+  --background: 0 0% 100%; /* Exemple de valeur, ajustez selon vos besoins */
+  --foreground: 222.2 84% 4.9%;
+
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+
+  --border: 214.3 31.6% 91.4%;
+  --input: 214.3 31.6% 91.4%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --ring: 222.2 84% 4.9%;
+
+  --radius: 0.5rem; /* Variable pour les border-radius */
+
+  /* Variables spécifiques au logo, si vous les utilisez avec hsl(var(--logo)) */
+  --logo: 220 100% 50%; /* Exemple de couleur pour le logo */
+  --logo-foreground: 0 0% 100%;
+  --logo-background: 220 100% 30%;
+  --logo-text: 0 0% 100%;
+  --logo-icon: 0 0% 100%;
+
+  /* Définition de la police Inter globalement */
+  font-family: 'Inter', sans-serif;
+}
+
+/* Vous pouvez ajouter ici d'autres styles globaux ou des composants personnalisés si nécessaire */
+
+/* Exemple de classe utilitaire personnalisée si vous en aviez besoin */
+/* .my-custom-utility {
+    @apply text-lg font-bold;
+} */

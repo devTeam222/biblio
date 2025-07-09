@@ -1,0 +1,11 @@
+# Activer le moteur de réécriture d'URL
+RewriteEngine On
+
+# Définir la base de réécriture (généralement la racine de votre application)
+RewriteBase /
+
+# Rediriger toutes les requêtes qui ne correspondent PAS à un fichier existant
+# et qui ne correspondent PAS à un répertoire existant
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ router.php [QSA,L]
