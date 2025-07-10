@@ -2,7 +2,7 @@
 // Si l'utilisateur n'est pas authentifié ou n'est pas un administrateur, rediriger vers la page de connexion
 session_start();
 if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: /login.html'); // Rediriger vers la page de connexion
+    header('Location: /login'); // Rediriger vers la page de connexion
     exit();
 }
 ?>
@@ -13,6 +13,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau de Bord Administrateur - Ma Bibliothèque</title>
+    <link rel="stylesheet" href="/app/css/modal.css">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -69,30 +70,6 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
             /* Ajustez si nécessaire */
         }
 
-        /* Overlay pour les messages modaux */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-        }
-
         .quick-action-btn {
             width: 100%;
             padding: 0.75rem 1rem;
@@ -102,10 +79,10 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
             transition: background-color 0.2s ease-in-out;
         }
     </style>
+
     <!-- Tailwind CSS CDN -->
     <script src="/app/js/tailwind.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body class="min-h-screen flex flex-col">
@@ -140,8 +117,6 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                             <p id="userNameDisplay" class="font-medium"></p>
                             <p class="text-xs text-indigo-200">Administrateur</p>
                         </div>
-                        <img loading="lazy" src="https://placehold.co/40x40/FFFFFF/000000?text=ADM" alt="Admin"
-                            class="rounded-full border-2 border-white">
                     </div>
                 </div>
             </div>
@@ -249,31 +224,81 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                     </div>
                 </div>
 
-                <!-- Emprunts en retard -->
+                
+                <!-- Quick Actions -->
                 <div class="bg-white rounded-xl shadow p-6 dashboard-card">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-semibold text-gray-800">Emprunts en Retard</h3>
-                        <span id="overdueCount"
-                            class="bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-full">0</span>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Actions Rapides</h3>
+                    <div class="space-y-3">
+                        <button class="quick-action-btn bg-blue-50 text-blue-700 hover:bg-blue-100 flex items-center gap-0.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="lucide lucide-plus-icon lucide-plus">
+                                <path d="M5 12h14" />
+                                <path d="M12 5v14" />
+                            </svg>
+                            <span>Ajouter un nouveau livre</span>
+                        </button>
+                        <button class="quick-action-btn bg-green-50 text-green-700 hover:bg-green-100 flex items-center gap-0.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="lucide lucide-user-round-plus-icon lucide-user-round-plus">
+                                <path d="M2 21a8 8 0 0 1 13.292-6" />
+                                <circle cx="10" cy="8" r="5" />
+                                <path d="M19 16v6" />
+                                <path d="M22 19h-6" />
+                            </svg>
+                            <span>Ajouter un auteur</span>
+                        </button>
+                        <a href="/admin/loans" class="quick-action-btn bg-purple-50 text-purple-700 hover:bg-purple-100 flex items-center gap-0.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="lucide lucide-book-open-check-icon lucide-book-open-check">
+                                <path d="M12 21V7" />
+                                <path d="m16 12 2 2 4-4" />
+                                <path
+                                    d="M22 6V4a1 1 0 0 0-1-1h-5a4 4 0 0 0-4 4 4 4 0 0 0-4-4H3a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h6a3 3 0 0 1 3 3 3 3 0 0 1 3-3h6a1 1 0 0 0 1-1v-1.3" />
+                            </svg>
+                            <span>Gérer les emprunts</span>
+                        </a>
+                        <button class="quick-action-btn bg-orange-50 text-orange-700 hover:bg-orange-100 flex items-center gap-0.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="lucide lucide-settings-icon lucide-settings">
+                                <path
+                                    d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                            <span>Paramètres du système</span>
+                        </button>
                     </div>
-                    <div class="overflow-y-auto max-h-64">
-                        <ul id="overdueLoansList" class="divide-y divide-gray-100">
-                            <li class="py-3 flex items-center justify-between">
-                                <span>Chargement...</span>
-                            </li>
-                        </ul>
+
+                    <div class="mt-6">
+                        <h4 class="font-medium text-gray-700 mb-2">Statut du système</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span>Base de données</span>
+                                <span class="text-green-600 font-medium flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="lucide lucide-circle-check-icon lucide-circle-check">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <path d="m9 12 2 2 4-4" />
+                                    </svg>
+                                    <span>Connectée</span>
+                                </span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span>Dernière sauvegarde</span>
+                                <span id="lastBackup" class="text-gray-600">Aujourd'hui, 03:45</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span>Version</span>
+                                <span class="text-gray-600">v2.4.1</span>
+                            </div>
+                        </div>
                     </div>
-                    <button id="viewAllOverdueBtn"
-                        class="mt-4 w-full text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
-                        <span>Voir tous les emprunts en retard</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="lucide lucide-arrow-right-icon lucide-arrow-right">
-                            <path d="M5 12h14" />
-                            <path d="m12 5 7 7-7 7" />
-                        </svg>
-                    </button>
                 </div>
+
             </div>
             <!-- Troisième ligne avec journal des activités et actions rapides -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -315,79 +340,31 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                         </svg>
                     </button>
                 </div>
-
-                <!-- Quick Actions -->
+                
+                <!-- Emprunts en retard -->
                 <div class="bg-white rounded-xl shadow p-6 dashboard-card">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Actions Rapides</h3>
-                    <div class="space-y-3">
-                        <button class="quick-action-btn bg-blue-50 text-blue-700 hover:bg-blue-100 flex items-center gap-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                class="lucide lucide-plus-icon lucide-plus">
-                                <path d="M5 12h14" />
-                                <path d="M12 5v14" />
-                            </svg>
-                            <span>Ajouter un nouveau livre</span>
-                        </button>
-                        <button class="quick-action-btn bg-green-50 text-green-700 hover:bg-green-100 flex items-center gap-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                class="lucide lucide-user-round-plus-icon lucide-user-round-plus">
-                                <path d="M2 21a8 8 0 0 1 13.292-6" />
-                                <circle cx="10" cy="8" r="5" />
-                                <path d="M19 16v6" />
-                                <path d="M22 19h-6" />
-                            </svg>
-                            <span>Ajouter un auteur</span>
-                        </button>
-                        <button class="quick-action-btn bg-purple-50 text-purple-700 hover:bg-purple-100 flex items-center gap-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                class="lucide lucide-book-open-check-icon lucide-book-open-check">
-                                <path d="M12 21V7" />
-                                <path d="m16 12 2 2 4-4" />
-                                <path
-                                    d="M22 6V4a1 1 0 0 0-1-1h-5a4 4 0 0 0-4 4 4 4 0 0 0-4-4H3a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h6a3 3 0 0 1 3 3 3 3 0 0 1 3-3h6a1 1 0 0 0 1-1v-1.3" />
-                            </svg>
-                            <span>Gérer les emprunts</span>
-                        </button>
-                        <button class="quick-action-btn bg-orange-50 text-orange-700 hover:bg-orange-100 flex items-center gap-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                class="lucide lucide-settings-icon lucide-settings">
-                                <path
-                                    d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-                                <circle cx="12" cy="12" r="3" />
-                            </svg>
-                            <span>Paramètres du système</span>
-                        </button>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Emprunts en Retard</h3>
+                        <span id="overdueCount"
+                            class="bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-full">0</span>
                     </div>
-
-                    <div class="mt-6">
-                        <h4 class="font-medium text-gray-700 mb-2">Statut du système</h4>
-                        <div class="space-y-2">
-                            <div class="flex justify-between text-sm">
-                                <span>Base de données</span>
-                                <span class="text-green-600 font-medium flex items-center gap-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" class="lucide lucide-circle-check-icon lucide-circle-check">
-                                        <circle cx="12" cy="12" r="10" />
-                                        <path d="m9 12 2 2 4-4" />
-                                    </svg>
-                                    <span>Connectée</span>
-                                </span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span>Dernière sauvegarde</span>
-                                <span id="lastBackup" class="text-gray-600">Aujourd'hui, 03:45</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span>Version</span>
-                                <span class="text-gray-600">v2.4.1</span>
-                            </div>
-                        </div>
+                    <div class="overflow-y-auto max-h-64">
+                        <ul id="overdueLoansList" class="divide-y divide-gray-100">
+                            <li class="py-3 flex items-center justify-between">
+                                <span>Chargement...</span>
+                            </li>
+                        </ul>
                     </div>
+                    <button id="viewAllOverdueBtn"
+                        class="mt-4 w-full text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
+                        <span>Voir tous les emprunts en retard</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-arrow-right-icon lucide-arrow-right">
+                            <path d="M5 12h14" />
+                            <path d="m12 5 7 7-7 7" />
+                        </svg>
+                    </button>
                 </div>
             </div>
         </div>

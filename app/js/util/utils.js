@@ -148,7 +148,7 @@ const userAuthEvent = new CustomEvent('authchange', {
     }
 });
 document.dispatchEvent(userAuthEvent); // Dispatch the event initially
-function updateNavBar(type = 'user') {
+function updateNavBar(type = 'user', page = '') {
     const mainNav = document.getElementById('mainNav');
     if (!mainNav) {
         return; // Sortir si l'élément n'existe pas
@@ -159,7 +159,7 @@ function updateNavBar(type = 'user') {
     switch (type) {
         case 'admin':
             navHtml = `
-                <a href="/admin" class="nav-link bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
+                <a href="/admin" class="nav-link ${page === "" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"}  font-semibold py-2 px-4 rounded-lg flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard-icon lucide-layout-dashboard">
                         <rect width="7" height="9" x="3" y="3" rx="1" />
                         <rect width="7" height="5" x="14" y="3" rx="1" />
@@ -175,13 +175,13 @@ function updateNavBar(type = 'user') {
                     </svg>
                     Accueil
                 </a>
-                <a href="#" class="nav-link bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg flex items-center">
+                <a href="/admin/books" class="nav-link ${page === "books" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
                     </svg>
                     Gérer Livres
                 </a>
-                <a href="#" class="nav-link bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg flex items-center">
+                <a href="/admin/users" class="nav-link ${page === "users" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-cog-icon lucide-user-round-cog">
                         <path d="m14.305 19.53.923-.382" />
                         <path d="m15.228 16.852-.923-.383" />
