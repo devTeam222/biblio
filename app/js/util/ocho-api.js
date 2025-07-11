@@ -131,8 +131,21 @@ export default class OchoClient {
                             headers,
                         });
                     } else {
-                        const data = JSON.parse(xhr.response);
+                        console.log(`Code HTTP ${xhr.status}, Erreur`);
+                        const cleanEl = document.createElement("div");
+                        cleanEl.innerHTML = xhr.responseText;
+                        // Check if can parse as JSON
+                        let errorData;
+                        try {
+                            errorData = JSON.parse(xhr.responseText);
+                        } catch (e) {
+                            errorData = cleanEl.textContent || "Erreur inconnue";
+                        }
+                        const errorMessage = errorData || "Erreur inconnue";
+                        
+                        const data = {errorMessage};
                         const status = xhr.status;
+                        
                         const statusText = xhr.statusText;
                         if (mergedOptions.throwHttpErrors) {
                             console.log({
@@ -143,7 +156,7 @@ export default class OchoClient {
                             });
                             reject(new Error(`Erreur HTTP ${xhr.status}: ${xhr.statusText}`));
                         } else {
-                            console.error(`Erreur HTTP ${xhr.status}: ${xhr.statusText}`);
+                            console.error(`Erreur HTTP ${xhr.status}: ${xhr.statusText}`, data);
                             resolve({
                                 data,
                                 status,
@@ -214,7 +227,8 @@ export default class OchoClient {
 // todo: On appele la classe avec notre url de base
 export const apiClient = new OchoClient("/", {
     headers: {
-        Authorization: "Bearer your-token",
+        Authorization: "Bearer OchoToken", // Remplacez par votre token d'authentification
+        "X-Requested-With": "XMLHttpRequest", // Indique que la requête est faite via AJAX
     },
     throwHttpErrors: false,
 });

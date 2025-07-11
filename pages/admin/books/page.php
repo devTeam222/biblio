@@ -158,8 +158,6 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
         </div>
     </footer>
 
-    <!-- Conteneur pour les modales -->
-    <div id="modalContainer"></div>
 
     <!-- Modale Ajouter/Modifier Livre -->
     <div id="bookModal" class="modal-overlay hidden">
@@ -207,6 +205,8 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
         </div>
     </div>
 
+    <!-- Conteneur pour les modales -->
+    <div id="modalContainer"></div>
     <script type="module" src="/app/js/auth/admin/books.js"></script>
 </body>
 

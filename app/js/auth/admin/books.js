@@ -16,14 +16,8 @@ const addBookBtn = document.getElementById('addBookBtn');
 // Modale et éléments du formulaire
 const bookModal = document.getElementById('bookModal');
 const bookModalTitle = document.getElementById('bookModalTitle');
-const bookForm = document.getElementById('bookForm');
-const bookIdInput = document.getElementById('bookId');
-const bookTitleInput = document.getElementById('bookTitle');
 const bookAuthorSelect = document.getElementById('bookAuthor');
-const bookIsbnInput = document.getElementById('bookIsbn');
-const bookDescriptionInput = document.getElementById('bookDescription');
 const bookAvailableCheckbox = document.getElementById('bookAvailable');
-const cancelBookModalBtn = document.getElementById('cancelBookModalBtn');
 
 let allBooks = []; // Pour stocker tous les livres et permettre la recherche côté client
 let allAuthors = []; // Pour stocker les auteurs pour le dropdown
@@ -46,8 +40,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     bookSearchInput.addEventListener('input', handleSearch);
     addBookBtn.addEventListener('click', () => openBookModal());
-    cancelBookModalBtn.addEventListener('click', closeBookModal);
-    bookForm.addEventListener('submit', handleBookFormSubmit);
 
     // Délégation d'événements pour les boutons d'édition et de suppression
     booksTableBody.addEventListener('click', async (event) => {
@@ -100,7 +92,7 @@ async function loadBooks() {
     addLoader(booksTableBody);
     try {
         const response = await apiClient.get('/api/admin/books.php?action=list');
-        
+
         if (response.data.success) {
             allBooks = response.data.data;
             renderBooks(allBooks);
@@ -193,22 +185,37 @@ function handleSearch() {
  * @param {string} [bookId=null] - L'ID du livre à modifier, ou null pour un nouveau livre.
  */
 async function openBookModal(bookId = null) {
-    bookForm.reset(); // Réinitialiser le formulaire
-    bookIdInput.value = ''; // Vider l'ID caché
+    bookModal.classList.remove('hidden');
+    const form = document.getElementById('bookForm');
+    const bookIdInput = form.querySelector('#bookId');
+
+
+    // bookForm.reset(); // Réinitialiser le formulaire
+    bookIdInput.value = bookId ?? ''; // Vider l'ID caché
 
     if (bookId) {
         bookModalTitle.textContent = 'Modifier le livre';
-        addLoader(bookModal);
+        addLoader(bookModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
+        bookModal.classList.add('opacity-[0.5]'); // Ajouter une classe pour indiquer le chargement
+        bookModal.classList.add('pointer-events-none'); // Désactiver les interactions pendant le chargement
         try {
             const response = await apiClient.get(`/api/admin/books.php?action=details&id=${bookId}`);
+
+
             if (response.data.success) {
-                const book = response.data.data;
-                bookIdInput.value = book.id;
-                bookTitleInput.value = book.titre;
-                bookAuthorSelect.value = book.auteur_id; // Assurez-vous que l'ID de l'auteur correspond
-                bookIsbnInput.value = book.isbn || '';
-                bookDescriptionInput.value = book.description || '';
-                bookAvailableCheckbox.checked = book.disponible;
+                const data = response.data.data;
+                const book = {
+                    id: data.id,
+                    titre: data.titre,
+                    auteur_id: data.auteur_id,
+                    isbn: data.isbn || '',
+                    description: data.description || '',
+                    disponible: data.disponible || false
+                }
+                updateBookForm(book);
+
+
+
             } else {
                 showCustomModal(`Erreur chargement détails livre: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
                 closeBookModal();
@@ -221,11 +228,26 @@ async function openBookModal(bookId = null) {
             return;
         } finally {
             removeLoader(bookModal);
+            bookModal.classList.remove('opacity-[0.5]'); // Retirer la classe de chargement
+            bookModal.classList.remove('pointer-events-none'); // Réactiver les interactions
         }
     } else {
         bookModalTitle.textContent = 'Ajouter un nouveau livre';
+        const emptyBook = {
+            id: '',
+            titre: '',
+            auteur_id: '',
+            isbn: '',
+            description: '',
+            disponible: true // Par défaut, un nouveau livre est disponible
+        };
+        updateBookForm(emptyBook);
+        bookAvailableCheckbox.disabled = false; // Assurez-vous que la case à cocher est
     }
-    bookModal.classList.remove('hidden');
+    const bookFormEl = document.getElementById('bookForm');
+    bookFormEl.addEventListener('submit', handleBookFormSubmit);
+    const cancelBookModalBtn = bookModal.querySelector('#cancelBookModalBtn');
+    cancelBookModalBtn.addEventListener('click', closeBookModal);
 }
 
 /**
@@ -235,45 +257,95 @@ function closeBookModal() {
     bookModal.classList.add('hidden');
 }
 
+function updateBookForm(book) {
+    const form = document.getElementById('bookForm');
+    const bookIdInput = form.querySelector('#bookId');
+    const bookTitleInput = form.querySelector('#bookTitle');
+    const bookAuthorSelect = form.querySelector('#bookAuthor');
+    const bookIsbnInput = form.querySelector('#bookIsbn');
+    const bookDescriptionInput = form.querySelector('#bookDescription');
+    const bookAvailableCheckbox = form.querySelector('#bookAvailable');
+
+    bookIdInput.value = book.id;
+    bookTitleInput.value = book.titre;
+    bookAuthorSelect.value = book.auteur_id;
+    bookIsbnInput.value = book.isbn || '';
+    bookDescriptionInput.value = book.description || '';
+    bookAvailableCheckbox.checked = book.disponible || false;
+    bookAvailableCheckbox.disabled = false; // Assurez-vous que la case à cocher est activée
+}
+
 /**
  * Gère la soumission du formulaire d'ajout/modification de livre.
  * @param {Event} event - L'événement de soumission.
  */
 async function handleBookFormSubmit(event) {
     event.preventDefault();
-    addLoader(bookModal);
+    addLoader(bookModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
+    bookModal.classList.add('opacity-[0.5]'); // Ajouter une classe pour indiquer le chargement
+    bookModal.classList.add('pointer-events-none'); // Désactiver les interactions pendant le chargement
+
+    const form = event.target;
+    const bookIdInput = form.querySelector('#bookId');
+    const bookTitleInput = form.querySelector('#bookTitle');
+    const bookAuthorSelect = form.querySelector('#bookAuthor');
+    const bookIsbnInput = form.querySelector('#bookIsbn');
+    const bookDescriptionInput = form.querySelector('#bookDescription');
+    const bookAvailableCheckbox = form.querySelector('#bookAvailable');
 
     const bookData = {
         titre: bookTitleInput.value,
         auteur_id: bookAuthorSelect.value,
         isbn: bookIsbnInput.value,
         description: bookDescriptionInput.value,
-        disponible: bookAvailableCheckbox.checked ? 1 : 0 // Convertir en 0 ou 1 pour la BDD
     };
+    const initialBookData = {
+        id: bookIdInput.value,
+        titre: bookTitleInput.value,
+        auteur_id: bookAuthorSelect.value,
+        isbn: bookIsbnInput.value,
+        description: bookDescriptionInput.value,
+        disponible: bookAvailableCheckbox.checked
+    }
 
     try {
         let response;
         if (bookIdInput.value) {
             // Modification
             bookData.id = bookIdInput.value;
-            response = await apiClient.put(`/api/admin/books.php?action=update`, {body: bookData});
+            response = await apiClient.post(`/api/admin/books.php?action=update`, { body: bookData });
+
         } else {
             // Ajout
-            response = await apiClient.post('/api/admin/books.php?action=add', {body: bookData});
+            response = await apiClient.post('/api/admin/books.php?action=add', { body: bookData });
         }
 
         if (response.data.success) {
-            showCustomModal(`Livre ${bookIdInput.value ? 'modifié' : 'ajouté'} avec succès !`, { type: 'success' });
+            showCustomModal(`Livre ${bookIdInput.value ? 'modifié' : 'ajouté'} avec succès !`);
+            console.log(response.data);
+
             closeBookModal();
             await loadBooks(); // Recharger la liste
         } else {
             showCustomModal(`Erreur: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
+            console.error("Erreur lors de l'enregistrement du livre:", response.data);
+            // Réinitialiser le formulaire aux valeurs initiales
+            updateBookForm(initialBookData);
+            if (response.data.error && response.data.input) {
+                console.error("Détails de l'erreur:", response.data.error, response.data.input);
+                console.log(bookData);
+
+            }
         }
     } catch (error) {
         console.error("Erreur lors de l'enregistrement du livre:", error);
         showCustomModal("Une erreur est survenue lors de l'enregistrement du livre.", { type: 'alert' });
+        // Réinitialiser le formulaire aux valeurs initiales
+        updateBookForm(initialBookData);
     } finally {
         removeLoader(bookModal);
+        bookModal.classList.remove('opacity-[0.5]'); // Ajouter une classe pour indiquer le chargement
+        bookModal.classList.remove('pointer-events-none'); // Désactiver les interactions pendant le chargement
     }
 }
 
@@ -282,7 +354,7 @@ async function handleBookFormSubmit(event) {
  * @param {string} bookId - L'ID du livre à supprimer.
  */
 async function deleteBook(bookId) {
-    addLoader(booksTableBody);
+    addLoader(booksTableBody, "mx-auto");
     try {
         const response = await apiClient.delete(`/api/admin/books.php?action=delete&id=${bookId}`);
         if (response.data.success) {

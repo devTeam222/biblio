@@ -107,8 +107,8 @@ function showCustomModal(message, { type = 'alert', actions = [] } = {}) {
     });
 }
 
-function addLoader(el) {
-    el.innerHTML += `<span class="loader"></span>`;
+function addLoader(el, className = 'loader') {
+    el.innerHTML += `<span class="loader ${className}"></span>`;
 }
 function removeLoader(el) {
     const loader = el.querySelector('.loader');
