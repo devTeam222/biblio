@@ -113,6 +113,7 @@ async function loadCurrentLoans() {
         }
 
         const loans = response.data.data.map(loan => {
+
             // Assurez-vous que l'objet emprunt a les propriétés nécessaires
             if (!loan.date_emprunt || !loan.date_retour) {
                 console.warn("Emprunt sans date d'emprunt ou de retour :", loan);
@@ -121,14 +122,22 @@ async function loadCurrentLoans() {
             }
             const lang = navigator.language || 'fr-FR'; // Utilise la langue du navigateur ou 'fr-FR' par défaut
             // Formate les dates pour l'affichage
-            const date_emprunt = `${(new TimeFormatter(loan.date_emprunt * 1000, { lang, long: true, full: false }).format())} (${(new TimeFormatter(loan.date_emprunt * 1000, { lang, long: true }).formatRelativeTime())})`;
+            const date_emprunt = `${(new TimeFormatter(loan.date_emprunt * 1000, { lang, long: true, full: true }).format())} (${(new TimeFormatter(loan.date_emprunt * 1000, { lang, long: true }).formatRelativeTime())})`;
             const date_retour = new TimeFormatter(loan.date_retour * 1000, { lang, long: true, full: false }).format();
-
             return {
-                ...loan,
+                id: loan.id,
+                livre_id: loan.livre_id,
+                titre: loan.titre,
+                auteur: loan.auteur,
+                rendu: loan.rendu,
+                lecteur_id: loan.lecteur_id,
                 date_emprunt,
                 date_retour
             };
+        });
+        // Prioriser les emprunts non rendus
+        loans.sort((a, b) => {
+            return a.rendu === b.rendu ? 0 : (a.rendu ? 1 : -1); // Si les deux ont le même état de rendu, on les considère égaux
         });
 
         if (!loans || loans.length === 0) {
@@ -141,7 +150,10 @@ async function loadCurrentLoans() {
         loans.forEach((loan) => {
             const returnDate = new Date(loan.date_retour);
             const today = new Date();
-            const isOverdue = returnDate < today;
+            const isReturned = loan.rendu;
+            const isOverdue = !isReturned && returnDate < today; // Vérifie si l'emprunt est en retard
+            console.log(loan);
+
 
             const loanCard = document.createElement('div');
             loanCard.className = 'bg-gray-100 p-4 rounded-lg shadow-sm';
@@ -149,11 +161,11 @@ async function loadCurrentLoans() {
                         <h4 class="font-bold text-gray-900 text-lg mb-1">${loan.titre}</h4>
                         <p class="text-sm text-gray-600">Auteur : ${loan.auteur}</p>
                         <p class="text-sm text-gray-600">Date d'emprunt : ${loan.date_emprunt}</p>
-                        <p class="text-sm ${isOverdue ? 'text-red-600' : 'text-green-600'} font-semibold">Date de retour : ${loan.date_retour} ${isOverdue ? '(En retard)' : ''}</p>
-                        <button class="mt-3 bg-red-500 hover:bg-red-600 text-white py-1.5 px-4 rounded-md text-sm transition duration-200 ease-in-out remind">Rappeler le retour</button>
+                        ${!isReturned ? `<p class="text-sm ${isOverdue ? 'text-red-600' : 'text-green-600'} font-semibold">Date de retour : ${loan.date_retour} ${isOverdue ? '(En retard)' : ''}</p>` : ""}
+                        <button class="mt-3 ${!isReturned ? "bg-red-500 hover:bg-red-600 text-white" : "bg-green-400 hover:bg-green-500 text-green-950"} py-1.5 px-4 rounded-md text-sm transition duration-200 ease-in-out remind">${isReturned ? "Rendu" : "Rappeler le retour"}</button>
                     `;
             const remindBtn = loanCard.querySelector('.remind');
-            remindBtn.addEventListener('click', ()=>handleRemindReturn(loan.id))
+            !isReturned && remindBtn.addEventListener('click', () => handleRemindReturn(loan.id))
             currentLoansContainer.appendChild(loanCard);
         });
     } catch (error) {
@@ -249,7 +261,7 @@ async function handleBorrowBook(bookId) {
         actions: [
             {
                 label: 'Annuler',
-                callback: () => {},
+                callback: () => { },
                 className: 'bg-gray-400 hover:bg-gray-500 text-white',
                 value: false // valeur de retour explicite
             },

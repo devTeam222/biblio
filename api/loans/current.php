@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             JOIN
                 auteurs a ON l.auteur_id = a.id
             WHERE
-                e.lecteur_id = :lecteur_id AND e.rendu = FALSE
+                e.lecteur_id = :lecteur_id
             ORDER BY
                 e.date_retour ASC
         ");
