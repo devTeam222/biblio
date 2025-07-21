@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once '../db_connect.php';
+require_once __DIR__.'/../db_connect.php';
 
 // Vérifier si l'utilisateur est authentifié et a le rôle 'admin'
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {

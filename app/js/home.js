@@ -44,7 +44,7 @@ function getGuestId() {
  */
 async function session() {
     try {
-        const response = await apiClient.get('/api/auth/check.php', { throwHttpErrors: false });
+        const response = await apiClient.get('/api/auth/check', { throwHttpErrors: false });
         return {
             success: response.data.success,
             user_id: response.data.user_id || null,
@@ -72,7 +72,7 @@ async function handleLogout() {
     }
 
     try {
-        const response = await apiClient.post('/api/auth/logout.php', {}, { throwHttpErrors: true });
+        const response = await apiClient.post('/api/auth/logout', {}, { throwHttpErrors: true });
         if (response.data.success) {
             await showCustomModal('Déconnexion réussie !');
             // Recharger la page ou mettre à jour l'UI
@@ -104,7 +104,7 @@ async function loadCurrentLoans() {
     noLoansMessage.classList.add('hidden'); // Cache le message "pas d'emprunts"
 
     try {
-        const response = await apiClient.get('/api/loans/current.php', { throwHttpErrors: true });
+        const response = await apiClient.get('/api/loans/current', { throwHttpErrors: true });
         hideLoading(loansLoadingSpinner);
 
         if (!response?.data?.success) {
@@ -180,7 +180,7 @@ async function loadTrendingBooks(searchTerm = '') {
     showLoading(trendingLoadingSpinner);
     trendingBooksContainer.innerHTML = ''; // Vide le conteneur avant de charger
 
-    const endpoint = searchTerm ? `/api/books/search.php?query=${encodeURIComponent(searchTerm)}` : '/api/books/trending.php';
+    const endpoint = searchTerm ? `/api/books/search?query=${encodeURIComponent(searchTerm)}` : '/api/books/trending';
 
     try {
         const response = await apiClient.get(endpoint, { throwHttpErrors: true });
@@ -277,7 +277,7 @@ async function handleBorrowBook(bookId) {
 
                     try {
                         console.log(`Emprunt du livre avec ID: ${bookId}`);
-                        const response = await apiClient.post('/api/books/borrow.php', { body: { bookId: bookId } }, { throwHttpErrors: true });
+                        const response = await apiClient.post('/api/books/borrow', { body: { bookId: bookId } }, { throwHttpErrors: true });
                         if (response.data.success) {
                             await showCustomModal(response.data.message);
                             // Recharger les sections pour mettre à jour l'état
@@ -319,7 +319,7 @@ async function handleRemindReturn(loanId) {
     button.textContent = 'Envoi...';
 
     try {
-        const response = await apiClient.post('/api/loans/remind.php', { loanId: loanId }, { throwHttpErrors: true });
+        const response = await apiClient.post('/api/loans/remind', { loanId: loanId }, { throwHttpErrors: true });
         if (response.data.success) {
             await showCustomModal(response.data.message);
         } else {

@@ -107,6 +107,8 @@ export default class OchoClient {
                                 reject(new Error("Erreur de parsing JSON"));
                             } else {
                                 console.error(error);
+                                console.log({data});
+                                
                                 resolve({
                                     data,
                                     status,
@@ -231,4 +233,31 @@ export const apiClient = new OchoClient("/", {
         "X-Requested-With": "XMLHttpRequest", // Indique que la requête est faite via AJAX
     },
     throwHttpErrors: false,
-});
+}); 
+
+/*
+
+possible options in the apiClient constructor:
+{
+    headers: {
+        Authorization: "AuthToken",
+        "X-Requested-With": "XMLHttpRequest",
+    },
+    body: null, // Corps de la requête, peut être un objet, un formdata ou une chaîne JSON
+    throwHttpErrors: true, // Lève une erreur en cas de code HTTP >= 400
+    timeout: 0, // Timeout en millisecondes, 0 pour pas de timeout
+}
+progress callback must be in the form of:
+
+function onProgress(progress, event) {
+    if (progress !== null) {
+        console.log(`Progression: ${progress}%`);
+    } else {
+        console.log("Taille inconnue");
+    }
+    console.log("Événement de progression:", event);
+}  
+And it will be called in the third arg on api call like this:
+apiClient.get('/endpoint', {}, onProgress);
+This will log the progress of the request if it is a file upload or download.
+ */

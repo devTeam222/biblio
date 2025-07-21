@@ -91,7 +91,7 @@ function updateLastModifiedTime() {
 async function loadBooks() {
     addLoader(booksTableBody);
     try {
-        const response = await apiClient.get('/api/admin/books.php?action=list');
+        const response = await apiClient.get('/api/admin/books?action=list');
 
         if (response.data.success) {
             allBooks = response.data.data;
@@ -114,7 +114,7 @@ async function loadBooks() {
  */
 async function loadAuthorsForDropdown() {
     try {
-        const response = await apiClient.get('/api/admin/authors.php?action=list'); // Utilisez l'API des auteurs
+        const response = await apiClient.get('/api/admin/authors?action=list'); // Utilisez l'API des auteurs
 
         if (response.data.success) {
             allAuthors = response.data.data;
@@ -196,10 +196,10 @@ async function openBookModal(bookId = null) {
     if (bookId) {
         bookModalTitle.textContent = 'Modifier le livre';
         addLoader(bookModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
-        bookModal.classList.add('opacity-[0.5]'); // Ajouter une classe pour indiquer le chargement
+        bookModal.classList.add('opacity-[0.75]'); // Ajouter une classe pour indiquer le chargement
         bookModal.classList.add('pointer-events-none'); // Désactiver les interactions pendant le chargement
         try {
-            const response = await apiClient.get(`/api/admin/books.php?action=details&id=${bookId}`);
+            const response = await apiClient.get(`/api/admin/books?action=details&id=${bookId}`);
 
 
             if (response.data.success) {
@@ -228,7 +228,7 @@ async function openBookModal(bookId = null) {
             return;
         } finally {
             removeLoader(bookModal);
-            bookModal.classList.remove('opacity-[0.5]'); // Retirer la classe de chargement
+            bookModal.classList.remove('opacity-[0.75]'); // Retirer la classe de chargement
             bookModal.classList.remove('pointer-events-none'); // Réactiver les interactions
         }
     } else {
@@ -282,7 +282,7 @@ function updateBookForm(book) {
 async function handleBookFormSubmit(event) {
     event.preventDefault();
     addLoader(bookModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
-    bookModal.classList.add('opacity-[0.5]'); // Ajouter une classe pour indiquer le chargement
+    bookModal.classList.add('opacity-[0.75]'); // Ajouter une classe pour indiquer le chargement
     bookModal.classList.add('pointer-events-none'); // Désactiver les interactions pendant le chargement
 
     const form = event.target;
@@ -313,11 +313,11 @@ async function handleBookFormSubmit(event) {
         if (bookIdInput.value) {
             // Modification
             bookData.id = bookIdInput.value;
-            response = await apiClient.post(`/api/admin/books.php?action=update`, { body: bookData });
+            response = await apiClient.post(`/api/admin/books?action=update`, { body: bookData });
 
         } else {
             // Ajout
-            response = await apiClient.post('/api/admin/books.php?action=add', { body: bookData });
+            response = await apiClient.post('/api/admin/books?action=add', { body: bookData });
         }
 
         if (response.data.success) {
@@ -344,7 +344,7 @@ async function handleBookFormSubmit(event) {
         updateBookForm(initialBookData);
     } finally {
         removeLoader(bookModal);
-        bookModal.classList.remove('opacity-[0.5]'); // Ajouter une classe pour indiquer le chargement
+        bookModal.classList.remove('opacity-[0.75]'); // Ajouter une classe pour indiquer le chargement
         bookModal.classList.remove('pointer-events-none'); // Désactiver les interactions pendant le chargement
     }
 }
@@ -356,7 +356,7 @@ async function handleBookFormSubmit(event) {
 async function deleteBook(bookId) {
     addLoader(booksTableBody, "mx-auto");
     try {
-        const response = await apiClient.delete(`/api/admin/books.php?action=delete&id=${bookId}`);
+        const response = await apiClient.delete(`/api/admin/books?action=delete&id=${bookId}`);
         if (response.data.success) {
             showCustomModal('Livre supprimé avec succès !', { type: 'success' });
             await loadBooks(); // Recharger la liste

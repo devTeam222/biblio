@@ -25,7 +25,7 @@ loginForm.addEventListener('submit', async (e) => {
     errorMessage.classList.add('hidden'); // Cacher le message d'erreur précédent
 
     try {
-        const response = await apiClient.post('/api/auth/login.php', {
+        const response = await apiClient.post('/api/auth/login', {
             body: {
                 email,
                 password

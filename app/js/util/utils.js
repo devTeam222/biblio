@@ -127,7 +127,7 @@ function hideLoading(spinnerElement) {
 
 function isAuth() {
     return new Promise(async (resolve) => {
-        const response = await apiClient.get('/api/auth/check.php', { throwHttpErrors: true });
+        const response = await apiClient.get('/api/auth/check', { throwHttpErrors: true });
         const userDetails = response?.data?.user || null; // Détails de l'utilisateur authentifié
         const authEvent = new CustomEvent('authchange', {
             detail: {
@@ -355,7 +355,7 @@ async function handleLogout() {
 }
 async function logout() {
     try {
-        const response = await apiClient.post('/api/auth/logout.php');
+        const response = await apiClient.post('/api/auth/logout');
         if (!response?.data?.success) {
             console.log('Échec de la déconnexion:', response?.data?.message || 'Erreur inconnue');
             showCustomModal('Échec de la déconnexion. Veuillez réessayer.');

@@ -64,7 +64,7 @@ async function loadDashboardData() {
         addLoader(document.querySelector('main'));
 
         // Charger les statistiques globales
-        const statsResponse = await apiClient.get('/api/admin/dashboard.php?action=stats');
+        const statsResponse = await apiClient.get('/api/admin/dashboard?action=stats');
         if (statsResponse.data.success) {
             updateStats(statsResponse.data.data);
         } else {
@@ -73,7 +73,7 @@ async function loadDashboardData() {
         }
 
         // Charger les emprunts en retard
-        const overdueResponse = await apiClient.get('/api/admin/dashboard.php?action=overdue_loans');
+        const overdueResponse = await apiClient.get('/api/admin/dashboard?action=overdue_loans');
         if (overdueResponse.data.success) {
             updateOverdueLoans(overdueResponse.data.data);
         } else {
@@ -82,7 +82,7 @@ async function loadDashboardData() {
         }
 
         // Charger l'activité récente
-        const activityResponse = await apiClient.get(`/api/admin/dashboard.php?action=recent_activity&page=${currentActivitiesPage}&per_page=${ACTIVITIES_PER_PAGE}`);
+        const activityResponse = await apiClient.get(`/api/admin/dashboard?action=recent_activity&page=${currentActivitiesPage}&per_page=${ACTIVITIES_PER_PAGE}`);
         if (activityResponse.data.success) {
             updateRecentActivities(activityResponse.data.data);
         } else {
@@ -265,7 +265,7 @@ async function initActivityChart() {
     }
 
     try {
-        const response = await apiClient.get('/api/admin/dashboard.php?action=chart_data', { throwHttpErrors: true });
+        const response = await apiClient.get('/api/admin/dashboard?action=chart_data', { throwHttpErrors: true });
         if (response.data.success) {
             const chartData = response.data.data;
             const labels = chartData.labels.map(label => {

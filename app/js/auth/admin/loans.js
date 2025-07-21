@@ -76,7 +76,7 @@ function updateLastModifiedTime() {
 async function loadLoans() {
     addLoader(loansTableBody);
     try {
-        const response = await apiClient.get('/api/admin/loans.php?action=list');
+        const response = await apiClient.get('/api/admin/loans?action=list');
         if (response.data.success) {
             allLoans = response.data.data; // Stocker les données brutes
             renderLoans(allLoans); // Afficher toutes les données initialement
@@ -162,7 +162,7 @@ async function markLoanAsReturned(loanId, btn) {
     addLoader(loansTableBody);
     addLoader(btn); // Ajouter un loader au bouton pour indiquer le traitement en cours
     try {
-        const response = await apiClient.post('/api/admin/loans.php?action=return', { body: {loan_id: loanId} });
+        const response = await apiClient.post('/api/admin/loans?action=return', { body: {loan_id: loanId} });
         if (response.data.success) {
             showCustomModal('Livre marqué comme retourné avec succès !');
             await loadLoans(); // Recharger la liste des emprunts

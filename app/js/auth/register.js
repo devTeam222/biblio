@@ -34,7 +34,7 @@ registerForm.addEventListener('submit', async (e) => {
     errorMessage.classList.add('hidden'); // Cacher le message d'erreur précédent
 
     try {
-        const response = await apiClient.post('/api/auth/register.php', {
+        const response = await apiClient.post('/api/auth/register', {
             body: {
                 name: name,
                 email: email,

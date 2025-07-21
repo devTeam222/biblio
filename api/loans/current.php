@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once '../db_connect.php';
+require_once __DIR__.'/../db_connect.php';
 session_start();
 // Simule l'ID de l'utilisateur connecté.
 // En production, ceci viendrait d'une session sécurisée ou d'un token JWT.

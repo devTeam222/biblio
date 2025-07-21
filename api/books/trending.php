@@ -1,7 +1,7 @@
 <?php
 // api/books/trending.php
 
-require_once '../db_connect.php'; // connexion PDO PostgreSQL
+require_once __DIR__.'/../db_connect.php'; // connexion PDO PostgreSQL
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *'); // Permet les requêtes depuis n'importe quel domaine (pour le développement)

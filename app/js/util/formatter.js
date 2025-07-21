@@ -256,7 +256,7 @@ class NumberFormatter {
     return formatter.format(this.number);
   }
 
-  formatTime() {
+  formatDuration() {
     const nombre = this.number;
     const conversions = [
       { seuil: 60, unite: "second", diviseur: 1 },

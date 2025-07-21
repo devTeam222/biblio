@@ -1,150 +1,188 @@
 <?php
+// router.php – Unified Front Controller
 
-/**
- * router.php
- *
- * Ce fichier sert de contrôleur frontal pour le serveur web intégré de PHP.
- * Il gère toutes les requêtes entrantes et les redirige vers les fichiers PHP appropriés,
- * en particulier pour le dossier 'pages' selon les règles spécifiées.
- *
- * Pour l'utiliser : php -S localhost:8000 router.php
- */
-
-// Décoder l'URI de la requête pour gérer les caractères spéciaux
 $request_uri = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+$method = $_SERVER['REQUEST_METHOD'];
+$isAjax = (
+    (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') ||
+    (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'))
+);
 
-// --- Gestion de la racine ---
-// Si la requête est pour la racine de l'application (ex: /), servir index.php
-if ($request_uri === '/') {
-    require __DIR__ . '/index.php';
-    exit; // Terminer l'exécution après avoir servi le fichier
+// JSON Response
+function send_json($code, $data)
+{
+    http_response_code($code);
+    header('Content-Type: application/json');
+    echo json_encode($data);
+    exit;
 }
 
-// --- Gestion des fichiers et répertoires existants directement ---
-// Si l'URI de la requête correspond directement à un fichier ou un répertoire existant
-// (ex: /app/css/test.css, /api/auth/login.php, /app/js/)
-if (file_exists(__DIR__ . $request_uri)) {
-    // Si c'est un répertoire, vérifier s'il contient un index.php
-    if (is_dir(__DIR__ . $request_uri)) {
-        if (file_exists(__DIR__ . $request_uri . '/index.php')) {
-            require __DIR__ . $request_uri . '/index.php';
-            exit;
-        }
-        // Si c'est un répertoire sans index.php, laisser le serveur intégré gérer (souvent un 404 ou une liste de fichiers)
-        return false;
-    } else {
-        // Si c'est un fichier, laisser le serveur intégré le servir directement (ex: CSS, JS, images)
-        return false;
+// Styled Error HTML Page
+function send_error_page($code, $message, $details = '')
+{
+    http_response_code($code);
+    $title = $code === 404 ? "404 - Page Non Trouvée" : "$code - Erreur Serveur";
+    $subtitle = $message;
+    echo <<<HTML
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{$title}</title>
+  <script src="/app/js/tailwind.js"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100 px-4">
+  <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-lg w-full">
+    <h1 class="text-6xl font-extrabold text-gray-800 mb-4">{$code}</h1>
+    <h2 class="text-2xl font-semibold text-gray-700 mb-4">{$subtitle}</h2>
+    <p class="text-gray-600">Une erreur est survenue. Si vous êtes développeur, ouvrez la console pour plus de détails.</p>
+    <script>
+        console.error("{$title} : {$subtitle}");
+        const details = decodeURIComponent("{$details}"
+            .replace(/<br\s*\/?>/g, '%0A')
+            .replace(/<[^>]*>/g, '')
+            .replace(/"/g, '\\"')
+            .trim()
+        );
+        if (details !== '') console.error(details);
+    </script>
+    <a href="/" class="mt-6 inline-block bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+      Retour à l'accueil
+    </a>
+  </div>
+</body>
+</html>
+HTML;
+    exit;
+}
+
+// --- Serve Static Files Directly ---
+// This is crucial for CSS, images, etc.
+$static_file_path = __DIR__ . $request_uri;
+
+// If the requested URI corresponds to an existing file AND it's not a PHP file,
+// let the PHP built-in server (or web server like Nginx/Apache) handle it.
+// This is the most efficient way to serve static assets.
+if (file_exists($static_file_path) && !is_dir($static_file_path) && pathinfo($static_file_path, PATHINFO_EXTENSION) !== 'php') {
+    return false; // Tells the PHP built-in server to serve the file
+}
+
+
+// --- Root case ---
+if ($request_uri === '/') {
+    require __DIR__ . '/index.php';
+    exit;
+}
+
+// --- Normalize URI for internal use ---
+// Remove leading/trailing slashes for easier path manipulation
+$normalized_uri = trim($request_uri, '/');
+$base_dir = __DIR__;
+$target_file = null;
+
+// --- Debugging aid (uncomment to see what paths are being checked) ---
+// error_log("Request URI: " . $request_uri);
+// error_log("Normalized URI: " . $normalized_uri);
+
+// --- Path Resolution Strategy: Ordered by specificity/priority ---
+
+// 1. Check for explicit PHP or JS files in common application directories
+// Priorité : pages > base > app/api
+
+$potential_paths = [];
+
+// --- Priorité 1 : pages/ ---
+$potential_paths[] = "$base_dir/pages/$normalized_uri.php";
+$potential_paths[] = "$base_dir/pages/$normalized_uri.js";
+
+// --- Priorité 2 : base directory (fallback) ---
+$potential_paths[] = "$base_dir/$normalized_uri.php";
+$potential_paths[] = "$base_dir/$normalized_uri.js";
+
+// --- Priorité 3 : api/ uniquement si URI commence par 'api/' ---
+if (str_starts_with($normalized_uri, 'api/')) {
+    $api_path_segment = substr($normalized_uri, 4);
+    $potential_paths[] = "$base_dir/api/$api_path_segment.php";
+    // $potential_paths[] = "$base_dir/api/$api_path_segment.js";
+}
+
+// --- Priorité 4 : app/ uniquement si URI commence par 'app/' ---
+// Note: This 'app/' block is now primarily for PHP/JS files that are part of the *routing logic*,
+// not for static assets like CSS which are handled by the 'Serve Static Files Directly' block above.
+if (str_starts_with($normalized_uri, 'app/')) {
+    $app_path_segment = substr($normalized_uri, 4);
+    $potential_paths[] = "$base_dir/app/$app_path_segment.php";
+    $potential_paths[] = "$base_dir/app/$app_path_segment.js";
+}
+
+
+// Iteratively check for explicit files first
+foreach ($potential_paths as $path_to_check) {
+    // error_log("Checking explicit path: " . $path_to_check);
+    if (file_exists($path_to_check)) {
+        $target_file = $path_to_check;
+        break; // Found the most specific file, no need to check further
     }
 }
 
-// --- Logique de routage spécifique pour le dossier 'pages' ---
-// Cette section gère les URL propres pour les fichiers dans le dossier 'pages'.
-// Ex: /login -> pages/login.php
-// Ex: /admin -> pages/admin/page.php
-// Ex: /admin/livres -> pages/admin/livres/page.php
+// 2. If no explicit file found, check for directory index files
+if ($target_file === null) {
+    // For a request like /pages/admin/, try to find index files inside it
+    $potential_directory_indexes = [
+        "$base_dir/$normalized_uri/page.php",     // Specific for your 'pages' subfolders
+        "$base_dir/$normalized_uri/index.php",
+        "$base_dir/pages/$normalized_uri/page.php", // Handles /pages/admin -> /pages/admin/page.php
+        "$base_dir/pages/$normalized_uri/index.php",
+    ];
 
-// Supprimer les slashes de début et de fin pour faciliter la manipulation
-$trimmed_uri = trim($request_uri, '/');
-$path_segments = explode('/', $trimmed_uri);
+    foreach ($potential_directory_indexes as $path_to_check) {
+        // error_log("Checking directory index path: " . $path_to_check);
+        if (file_exists($path_to_check)) {
+            $target_file = $path_to_check;
+            break; // Found an index file
+        }
+    }
+}
 
-// 1. Tenter de mapper vers pages/dossier/page.php (pour les dossiers avec page.php comme index)
-// Ex: /admin/livres -> pages/admin/livres/page.php
-// Ex: /admin -> pages/admin/page.php
-$potential_nested_page_index = __DIR__ . '/pages/' . $trimmed_uri . '/page.php';
-if (file_exists($potential_nested_page_index)) {
-    require $potential_nested_page_index;
+// --- Handle Found Target ---
+if ($target_file !== null) {
+    $ext = pathinfo($target_file, PATHINFO_EXTENSION);
+
+    if ($ext === 'php') {
+        require $target_file;
+    } elseif ($ext === 'js') {
+        header("Content-Type: application/javascript");
+        readfile($target_file);
+    } elseif ($ext === 'css') {
+        header("Content-Type: text/css");
+        readfile($target_file);
+        // This block will now primarily catch CSS files that might be found via the previous PHP/JS search
+        // (e.g., if you had a custom rule to look for .css files in specific PHP/JS related paths).
+        // For general static CSS, the 'return false' at the top is more effective.
+    } else {
+        // If it's another static file type, it would ideally be handled by 'return false' at the top.
+        // This else block acts as a fallback for other extensions if they somehow reach here.
+        $mime = mime_content_type($target_file);
+        header("Content-Type: " . $mime);
+        readfile($target_file);
+    }
     exit;
 }
 
-// 2. Tenter de mapper vers pages/fichier.php (pour les fichiers sans extension)
-// Ex: /login -> pages/login.php
-$potential_page_file = __DIR__ . '/pages/' . $trimmed_uri . '.php';
-if (file_exists($potential_page_file)) {
-    require $potential_page_file;
+// --- API not found ---
+if (str_starts_with($normalized_uri, 'api/')) {
+    if ($isAjax) {
+        send_json(404, ['error' => 'Ressource API introuvable']);
+    } else {
+        send_error_page(404, 'API introuvable');
+    }
     exit;
 }
 
-// --- Gestion des fichiers PHP sans extension en dehors du dossier 'pages' ---
-// Ex: /api/auth/login -> api/auth/login.php
-$potential_php_file_outside_pages = __DIR__ . $request_uri . '.php';
-if (file_exists($potential_php_file_outside_pages)) {
-    require $potential_php_file_outside_pages;
-    exit;
+// --- Generic 404 ---
+if ($isAjax) {
+    send_json(404, ['error' => 'Ressource introuvable']);
+} else {
+    send_error_page(404, 'Page Non Trouvée', "Aucune ressource ne correspond à : <code>" . htmlspecialchars($request_uri) . "</code>");
 }
-
-// Si aucune des règles ci-dessus n'a été appliquée, laisser le serveur intégré
-// gérer la requête. Il retournera un 404 si le fichier n'existe pas.
-http_response_code(404);
-?>
-<!DOCTYPE html>
-<html lang="fr">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Page Non Trouvée - Ma Bibliothèque</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            text-align: center;
-            padding: 1rem;
-        }
-
-        .error-container {
-            background-color: #ffffff;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            padding: 2.5rem;
-            max-width: 600px;
-            width: 95%;
-        }
-
-        .home-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem 1.5rem;
-            background-color: #2563eb;
-            color: white;
-            font-weight: 600;
-            border-radius: 0.5rem;
-            text-decoration: none;
-            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
-        }
-
-        .home-button:hover {
-            background-color: #1d4ed8;
-            transform: translateY(-2px);
-        }
-    </style>
-</head>
-
-<body>
-    <div class="error-container">
-        <h1 class="text-6xl font-extrabold text-gray-900 mb-4">404</h1>
-        <h2 class="text-3xl font-bold text-gray-800 mb-6">Page Non Trouvée</h2>
-        <p class="text-lg text-gray-600 mb-8">
-            Désolé, la page que vous recherchez n'existe pas ou a été déplacée.
-            Veuillez vérifier l'URL ou retourner à la page d'accueil.
-        </p>
-        <a href="/" class="home-button">
-            <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house">
-                <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
-                <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            </svg>
-            Retour à l'accueil
-        </a>
-    </div>
-</body>
-
-</html>

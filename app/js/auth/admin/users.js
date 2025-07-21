@@ -41,7 +41,7 @@ let allAuthors = [];
 let activeTab = 'users'; // 'users' ou 'authors'
 
 addEventListener('load', async () => {
-    
+
     const authStatus = await isAuth();
 
     if (!authStatus.success || !authStatus.roles.includes('admin')) {
@@ -139,7 +139,7 @@ function handleAddEntityClick() {
 async function loadUsers() {
     addLoader(usersTableBody);
     try {
-        const response = await apiClient.get('/api/admin/users.php?action=list');
+        const response = await apiClient.get('/api/admin/users?action=list');
         if (response.data.success) {
             allUsers = response.data.data;
             renderUsers(allUsers);
@@ -198,7 +198,7 @@ function renderUsers(usersToDisplay) {
 async function loadAuthors() {
     addLoader(authorsTableBody);
     try {
-        const response = await apiClient.get('/api/admin/authors.php?action=list');
+        const response = await apiClient.get('/api/admin/authors?action=list');
         if (response.data.success) {
             allAuthors = response.data.data;
             renderAuthors(allAuthors);
@@ -278,21 +278,26 @@ function handleSearch() {
  * @param {string} [userId=null] - L'ID de l'utilisateur à modifier, ou null pour un nouvel utilisateur.
  */
 async function openUserModal(userId = null) {
+    userModal.classList.remove('hidden');
     const userForm = userModal.querySelector('#userForm');
     userForm.reset();
     const userIdInput = userForm.querySelector('#userId');
-    const userNameInput = userForm.querySelector('#userName');
-    const userEmailInput = userForm.querySelector('#userEmail');
-    const userRoleSelect = userForm.querySelector('#userRole');
     userIdInput.value = '';
+    
 
     if (userId) {
         userModalTitle.textContent = 'Modifier l\'utilisateur';
         addLoader(userModal);
         try {
-            const response = await apiClient.get(`/api/admin/users.php?action=details&id=${userId}`);
+            const response = await apiClient.get(`/api/admin/users?action=details&id=${userId}`);
             if (response.data.success) {
                 const user = response.data.data;
+            const userIdInput = userForm.querySelector('#userId');
+            const userNameInput = userForm.querySelector('#userName');
+            const userEmailInput = userForm.querySelector('#userEmail');
+            const userRoleSelect = userForm.querySelector('#userRole');
+                console.log(userIdInput, userNameInput, userEmailInput, userRoleSelect);
+                
                 userIdInput.value = user.id;
                 userNameInput.value = user.nom;
                 userEmailInput.value = user.email;
@@ -313,7 +318,6 @@ async function openUserModal(userId = null) {
     } else {
         userModalTitle.textContent = 'Ajouter un nouvel utilisateur';
     }
-    userModal.classList.remove('hidden');
     const cancelUserModalBtn = userModal.querySelector('#cancelUserModalBtn');
     cancelUserModalBtn.addEventListener('click', closeUserModal);
     const userFormElement = userModal.querySelector('#userForm');
@@ -325,7 +329,7 @@ async function openUserModal(userId = null) {
  */
 function closeUserModal() {
     console.log("Fermeture de la modale utilisateur");
-    
+
     userModal.classList.add('hidden');
 }
 
@@ -349,10 +353,10 @@ async function handleUserFormSubmit(event) {
         if (userIdInput.value) {
             // Modification
             userData.id = userIdInput.value;
-            response = await apiClient.post(`/api/admin/users.php?action=update`, {body: userData});
+            response = await apiClient.post(`/api/admin/users?action=update`, { body: userData });
         } else {
             // Ajout
-            response = await apiClient.post('/api/admin/users.php?action=add', {body: userData});
+            response = await apiClient.post('/api/admin/users?action=add', { body: userData });
         }
 
         if (response.data.success) {
@@ -378,7 +382,7 @@ async function handleUserFormSubmit(event) {
 async function deleteUser(userId) {
     addLoader(usersTableBody);
     try {
-        const response = await apiClient.delete(`/api/admin/users.php?action=delete&id=${userId}`);
+        const response = await apiClient.delete(`/api/admin/users?action=delete&id=${userId}`);
         if (response.data.success) {
             showCustomModal('Utilisateur supprimé avec succès !', { type: 'success' });
             await loadUsers();
@@ -408,7 +412,7 @@ async function openAuthorModal(authorId = null) {
         authorModalTitle.textContent = 'Modifier l\'auteur';
         addLoader(authorModal);
         try {
-            const response = await apiClient.get(`/api/admin/authors.php?action=details&id=${authorId}`);
+            const response = await apiClient.get(`/api/admin/authors?action=details&id=${authorId}`);
             if (response.data.success) {
                 const author = response.data.data;
                 authorIdInput.value = author.id;
@@ -462,13 +466,13 @@ async function handleAuthorFormSubmit(event) {
         let response;
         if (authorIdInput.value) {
             console.log("Modification de l'auteur avec ID:", authorIdInput.value);
-            
+
             // Modification
             authorData.id = authorIdInput.value;
-            response = await apiClient.post(`/api/admin/authors.php?action=update`, {body: authorData});
+            response = await apiClient.post(`/api/admin/authors?action=update`, { body: authorData });
         } else {
             // Ajout
-            response = await apiClient.post('/api/admin/authors.php?action=add', {body: authorData});
+            response = await apiClient.post('/api/admin/authors?action=add', { body: authorData });
         }
 
         if (response.data.success) {
@@ -493,7 +497,7 @@ async function handleAuthorFormSubmit(event) {
 async function deleteAuthor(authorId) {
     addLoader(authorsTableBody);
     try {
-        const response = await apiClient.delete(`/api/admin/authors.php?action=delete&id=${authorId}`);
+        const response = await apiClient.delete(`/api/admin/authors?action=delete&id=${authorId}`);
         if (response.data.success) {
             showCustomModal('Auteur supprimé avec succès !', { type: 'success' });
             await loadAuthors();
