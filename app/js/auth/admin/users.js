@@ -287,21 +287,21 @@ async function openUserModal(userId = null) {
 
     if (userId) {
         userModalTitle.textContent = 'Modifier l\'utilisateur';
-        addLoader(userModal);
+        addLoader(userModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
         try {
             const response = await apiClient.get(`/api/admin/users?action=details&id=${userId}`);
             if (response.data.success) {
                 const user = response.data.data;
-            const userIdInput = userForm.querySelector('#userId');
-            const userNameInput = userForm.querySelector('#userName');
-            const userEmailInput = userForm.querySelector('#userEmail');
-            const userRoleSelect = userForm.querySelector('#userRole');
-                console.log(userIdInput, userNameInput, userEmailInput, userRoleSelect);
+                const userIdInput = document.getElementById('userId');
+                const userNameInput = document.getElementById('userName');
+                const userEmailInput = document.getElementById('userEmail');
+                const userRoleSelect = document.getElementById('userRole');
                 
                 userIdInput.value = user.id;
                 userNameInput.value = user.nom;
                 userEmailInput.value = user.email;
                 userRoleSelect.value = user.role;
+                
             } else {
                 showCustomModal(`Erreur chargement détails utilisateur: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
                 closeUserModal();
@@ -339,7 +339,9 @@ function closeUserModal() {
  */
 async function handleUserFormSubmit(event) {
     event.preventDefault();
-    addLoader(userModal);
+    addLoader(userModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
+    userModal.classList.add('opacity-[0.75]'); // Ajouter une classe pour indiquer le chargement
+    userModal.classList.add('pointer-events-none'); // Désactiver les interactions pendant le chargement
     const userNameInput = userModal.querySelector('#userName');
     const userRoleSelect = userModal.querySelector('#userRole');
 
@@ -371,6 +373,8 @@ async function handleUserFormSubmit(event) {
         showCustomModal("Une erreur est survenue lors de l'enregistrement de l'utilisateur.", { type: 'alert' });
     } finally {
         removeLoader(userModal);
+        userModal.classList.remove('opacity-[0.75]'); // Retirer la classe de chargement
+        userModal.classList.remove('pointer-events-none'); // Réactiver les interactions
     }
 
 }
@@ -410,11 +414,16 @@ async function openAuthorModal(authorId = null) {
 
     if (authorId) {
         authorModalTitle.textContent = 'Modifier l\'auteur';
-        addLoader(authorModal);
+        addLoader(authorModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
+        authorModal.classList.add('opacity-[0.75]'); // Ajouter une classe pour indiquer le chargement
+        authorModal.classList.add('pointer-events-none'); // Désactiver les interactions pendant le
         try {
             const response = await apiClient.get(`/api/admin/authors?action=details&id=${authorId}`);
             if (response.data.success) {
                 const author = response.data.data;
+                const authorIdInput = document.getElementById('authorId');
+                const authorNameInput = document.getElementById('authorName');
+                const authorBioInput = document.getElementById('authorBio');
                 authorIdInput.value = author.id;
                 authorNameInput.value = author.nom;
                 authorBioInput.value = author.biographie || '';
@@ -430,6 +439,8 @@ async function openAuthorModal(authorId = null) {
             return;
         } finally {
             removeLoader(authorModal);
+            authorModal.classList.remove('opacity-[0.75]'); // Retirer la classe de chargement
+            authorModal.classList.remove('pointer-events-none'); // Réactiver les interactions
         }
     } else {
         authorModalTitle.textContent = 'Ajouter un nouvel auteur';

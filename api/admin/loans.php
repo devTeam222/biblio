@@ -60,6 +60,15 @@ try {
             $stmt->bindParam(':current_timestamp', $current_timestamp, PDO::PARAM_INT);
             $stmt->bindParam(':loan_id', $loan_id, PDO::PARAM_INT);
             $stmt->execute();
+            if ($stmt->rowCount() === 0) {
+                http_response_code(404);
+                echo json_encode(["success" => false, "message" => "Emprunt non trouvé."]);
+                exit();
+            }
+            // Mettre à jour le stock du livre
+            $stmt = $pdo->prepare("UPDATE livres SET disponible = TRUE WHERE id = (SELECT livre_id FROM emprunts WHERE id = :loan_id)");
+            $stmt->bindParam(':loan_id', $loan_id, PDO::PARAM_INT);
+            $stmt->execute();
             echo json_encode(["success" => true, "message" => "Emprunt marqué comme retourné."]);
             break;
 

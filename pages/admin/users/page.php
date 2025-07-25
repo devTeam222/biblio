@@ -229,7 +229,8 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                     <select id="userRole"
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                         required>
-                        <option value="user">Utilisateur</option>
+                        <option value="author">Auteur</option>
+                        <option value="user">Lecteur</option>
                         <option value="admin">Administrateur</option>
                     </select>
                 </div>
