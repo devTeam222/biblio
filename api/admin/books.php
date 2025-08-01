@@ -22,7 +22,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     exit();
 }
 
-$action = $_GET['action'] ?? '';
+$action = $_GET['action'] ?? ''; 
 $input = $_POST;
 
 try {

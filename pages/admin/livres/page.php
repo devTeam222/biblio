@@ -169,7 +169,7 @@
 
     <!-- Pied de page -->
     <footer class="bg-gray-800 text-white text-center p-4 mt-8 shadow-inner">
-        <p>&copy; 2025 Système de Gestion de Bibliothèque. Tous droits réservés. Réalisé par Ochokom.</p>
+        <p>&copy; 2025 Système de Gestion de Bibliothèque. Tous droits réservés. Réalisé par Ochokom et dirigé par Didier Yina.</p>
     </footer>
 </body>
 </html>

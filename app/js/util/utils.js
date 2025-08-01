@@ -44,7 +44,11 @@ function showCustomModal(message, { type = 'alert', actions = [] } = {}) {
             }).join('');
         } else {
             // Si aucune action personnalisée n'est fournie, utilisez les types 'alert' ou 'confirm' par défaut.
-            if (type === 'alert') {
+            if(type === 'success'){
+
+                buttonsHtml = `<button id="modalOkBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">OK</button>`;
+
+            }else if (type === 'alert') {
                 buttonsHtml = `<button id="modalCancelBtn" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Fermer</button>`;
             } else if (type === 'confirm') {
                 buttonsHtml = `
@@ -108,7 +112,9 @@ function showCustomModal(message, { type = 'alert', actions = [] } = {}) {
 }
 
 function addLoader(el, className = 'loader') {
-    el.innerHTML += `<span class="loader ${className}"></span>`;
+    const loaderEl = document.createElement('span');
+    loaderEl.className = `loader ${className}`; // Ajouter la classe de loader
+    el.appendChild(loaderEl); // Ajouter le loader à l'élément spécifié
 }
 function removeLoader(el) {
     const loader = el.querySelector('.loader');

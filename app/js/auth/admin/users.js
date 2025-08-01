@@ -1,104 +1,79 @@
-
 import { apiClient } from "../../util/ocho-api.js";
 import { TimeFormatter } from "../../util/formatter.js";
 import { showCustomModal, addLoader, removeLoader, isAuth, updateNavBar } from "../../util/utils.js";
 
-window.modalContainer = document.getElementById('modalContainer');
-
-const userNameDisplay = document.getElementById('userNameDisplay');
-const notificationCountEl = document.getElementById('notificationCount');
-const adminAvatarEl = document.getElementById('adminAvatar');
-const lastUpdateTimeEl = document.getElementById('lastUpdateTime');
-
-const entitySearchInput = document.getElementById('entitySearchInput');
-const addEntityBtn = document.getElementById('addEntityBtn');
-
+// DOM elements from page.php
 const usersTabBtn = document.getElementById('usersTabBtn');
 const authorsTabBtn = document.getElementById('authorsTabBtn');
 const usersContent = document.getElementById('usersContent');
 const authorsContent = document.getElementById('authorsContent');
-
 const usersTableBody = document.querySelector('#usersTable tbody');
 const authorsTableBody = document.querySelector('#authorsTable tbody');
+const entitySearchInput = document.getElementById('entitySearchInput');
+const addEntityBtn = document.getElementById('addEntityBtn');
+const lastUpdateTimeEl = document.getElementById('lastUpdateTime');
 
-// Modales et éléments des formulaires
+// Modal elements
 const userModal = document.getElementById('userModal');
-const userModalTitle = document.getElementById('userModalTitle');
-const userIdInput = document.getElementById('userId');
-const userNameInput = document.getElementById('userName');
-const userPasswordInput = document.getElementById('userPassword');
-const userRoleSelect = document.getElementById('userRole');
-
 const authorModal = document.getElementById('authorModal');
-const authorModalTitle = document.getElementById('authorModalTitle');
-const authorIdInput = document.getElementById('authorId');
-const authorNameInput = document.getElementById('authorName');
-const authorBioInput = document.getElementById('authorBio');
+const userForm = document.getElementById('userForm');
+const authorForm = document.getElementById('authorForm');
+const cancelUserModalBtn = document.getElementById('cancelUserModalBtn');
+const cancelAuthorModalBtn = document.getElementById('cancelAuthorModalBtn');
+const confirmationModal = document.getElementById('confirmationModal');
+const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
 
+// Pagination elements
+const usersPrevPageBtn = document.getElementById('usersPrevPageBtn');
+const usersNextPageBtn = document.getElementById('usersNextPageBtn');
+const usersPageInfo = document.getElementById('usersPageInfo');
+const authorsPrevPageBtn = document.getElementById('authorsPrevPageBtn');
+const authorsNextPageBtn = document.getElementById('authorsNextPageBtn');
+const authorsPageInfo = document.getElementById('authorsPageInfo');
 
-let allUsers = [];
-let allAuthors = [];
-let activeTab = 'users'; // 'users' ou 'authors'
+// Global state variables
+let currentActiveTab = sessionStorage.getItem('admin-tab') ?? 'users';
+const itemsPerPage = 5;
+let currentItemToDelete = null;
+let currentDeleteType = null;
+let usersState = {
+    data: [],
+    currentPage: 1,
+    totalPages: 1,
+    searchQuery: ''
+};
+let authorsState = {
+    data: [],
+    currentPage: 1,
+    totalPages: 1,
+    searchQuery: ''
+};
 
-addEventListener('load', async () => {
-
-    const authStatus = await isAuth();
-
-    if (!authStatus.success || !authStatus.roles.includes('admin')) {
-        await showCustomModal('Accès non autorisé. Vous devez être un administrateur pour accéder à cette page.', { type: 'alert' });
-        window.location.href = '/login';
-        return;
-    }
-
-    userNameDisplay.textContent = authStatus.user.name || 'Admin';
-    updateAdminAvatar(authStatus.user.name);
-    updateNavBar("admin", 'users'); // Mettre en surbrillance le lien actif
-    updateLastModifiedTime();
-
-    // Initial load based on activeTab (default: users)
-    await loadUsers();
-    // Load authors in background for faster tab switching
-    loadAuthors();
-
-    usersTabBtn.addEventListener('click', () => switchTab('users'));
-    authorsTabBtn.addEventListener('click', () => switchTab('authors'));
-    entitySearchInput.addEventListener('input', handleSearch);
-    addEntityBtn.addEventListener('click', handleAddEntityClick);
-
-
-    setInterval(loadUsers, 300000); // Actualiser les utilisateurs toutes les 5 minutes
-    setInterval(loadAuthors, 300000); // Actualiser les auteurs toutes les 5 minutes
-});
+// ----------------------------------------------------
+// Utility and rendering functions
+// ----------------------------------------------------
 
 /**
- * Met à jour l'avatar de l'administrateur avec des initiales dynamiques.
- * @param {string} userName - Le nom de l'utilisateur.
+ * Utility function to debounce a function call.
+ * @param {Function} func - The function to debounce.
+ * @param {number} delay - The delay in milliseconds.
+ * @returns {Function} - The debounced function.
  */
-function updateAdminAvatar(userName) {
-    if (adminAvatarEl) {
-        const initials = userName ? userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'AD';
-        adminAvatarEl.src = `https://placehold.co/40x40/4f46e5/ffffff?text=${initials}`;
-        adminAvatarEl.alt = `Avatar de ${userName}`;
-    }
+function debounce(func, delay) {
+    let timeout;
+    return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+    };
 }
 
 /**
- * Met à jour le temps de la dernière mise à jour affiché sur la page.
- */
-function updateLastModifiedTime() {
-    const now = new Date();
-    const formatter = new TimeFormatter(now.getTime(), { lang: navigator.language, long: true });
-    if (lastUpdateTimeEl) {
-        lastUpdateTimeEl.textContent = formatter.format();
-    }
-}
-
-/**
- * Change l'onglet actif (Utilisateurs ou Auteurs).
- * @param {string} tabName - 'users' ou 'authors'.
+ * Updates the UI based on the active tab.
+ * @param {string} tabName - 'users' or 'authors'.
  */
 async function switchTab(tabName) {
-    activeTab = tabName;
+    currentActiveTab = tabName;
 
     usersTabBtn.classList.remove('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
     usersTabBtn.classList.add('bg-gray-100', 'text-gray-700');
@@ -113,258 +88,322 @@ async function switchTab(tabName) {
         usersContent.classList.remove('hidden');
         await loadUsers();
         addEntityBtn.textContent = 'Ajouter un utilisateur';
+        addEntityBtn.onclick = () => openModal(userModal, true);
+        sessionStorage.setItem('admin-tab', 'users');
     } else {
         authorsTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
         authorsContent.classList.remove('hidden');
         await loadAuthors();
         addEntityBtn.textContent = 'Ajouter un auteur';
+        addEntityBtn.onclick = () => openModal(authorModal, true);
+        sessionStorage.setItem('admin-tab', 'authors');
     }
-    handleSearch(); // Appliquer la recherche après le changement d'onglet
 }
 
 /**
- * Gère le clic sur le bouton "Ajouter" en fonction de l'onglet actif.
+ * Renders the users table with data from the current state.
  */
-function handleAddEntityClick() {
-    if (activeTab === 'users') {
-        openUserModal();
+function renderPaginatedUsers() {
+    const { data, currentPage, totalPages } = usersState;
+    usersTableBody.innerHTML = '';
+
+    if (data.length === 0) {
+        usersTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">Aucun utilisateur trouvé.</td></tr>`;
     } else {
-        openAuthorModal();
+        data.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="text-sm font-medium text-gray-900">${user.id}</td>
+                <td class="text-sm text-gray-600">${user.nom}</td>
+                <td class="text-sm text-gray-600">${user.email}</td>
+                <td class="text-sm text-gray-600 capitalize">${user.role}</td>
+                <td class="flex space-x-2">
+                    <button class="edit-user-btn text-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200 action-button">Modifier</button>
+                    <button class="delete-user-btn text-sm bg-red-100 text-red-700 hover:bg-red-200 action-button">Supprimer</button>
+                </td>
+            `;
+            // Add event listeners directly to the buttons after they are created
+            const editButton = row.querySelector('.edit-user-btn');
+            const deleteButton = row.querySelector('.delete-user-btn');
+
+            editButton.addEventListener('click', () => editUser(user.id));
+            deleteButton.addEventListener('click', () => showConfirmationModal('user', user.id));
+
+            usersTableBody.appendChild(row);
+        });
     }
+    updatePaginationControls(currentPage, totalPages, usersPageInfo, usersPrevPageBtn, usersNextPageBtn);
 }
 
 /**
- * Charge la liste des utilisateurs depuis l'API.
+ * Renders the authors table with data from the current state.
  */
-async function loadUsers() {
+function renderPaginatedAuthors() {
+    const { data, currentPage, totalPages } = authorsState;
+    authorsTableBody.innerHTML = '';
+
+    if (data.length === 0) {
+        authorsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">Aucun auteur trouvé.</td></tr>`;
+    } else {
+        data.forEach(author => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="text-sm font-medium text-gray-900">${author.authorid}</td>
+                <td class="text-sm text-gray-600">${author.pseudo}</td>
+                <td class="text-sm text-gray-600">${author.nom_complet || 'N/A'}</td>
+                <td class="text-sm text-gray-600">${author.biographie ? author.biographie.substring(0, 50) + '...' : 'N/A'}</td>
+                <td class="flex space-x-2">
+                    <button class="edit-author-btn text-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200 action-button">Modifier</button>
+                    <button class="delete-author-btn text-sm bg-red-100 text-red-700 hover:bg-red-200 action-button">Supprimer</button>
+                </td>
+            `;
+            // Add event listeners directly to the buttons after they are created
+            const editButton = row.querySelector('.edit-author-btn');
+            const deleteButton = row.querySelector('.delete-author-btn');
+
+            editButton.addEventListener('click', () => editAuthor(author.authorid));
+            deleteButton.addEventListener('click', () => showConfirmationModal('author', author.authorid));
+
+            authorsTableBody.appendChild(row);
+        });
+    }
+    updatePaginationControls(currentPage, totalPages, authorsPageInfo, authorsPrevPageBtn, authorsNextPageBtn);
+}
+
+/**
+ * Updates the pagination buttons and info display.
+ * @param {number} currentPage - The current page number.
+ * @param {number} totalPages - The total number of pages.
+ * @param {HTMLElement} pageInfoEl - The element displaying page information.
+ * @param {HTMLElement} prevBtn - The "previous page" button.
+ * @param {HTMLElement} nextBtn - The "next page" button.
+ */
+function updatePaginationControls(currentPage, totalPages, pageInfoEl, prevBtn, nextBtn) {
+    pageInfoEl.textContent = `Page ${currentPage} sur ${totalPages || 1}`;
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+}
+
+/**
+ * Fetches and loads users from the API with search and pagination.
+ * @param {string} searchQuery - The search term.
+ * @param {number} page - The page number to load.
+ */
+async function loadUsers(searchQuery = '', page = 1) {
     addLoader(usersTableBody);
+    usersState.searchQuery = searchQuery;
+    usersState.currentPage = page;
     try {
-        const response = await apiClient.get('/api/admin/users?action=list');
+        const response = await apiClient.get(`/api/admin/users?action=list&search=${encodeURIComponent(searchQuery)}&page=${page}&limit=${itemsPerPage}`);
         if (response.data.success) {
-            allUsers = response.data.data;
-            renderUsers(allUsers);
+            usersState.data = response.data.data;
+            usersState.totalPages = Math.ceil(response.data.total / itemsPerPage);
+            renderPaginatedUsers();
         } else {
-            showCustomModal(`Erreur chargement utilisateurs: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
-            usersTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500">Erreur: ${response.data.message || 'Impossible de charger les utilisateurs.'}</td></tr>`;
+            showCustomModal(`Erreur: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
         }
     } catch (error) {
         console.error("Erreur lors du chargement des utilisateurs:", error);
         showCustomModal("Une erreur est survenue lors du chargement des utilisateurs.", { type: 'alert' });
-        usersTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500">Erreur de connexion API.</td></tr>`;
     } finally {
         removeLoader(usersTableBody);
     }
 }
 
 /**
- * Affiche les utilisateurs dans le tableau.
- * @param {Array<Object>} usersToDisplay - Les utilisateurs à afficher.
+ * Fetches and loads authors from the API with search and pagination.
+ * @param {string} searchQuery - The search term.
+ * @param {number} page - The page number to load.
  */
-function renderUsers(usersToDisplay) {
-    usersTableBody.innerHTML = '';
-    if (usersToDisplay.length === 0) {
-        usersTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">Aucun utilisateur trouvé.</td></tr>`;
-        return;
-    }
-
-    usersToDisplay.forEach(user => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td class="py-3 px-2">${user.id}</td>
-            <td class="py-3 px-2">${user.nom}</td>
-            <td class="py-3 px-2">${user.email}</td>
-            <td class="py-3 px-2">${user.role}</td>
-            <td class="py-3 px-2 flex space-x-2">
-                <button class="action-button bg-blue-100 text-blue-700 hover:bg-blue-200 text-sm edit-user-btn" data-user-id="${user.id}">Éditer</button>
-                <button class="action-button bg-red-100 text-red-700 hover:bg-red-200 text-sm delete-user-btn" data-user-id="${user.id}" data-user-name="${user.nom}">Supprimer</button>
-            </td>
-        `;
-        const editBtn = row.querySelector('.edit-user-btn');
-        const deleteBtn = row.querySelector('.delete-user-btn');
-        editBtn.addEventListener('click', () => openUserModal(user.id));
-        deleteBtn.addEventListener('click', async () => {
-            const confirm = await showCustomModal(`Confirmer la suppression de l'utilisateur "${user.nom}" ?`, { type: 'confirm' });
-            if (confirm) {
-                await deleteUser(user.id);
-            }
-        });
-        usersTableBody.appendChild(row);
-    });
-}
-
-/**
- * Charge la liste des auteurs depuis l'API.
- */
-async function loadAuthors() {
+async function loadAuthors(searchQuery = '', page = 1) {
     addLoader(authorsTableBody);
+    authorsState.searchQuery = searchQuery;
+    authorsState.currentPage = page;
     try {
-        const response = await apiClient.get('/api/admin/authors?action=list');
+        const response = await apiClient.get(`/api/admin/authors?action=list&search=${encodeURIComponent(searchQuery)}&page=${page}&limit=${itemsPerPage}`);
         if (response.data.success) {
-            allAuthors = response.data.data;
-            renderAuthors(allAuthors);
+            authorsState.data = response.data.data;
+            authorsState.totalPages = Math.ceil(response.data.total / itemsPerPage);
+            renderPaginatedAuthors();
         } else {
-            showCustomModal(`Erreur chargement auteurs: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
-            authorsTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-500">Erreur: ${response.data.message || 'Impossible de charger les auteurs.'}</td></tr>`;
+            showCustomModal(`Erreur: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
         }
     } catch (error) {
         console.error("Erreur lors du chargement des auteurs:", error);
         showCustomModal("Une erreur est survenue lors du chargement des auteurs.", { type: 'alert' });
-        authorsTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-500">Erreur de connexion API.</td></tr>`;
     } finally {
         removeLoader(authorsTableBody);
     }
 }
 
-/**
- * Affiche les auteurs dans le tableau.
- * @param {Array<Object>} authorsToDisplay - Les auteurs à afficher.
- */
-function renderAuthors(authorsToDisplay) {
-    authorsTableBody.innerHTML = '';
-    if (authorsToDisplay.length === 0) {
-        authorsTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">Aucun auteur trouvé.</td></tr>`;
-        return;
-    }
-
-    authorsToDisplay.forEach(author => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td class="py-3 px-2">${author.id}</td>
-            <td class="py-3 px-2">${author.nom}</td>
-            <td class="py-3 px-2">${author.biographie || 'N/A'}</td>
-            <td class="py-3 px-2 flex space-x-2">
-                <button class="action-button bg-blue-100 text-blue-700 hover:bg-blue-200 text-sm edit-author-btn" data-author-id="${author.id}">Éditer</button>
-                <button class="action-button bg-red-100 text-red-700 hover:bg-red-200 text-sm delete-author-btn" data-author-id="${author.id}" data-author-name="${author.nom}">Supprimer</button>
-            </td>
-        `;
-        const editBtn = row.querySelector('.edit-author-btn');
-        const deleteBtn = row.querySelector('.delete-author-btn');
-        editBtn.addEventListener('click', () => openAuthorModal(author.id));
-        deleteBtn.addEventListener('click', async () => {
-            const confirm = await showCustomModal(`Confirmer la suppression de l'auteur "${author.nom}" ?`, { type: 'confirm' });
-            if (confirm) {
-                await deleteAuthor(author.id);
-            }
-        });
-        authorsTableBody.appendChild(row);
-    });
-}
+// ----------------------------------------------------
+// Event listeners
+// ----------------------------------------------------
 
 /**
- * Gère la recherche d'entités (utilisateurs ou auteurs) en fonction de l'onglet actif.
+ * Updates the last modified time display.
  */
-function handleSearch() {
-    const searchTerm = entitySearchInput.value.toLowerCase();
-    if (activeTab === 'users') {
-        const filteredUsers = allUsers.filter(user =>
-            user.nom.toLowerCase().includes(searchTerm) ||
-            user.email.toLowerCase().includes(searchTerm) ||
-            user.role.toLowerCase().includes(searchTerm)
-        );
-        renderUsers(filteredUsers);
-    } else {
-        const filteredAuthors = allAuthors.filter(author =>
-            author.nom.toLowerCase().includes(searchTerm) ||
-            (author.biographie && author.biographie.toLowerCase().includes(searchTerm))
-        );
-        renderAuthors(filteredAuthors);
+function updateLastModifiedTime() {
+    const now = new Date();
+    const formatter = new TimeFormatter(now.getTime(), { lang: navigator.language, long: true });
+    if (lastUpdateTimeEl) {
+        lastUpdateTimeEl.textContent = formatter.format();
     }
 }
-
-// --- Fonctions de gestion des Utilisateurs ---
-
-/**
- * Ouvre la modale pour ajouter ou modifier un utilisateur.
- * @param {string} [userId=null] - L'ID de l'utilisateur à modifier, ou null pour un nouvel utilisateur.
- */
-async function openUserModal(userId = null) {
-    userModal.classList.remove('hidden');
-    const userForm = userModal.querySelector('#userForm');
-    userForm.reset();
-    const userIdInput = userForm.querySelector('#userId');
-    userIdInput.value = '';
-    
-
-    if (userId) {
-        userModalTitle.textContent = 'Modifier l\'utilisateur';
-        addLoader(userModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
-        try {
-            const response = await apiClient.get(`/api/admin/users?action=details&id=${userId}`);
-            if (response.data.success) {
-                const user = response.data.data;
-                const userIdInput = document.getElementById('userId');
-                const userNameInput = document.getElementById('userName');
-                const userEmailInput = document.getElementById('userEmail');
-                const userRoleSelect = document.getElementById('userRole');
-                
-                userIdInput.value = user.id;
-                userNameInput.value = user.nom;
-                userEmailInput.value = user.email;
-                userRoleSelect.value = user.role;
-                
-            } else {
-                showCustomModal(`Erreur chargement détails utilisateur: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
-                closeUserModal();
-                return;
-            }
-        } catch (error) {
-            console.error("Erreur lors du chargement des détails de l'utilisateur:", error);
-            showCustomModal("Une erreur est survenue lors du chargement des détails de l'utilisateur.", { type: 'alert' });
-            closeUserModal();
-            return;
-        } finally {
-            removeLoader(userModal);
-        }
-    } else {
-        userModalTitle.textContent = 'Ajouter un nouvel utilisateur';
-    }
-    const cancelUserModalBtn = userModal.querySelector('#cancelUserModalBtn');
-    cancelUserModalBtn.addEventListener('click', closeUserModal);
-    const userFormElement = userModal.querySelector('#userForm');
-    userFormElement.addEventListener('submit', handleUserFormSubmit);
-}
-
-/**
- * Ferme la modale utilisateur.
- */
-function closeUserModal() {
-    console.log("Fermeture de la modale utilisateur");
-
-    userModal.classList.add('hidden');
-}
-
-/**
- * Gère la soumission du formulaire d'ajout/modification d'utilisateur.
- * @param {Event} event - L'événement de soumission.
- */
-async function handleUserFormSubmit(event) {
-    event.preventDefault();
-    addLoader(userModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
-    userModal.classList.add('opacity-[0.75]'); // Ajouter une classe pour indiquer le chargement
-    userModal.classList.add('pointer-events-none'); // Désactiver les interactions pendant le chargement
-    const userNameInput = userModal.querySelector('#userName');
-    const userRoleSelect = userModal.querySelector('#userRole');
-
-    const userData = {
-        nom: userNameInput.value,
-        role: userRoleSelect.value,
-    };
-
-    try {
-        let response;
-        if (userIdInput.value) {
-            // Modification
-            userData.id = userIdInput.value;
-            response = await apiClient.post(`/api/admin/users?action=update`, { body: userData });
+document.addEventListener('DOMContentLoaded', () => {
+    isAuth().then(isAuthenticated => {
+        if (isAuthenticated) {
+            updateNavBar("admin", 'users'); // Mettre en surbrillance le lien actif
+            loadUsers();
+            loadAuthors();
+            switchTab(currentActiveTab);
+            updateLastModifiedTime();
         } else {
-            // Ajout
-            response = await apiClient.post('/api/admin/users?action=add', { body: userData });
+            window.location.href = '/login';
         }
+    });
 
+    // Tab switching
+    usersTabBtn.addEventListener('click', () => switchTab('users'));
+    authorsTabBtn.addEventListener('click', () => switchTab('authors'));
+
+    // Debounced search functionality
+    const debouncedSearch = debounce((e) => {
+        const searchQuery = e.target.value;
+        if (currentActiveTab === 'users') {
+            loadUsers(searchQuery);
+        } else {
+            loadAuthors(searchQuery);
+        }
+    }, 500); // 500ms delay
+    entitySearchInput.addEventListener('input', debouncedSearch);
+
+    // Pagination for Users
+    usersPrevPageBtn.addEventListener('click', () => {
+        if (usersState.currentPage > 1) {
+            loadUsers(usersState.searchQuery, usersState.currentPage - 1);
+        }
+    });
+    usersNextPageBtn.addEventListener('click', () => {
+        if (usersState.currentPage < usersState.totalPages) {
+            loadUsers(usersState.searchQuery, usersState.currentPage + 1);
+        }
+    });
+
+    // Pagination for Authors
+    authorsPrevPageBtn.addEventListener('click', () => {
+        if (authorsState.currentPage > 1) {
+            loadAuthors(authorsState.searchQuery, authorsState.currentPage - 1);
+        }
+    });
+    authorsNextPageBtn.addEventListener('click', () => {
+        if (authorsState.currentPage < authorsState.totalPages) {
+            loadAuthors(authorsState.searchQuery, authorsState.currentPage + 1);
+        }
+    });
+
+    // Confirmation modal logic
+    confirmDeleteBtn.addEventListener('click', async () => {
+        if (currentDeleteType === 'user' && currentItemToDelete) {
+            await deleteUser(currentItemToDelete);
+        } else if (currentDeleteType === 'author' && currentItemToDelete) {
+            await deleteAuthor(currentItemToDelete);
+        }
+        closeModal(confirmationModal);
+        currentItemToDelete = null;
+        currentDeleteType = null;
+    });
+    cancelDeleteBtn.addEventListener('click', () => {
+        closeModal(confirmationModal);
+        currentItemToDelete = null;
+        currentDeleteType = null;
+    });
+
+    // Modal forms submission
+    userForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveUser();
+    });
+
+    authorForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveAuthor();
+    });
+
+    // Modal close buttons
+    cancelUserModalBtn.addEventListener('click', () => closeModal(userModal));
+    cancelAuthorModalBtn.addEventListener('click', () => closeModal(authorModal));
+});
+
+/**
+ * Displays a custom confirmation modal.
+ * @param {string} type - 'user' or 'author'.
+ * @param {string} id - The ID of the item to delete.
+ */
+function showConfirmationModal(type, id) {
+    currentItemToDelete = id;
+    currentDeleteType = type;
+    openModal(confirmationModal);
+}
+
+/**
+ * Handles the logic for showing/hiding modals.
+ * @param {HTMLElement} modal - The modal element.
+ * @param {boolean} isNew - True if it's a new item, false otherwise.
+ */
+function openModal(modal, isNew = false) {
+    if (modal === userModal) {
+        document.getElementById('userModalTitle').textContent = isNew ? 'Ajouter un nouvel utilisateur' : 'Modifier un utilisateur';
+    } else if (modal === authorModal) {
+        document.getElementById('authorModalTitle').textContent = isNew ? 'Ajouter un nouvel auteur' : 'Modifier un auteur';
+    }
+    modal.classList.remove('hidden');
+}
+
+/**
+ * Closes a modal.
+ * @param {HTMLElement} modal - The modal element to close.
+ */
+function closeModal(modal) {
+    modal.classList.add('hidden');
+}
+
+/**
+ * Populates the user form for editing.
+ * @param {string} userId - The ID of the user to edit.
+ */
+async function editUser(userId) {
+    const user = usersState.data.find(u => u.id == userId);
+    if (user) {
+        document.getElementById('userModalTitle').textContent = `Modifier l'utilisateur: ${user.nom}`;
+        document.getElementById('userId').value = user.id;
+        document.getElementById('userName').value = user.nom;
+        document.getElementById('userEmail').value = user.email;
+        document.getElementById('userEmail').setAttribute('readonly', 'true');
+        document.getElementById('userRole').value = user.role;
+        openModal(userModal);
+    }
+}
+
+/**
+ * Saves a user (add or update).
+ */
+async function saveUser() {
+    const userId = document.getElementById('userId').value;
+    const userData = {
+        id: userId,
+        nom: document.getElementById('userName').value,
+        email: document.getElementById('userEmail').value,
+        role: document.getElementById('userRole').value,
+    };
+    addLoader(userModal);
+    try {
+        const url = `/api/admin/users?action=${userId ? 'update' : 'add'}`;
+        const response = await apiClient.post(url, { body: userData });
         if (response.data.success) {
-            showCustomModal(`Utilisateur ${userIdInput.value ? 'modifié' : 'ajouté'} avec succès !`, { type: 'success' });
-            closeUserModal();
-            await loadUsers();
+            showCustomModal(`Utilisateur ${userId ? 'modifié' : 'ajouté'} avec succès !`, { type: 'success' });
+            closeModal(userModal);
+            await loadUsers(usersState.searchQuery, usersState.currentPage); // Reload data to reflect changes
         } else {
             showCustomModal(`Erreur: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
         }
@@ -373,15 +412,12 @@ async function handleUserFormSubmit(event) {
         showCustomModal("Une erreur est survenue lors de l'enregistrement de l'utilisateur.", { type: 'alert' });
     } finally {
         removeLoader(userModal);
-        userModal.classList.remove('opacity-[0.75]'); // Retirer la classe de chargement
-        userModal.classList.remove('pointer-events-none'); // Réactiver les interactions
     }
-
 }
 
 /**
- * Supprime un utilisateur.
- * @param {string} userId - L'ID de l'utilisateur à supprimer.
+ * Deletes a user.
+ * @param {string} userId - The ID of the user to delete.
  */
 async function deleteUser(userId) {
     addLoader(usersTableBody);
@@ -389,7 +425,7 @@ async function deleteUser(userId) {
         const response = await apiClient.delete(`/api/admin/users?action=delete&id=${userId}`);
         if (response.data.success) {
             showCustomModal('Utilisateur supprimé avec succès !', { type: 'success' });
-            await loadUsers();
+            await loadUsers(usersState.searchQuery, usersState.currentPage); // Reload data
         } else {
             showCustomModal(`Erreur lors de la suppression: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
         }
@@ -401,95 +437,40 @@ async function deleteUser(userId) {
     }
 }
 
-// --- Fonctions de gestion des Auteurs ---
-
 /**
- * Ouvre la modale pour ajouter ou modifier un auteur.
- * @param {string} [authorId=null] - L'ID de l'auteur à modifier, ou null pour un nouvel auteur.
+ * Populates the author form for editing.
+ * @param {string} authorId - The ID of the author to edit.
  */
-async function openAuthorModal(authorId = null) {
-    const authorForm = authorModal.querySelector('#authorForm');
-    authorForm.reset();
-    authorIdInput.value = '';
-
-    if (authorId) {
-        authorModalTitle.textContent = 'Modifier l\'auteur';
-        addLoader(authorModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
-        authorModal.classList.add('opacity-[0.75]'); // Ajouter une classe pour indiquer le chargement
-        authorModal.classList.add('pointer-events-none'); // Désactiver les interactions pendant le
-        try {
-            const response = await apiClient.get(`/api/admin/authors?action=details&id=${authorId}`);
-            if (response.data.success) {
-                const author = response.data.data;
-                const authorIdInput = document.getElementById('authorId');
-                const authorNameInput = document.getElementById('authorName');
-                const authorBioInput = document.getElementById('authorBio');
-                authorIdInput.value = author.id;
-                authorNameInput.value = author.nom;
-                authorBioInput.value = author.biographie || '';
-            } else {
-                showCustomModal(`Erreur chargement détails auteur: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
-                closeAuthorModal();
-                return;
-            }
-        } catch (error) {
-            console.error("Erreur lors du chargement des détails de l'auteur:", error);
-            showCustomModal("Une erreur est survenue lors du chargement des détails de l'auteur.", { type: 'alert' });
-            closeAuthorModal();
-            return;
-        } finally {
-            removeLoader(authorModal);
-            authorModal.classList.remove('opacity-[0.75]'); // Retirer la classe de chargement
-            authorModal.classList.remove('pointer-events-none'); // Réactiver les interactions
-        }
-    } else {
-        authorModalTitle.textContent = 'Ajouter un nouvel auteur';
+async function editAuthor(authorId) {
+    const author = authorsState.data.find(a => a.authorId == authorId);
+    if (author) {
+        document.getElementById('authorModalTitle').textContent = `Modifier l'auteur: ${author.pseudo}`;
+        document.getElementById('authorId').value = author.authorId;
+        document.getElementById('authorName').value = author.pseudo;
+        document.getElementById('authorFullname').value = author.nom_complet || '';
+        document.getElementById('authorBio').value = author.biographie;
+        openModal(authorModal);
     }
-    authorModal.classList.remove('hidden');
-    // Author Modal Event Listeners
-    const cancelAuthorModalBtn = authorModal.querySelector('#cancelAuthorModalBtn');
-    cancelAuthorModalBtn.addEventListener('click', closeAuthorModal);
-    const eventForm = authorModal.querySelector('#authorForm');
-    eventForm.addEventListener('submit', handleAuthorFormSubmit);
 }
 
 /**
- * Ferme la modale auteur.
+ * Saves an author (add or update).
  */
-function closeAuthorModal() {
-    authorModal.classList.add('hidden');
-}
-
-/**
- * Gère la soumission du formulaire d'ajout/modification d'auteur.
- * @param {Event} event - L'événement de soumission.
- */
-async function handleAuthorFormSubmit(event) {
-    event.preventDefault();
-    addLoader(authorModal);
-
+async function saveAuthor() {
+    const authorId = document.getElementById('authorId').value;
     const authorData = {
-        nom: authorNameInput.value,
-        biographie: authorBioInput.value,
+        id: authorId,
+        nom: document.getElementById('authorName').value,
+        biographie: document.getElementById('authorBio').value,
     };
-
+    addLoader(authorModal);
     try {
-        let response;
-        if (authorIdInput.value) {
-            console.log("Modification de l'auteur avec ID:", authorIdInput.value);
-
-            // Modification
-            authorData.id = authorIdInput.value;
-            response = await apiClient.post(`/api/admin/authors?action=update`, { body: authorData });
-        } else {
-            // Ajout
-            response = await apiClient.post('/api/admin/authors?action=add', { body: authorData });
-        }
-
+        const url = `/api/admin/authors?action=${authorId ? 'update' : 'add'}`;
+        const response = await apiClient.post(url, {body: authorData});
         if (response.data.success) {
-            showCustomModal(`Auteur ${authorIdInput.value ? 'modifié' : 'ajouté'} avec succès !`);
-            closeAuthorModal();
-            await loadAuthors();
+            showCustomModal(`Auteur ${authorId ? 'modifié' : 'ajouté'} avec succès !`, { type: 'success' });
+            closeModal(authorModal);
+            await loadAuthors(authorsState.searchQuery, authorsState.currentPage); // Reload data
         } else {
             showCustomModal(`Erreur: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
         }
@@ -502,8 +483,8 @@ async function handleAuthorFormSubmit(event) {
 }
 
 /**
- * Supprime un auteur.
- * @param {string} authorId - L'ID de l'auteur à supprimer.
+ * Deletes an author.
+ * @param {string} authorId - The ID of the author to delete.
  */
 async function deleteAuthor(authorId) {
     addLoader(authorsTableBody);
@@ -511,7 +492,7 @@ async function deleteAuthor(authorId) {
         const response = await apiClient.delete(`/api/admin/authors?action=delete&id=${authorId}`);
         if (response.data.success) {
             showCustomModal('Auteur supprimé avec succès !', { type: 'success' });
-            await loadAuthors();
+            await loadAuthors(authorsState.searchQuery, authorsState.currentPage); // Reload data
         } else {
             showCustomModal(`Erreur lors de la suppression: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
         }

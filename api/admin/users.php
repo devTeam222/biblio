@@ -23,14 +23,49 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
 }
 
 $action = $_GET['action'] ?? '';
-$input = $_POST;
+$input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 
 try {
     switch ($action) {
         case 'list':
-            $stmt = $pdo->query("SELECT id, nom, email, role FROM users ORDER BY nom ASC");
+            // Get search and pagination parameters
+            $search = trim($_GET['search']) ?? '';
+            $page = filter_var($_GET['page'] ?? 1, FILTER_VALIDATE_INT);
+            $limit = filter_var($_GET['limit'] ?? 10, FILTER_VALIDATE_INT);
+
+            if ($page < 1) $page = 1;
+            if ($limit < 1) $limit = 10;
+            $offset = ($page - 1) * $limit;
+
+            // Prepare WHERE clause for search
+            $whereClause = '';
+            $params = [];
+            if (!empty($search)) {
+                $whereClause .= ' WHERE nom ILIKE ? OR email ILIKE ? OR role ILIKE ?';
+                $searchTerm = '%' . $search . '%';
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+            }
+
+            // Get total count of filtered items
+            $countStmt = $pdo->prepare("SELECT COUNT(*) FROM users " . $whereClause);
+            $countStmt->execute($params);
+            $totalCount = $countStmt->fetchColumn();
+
+            // Get paginated and filtered data
+            $sql = "SELECT id, nom, email, role FROM users " . $whereClause . " ORDER BY nom ASC LIMIT ? OFFSET ?";
+            $stmt = $pdo->prepare($sql);
+            $params[] = $limit;
+            $params[] = $offset;
+            $stmt->execute($params);
             $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            echo json_encode(["success" => true, "data" => $users]);
+            
+            echo json_encode([
+                "success" => true,
+                "data" => $users,
+                "total" => $totalCount
+            ]);
             break;
 
         case 'details':
@@ -57,32 +92,26 @@ try {
             $email = $input['email'] ?? null;
             $password = $input['password'] ?? null;
             $role = $input['role'] ?? 'user';
-
             if (!$nom || !$email || !$password) {
                 http_response_code(400);
                 echo json_encode(["success" => false, "message" => "Nom, email et mot de passe sont requis."]);
                 exit();
             }
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-            $stmt = $pdo->prepare("INSERT INTO users (nom, email, password, role) VALUES (:nom, :email, :password, :role)");
-            $stmt->bindParam(':nom', $nom);
-            $stmt->bindParam(':email', $email);
-            $stmt->bindParam(':password', $hashed_password);
-            $stmt->bindParam(':role', $role);
-            $stmt->execute();
-            echo json_encode(["success" => true, "message" => "Utilisateur ajouté."]);
+            $stmt = $pdo->prepare("INSERT INTO users (nom, email, password, role) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$nom, $email, $hashed_password, $role]);
+            echo json_encode(["success" => true, "message" => "Utilisateur ajouté avec succès.", "id" => $pdo->lastInsertId()]);
             break;
 
         case 'update':
             $id = $input['id'] ?? null;
             $nom = $input['nom'] ?? null;
-            $password = $input['password'] ?? null; // Optionnel
             $role = $input['role'] ?? null;
+            $password = $input['password'] ?? null;
 
-            if (!$id || !$nom || !$email || !$role) {
+            if (!$id || !$nom || !$role) {
                 http_response_code(400);
-                echo json_encode(["success" => false, "message" => "ID, nom, email et rôle sont requis."]);
+                echo json_encode(["success" => false, "message" => "ID, nom et rôle de l'utilisateur sont requis."]);
                 exit();
             }
 
@@ -126,4 +155,4 @@ try {
     http_response_code(500);
     echo json_encode(["success" => false, "message" => "Erreur de base de données: " . $e->getMessage()]);
 }
-?>
+

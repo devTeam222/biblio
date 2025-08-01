@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once __DIR__.'/../db_connect.php';
+require_once __DIR__ . '/../db_connect.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     http_response_code(403);
@@ -28,7 +28,11 @@ $input = $_POST;
 try {
     switch ($action) {
         case 'list':
-            $stmt = $pdo->query("SELECT id, nom, biographie FROM auteurs ORDER BY nom ASC");
+            $stmt = $pdo->query("SELECT a.id AS authorId, a.nom AS pseudo, a.biographie, u.nom AS nom_complet, u.id AS userId 
+                FROM auteurs a
+                LEFT JOIN users u ON u.id = a.user_id
+                ORDER BY a.nom ASC
+            ");
             $authors = $stmt->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode(["success" => true, "data" => $authors]);
             break;
@@ -40,6 +44,7 @@ try {
                 echo json_encode(["success" => false, "message" => "ID auteur manquant."]);
                 exit();
             }
+            // Préparation de la requête pour obtenir les détails de l'auteur dans la table auteurs et users
             $stmt = $pdo->prepare("SELECT id, nom, biographie FROM auteurs WHERE id = :id");
             $stmt->bindParam(':id', $id, PDO::PARAM_INT);
             $stmt->execute();

@@ -19,15 +19,6 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
             background-color: #f8fafc;
         }
 
-        .table-container {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
         th,
         td {
             padding: 12px 15px;
@@ -49,9 +40,6 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
 
         .action-button {
             padding: 8px 12px;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: background-color 0.2s ease-in-out;
         }
 
         .tab-button {
@@ -69,7 +57,6 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
             border-color: #4f46e5;
         }
     </style>
-    <!-- Tailwind CSS CDN -->
      <script src="/app/js/tailwind.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -151,8 +138,8 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
 
             <!-- Contenu des onglets -->
             <div id="usersContent" class="tab-content">
-                <div class="table-container">
-                    <table id="usersTable" class="min-w-full bg-white rounded-md overflow-hidden">
+                <div class="table-container overflow-x-auto">
+                    <table id="usersTable" class="min-w-full bg-white rounded-md overflow-hidden w-full border-collapse">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -170,6 +157,11 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                         </tbody>
                     </table>
                 </div>
+                <div id="usersPagination" class="flex justify-between items-center mt-4">
+                    <button id="usersPrevPageBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">Précédent</button>
+                    <span id="usersPageInfo" class="text-sm text-gray-700"></span>
+                    <button id="usersNextPageBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">Suivant</button>
+                </div>
             </div>
 
             <div id="authorsContent" class="tab-content hidden">
@@ -178,7 +170,8 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Nom</th>
+                                <th>Pseudo</th>
+                                <th>Nom Complet</th>
                                 <th>Biographie</th>
                                 <th>Actions</th>
                             </tr>
@@ -190,6 +183,11 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                             </tr>
                         </tbody>
                     </table>
+                </div>
+                <div id="authorsPagination" class="flex justify-between items-center mt-4">
+                    <button id="authorsPrevPageBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">Précédent</button>
+                    <span id="authorsPageInfo" class="text-sm text-gray-700"></span>
+                    <button id="authorsNextPageBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">Suivant</button>
                 </div>
             </div>
         </div>
@@ -251,10 +249,15 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
             <form id="authorForm" class="space-y-4" method="post">
                 <input type="hidden" id="authorId">
                 <div>
-                    <label for="authorName" class="block text-sm font-medium text-gray-700 text-left">Nom</label>
+                    <label for="authorName" class="block text-sm font-medium text-gray-700 text-left">Pseudonyme</label>
                     <input type="text" id="authorName"
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                         required>
+                </div>
+                <div>
+                    <label for="authorFullname" class="block text-sm font-medium text-gray-700 text-left">Nom Complet</label>
+                    <input type="text" id="authorFullname"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
                 <div>
                     <label for="authorBio" class="block text-sm font-medium text-gray-700 text-left">Biographie</label>
@@ -270,8 +273,18 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
             </form>
         </div>
     </div>
+    
+    <!-- Modale de Confirmation Personnalisée -->
+    <div id="confirmationModal" class="modal-overlay hidden">
+        <div class="modal-content text-center">
+            <p class="mb-4 text-gray-700 font-medium">Voulez-vous vraiment supprimer cet élément ?</p>
+            <div class="flex justify-center space-x-3">
+                <button id="cancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Annuler</button>
+                <button id="confirmDeleteBtn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Supprimer</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- Importation des modules JS -->
     <script type="module" src="/app/js/auth/admin/users.js"></script>
 </body>
 
