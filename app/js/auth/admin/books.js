@@ -118,11 +118,11 @@ async function loadAuthorsForDropdown() {
 
         if (response.data.success) {
             allAuthors = response.data.data;
-            bookAuthorSelect.innerHTML = '<option value="">Sélectionner un auteur</option>';
+            
             allAuthors.forEach(author => {
                 const option = document.createElement('option');
-                option.value = author.id;
-                option.textContent = author.nom;
+                option.value = author.authorid;
+                option.textContent = author.pseudo || author.nom_complet || 'Anonyme';
                 bookAuthorSelect.appendChild(option);
             });
         } else {
@@ -152,6 +152,7 @@ function renderBooks(booksToDisplay) {
             <td class="py-3 px-2">${book.id}</td>
             <td class="py-3 px-2">${book.titre}</td>
             <td class="py-3 px-2">${book.auteur_nom}</td>
+            <td class="py-3 px-2">${book.emplacement || 'N/A'}</td>
             <td class="py-3 px-2">${book.isbn || 'N/A'}</td>
             <td class="py-3 px-2">
                 <span class="${book.disponible ? 'text-green-600' : 'text-red-600'} font-medium">
@@ -322,7 +323,6 @@ async function handleBookFormSubmit(event) {
 
         if (response.data.success) {
             showCustomModal(`Livre ${bookIdInput.value ? 'modifié' : 'ajouté'} avec succès !`);
-            console.log(response.data);
 
             closeBookModal();
             await loadBooks(); // Recharger la liste

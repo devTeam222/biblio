@@ -29,7 +29,7 @@ try {
     switch ($action) {
         case 'list':
             // Get search and pagination parameters
-            $search = trim($_GET['search']) ?? '';
+            $search = htmlspecialchars(trim($_GET['search'])) ?? '';
             $page = filter_var($_GET['page'] ?? 1, FILTER_VALIDATE_INT);
             $limit = filter_var($_GET['limit'] ?? 10, FILTER_VALIDATE_INT);
 
@@ -69,7 +69,7 @@ try {
             break;
 
         case 'details':
-            $id = $_GET['id'] ?? null;
+            $id = intval($_GET['id']) ?? null;
             if (!$id) {
                 http_response_code(400);
                 echo json_encode(["success" => false, "message" => "ID utilisateur manquant."]);
@@ -88,8 +88,14 @@ try {
             break;
 
         case 'add':
-            $nom = $input['nom'] ?? null;
-            $email = $input['email'] ?? null;
+            $nom = trim(htmlspecialchars($input['nom'])) ?? null;
+            $email = trim(htmlspecialchars($input['email'])) ?? null;
+            $validEmail = filter_var($email, FILTER_VALIDATE_EMAIL);
+            if ($email && !$validEmail) {
+                http_response_code(400);
+                echo json_encode(["success" => false, "message" => "Email invalide."]);
+                exit();
+            }
             $password = $input['password'] ?? null;
             $role = $input['role'] ?? 'user';
             if (!$nom || !$email || !$password) {
@@ -104,9 +110,12 @@ try {
             break;
 
         case 'update':
-            $id = $input['id'] ?? null;
-            $nom = $input['nom'] ?? null;
-            $role = $input['role'] ?? null;
+
+            $possibleRoles = ['user', 'admin', 'author'];
+
+            $id = intval($input['id']) ?? null;
+            $nom = trim(htmlspecialchars($input['nom'])) ?? null;
+            $role = in_array(trim($input['role']), $possibleRoles) ? $input['role'] : null;
             $password = $input['password'] ?? null;
 
             if (!$id || !$nom || !$role) {
@@ -134,7 +143,7 @@ try {
             break;
 
         case 'delete':
-            $id = $_GET['id'] ?? null;
+            $id = intval($_GET['id']) ?? null;
             if (!$id) {
                 http_response_code(400);
                 echo json_encode(["success" => false, "message" => "ID utilisateur manquant."]);

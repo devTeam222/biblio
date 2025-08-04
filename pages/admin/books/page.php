@@ -134,6 +134,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                             <th>ID</th>
                             <th>Titre</th>
                             <th>Auteur</th>
+                            <th>Emplacement</th>
                             <th>ISBN</th>
                             <th>Disponible</th>
                             <th>Actions</th>
@@ -176,7 +177,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                     <select id="bookAuthor"
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                         required>
-                        <!-- Options chargées par JS -->
+                        <option value="">Sélectionner un auteur</option>
                     </select>
                 </div>
                 <div>

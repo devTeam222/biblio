@@ -113,6 +113,12 @@ function showCustomModal(message, { type = 'alert', actions = [] } = {}) {
 
 function addLoader(el, className = 'loader') {
     const loaderEl = document.createElement('span');
+    const existingLoader = el.querySelectorAll('.loader');
+    if (existingLoader.length) {
+        existingLoader.forEach(loader => {
+            loader.remove(); // Retirer les loaders existants
+        });
+    }
     loaderEl.className = `loader ${className}`; // Ajouter la classe de loader
     el.appendChild(loaderEl); // Ajouter le loader à l'élément spécifié
 }

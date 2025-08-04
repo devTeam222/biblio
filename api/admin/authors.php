@@ -28,11 +28,36 @@ $input = $_POST;
 try {
     switch ($action) {
         case 'list':
-            $stmt = $pdo->query("SELECT a.id AS authorId, a.nom AS pseudo, a.biographie, u.nom AS nom_complet, u.id AS userId 
+            $search = isset($_GET['search']) ? htmlspecialchars(trim($_GET['search'])) : '';
+            $page = isset($_GET['page']) ? filter_var($_GET['page'], FILTER_VALIDATE_INT) : 1;
+            $limit = isset($_GET['limit']) ? filter_var($_GET['limit'], FILTER_VALIDATE_INT) : 10;
+
+            if ($page < 1) $page = 1;
+            if ($limit < 1) $limit = 10;
+            $offset = ($page - 1) * $limit;
+
+            // Prepare WHERE clause for search
+            $whereClause = '';
+            $params = [];
+            if (!empty($search)) {
+                $whereClause .= ' WHERE a.nom ILIKE ? OR u.nom ILIKE ? OR u.email ILIKE ? OR u.role ILIKE ? OR a.biographie ILIKE ? ';
+                $searchTerm = '%' . $search . '%';
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+            }
+
+            $sql = "SELECT a.id AS authorId, a.nom AS pseudo, a.biographie, u.nom AS nom_complet, u.id AS userId 
                 FROM auteurs a
                 LEFT JOIN users u ON u.id = a.user_id
-                ORDER BY a.nom ASC
-            ");
+                $whereClause
+                ORDER BY a.nom ASC";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+
             $authors = $stmt->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode(["success" => true, "data" => $authors]);
             break;
@@ -44,6 +69,7 @@ try {
                 echo json_encode(["success" => false, "message" => "ID auteur manquant."]);
                 exit();
             }
+            $id = trim(htmlspecialchars($id, ENT_QUOTES, 'UTF-8'));
             // Préparation de la requête pour obtenir les détails de l'auteur dans la table auteurs et users
             $stmt = $pdo->prepare("SELECT id, nom, biographie FROM auteurs WHERE id = :id");
             $stmt->bindParam(':id', $id, PDO::PARAM_INT);
@@ -58,26 +84,31 @@ try {
             break;
 
         case 'add':
-            $nom = $input['nom'] ?? null;
-            $biographie = $input['biographie'] ?? null;
+            $nom = trim(htmlspecialchars($input['nom_complet'])) ?? null;
+            $pseudo = trim(htmlspecialchars($input['pseudo'])) ?? $nom;
+            $biographie = trim(htmlspecialchars($input['biographie'])) ?? null;
 
             if (!$nom) {
                 http_response_code(400);
                 echo json_encode(["success" => false, "message" => "Nom de l'auteur est requis."]);
                 exit();
             }
+            $sql = "INSERT INTO users (nom, `role`) VALUES (?, 'author')";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$nom]);
+            $userId = $pdo->lastInsertId();
 
-            $stmt = $pdo->prepare("INSERT INTO auteurs (nom, biographie) VALUES (:nom, :biographie)");
-            $stmt->bindParam(':nom', $nom);
-            $stmt->bindParam(':biographie', $biographie);
-            $stmt->execute();
-            echo json_encode(["success" => true, "message" => "Auteur ajouté."]);
+            $sql = "INSERT INTO auteurs (nom, biographie, user_id) VALUES (?, ?, ?)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$pseudo, $biographie, $userId]);
+            echo json_encode(["success" => true, "message" => "Auteur ajouté avec succès."]);
             break;
 
         case 'update':
-            $id = $input['id'] ?? null;
-            $nom = $input['nom'] ?? null;
-            $biographie = $input['biographie'] ?? null;
+            $id = trim(htmlspecialchars($input['id'])) ?? null;
+            $nom = trim(htmlspecialchars($input['nom_complet'])) ?? null;
+            $pseudo = trim(htmlspecialchars($input['pseudo'])) ?? $nom;
+            $biographie = trim(htmlspecialchars($input['biographie'])) ?? null;
 
             if (!$id || !$nom) {
                 http_response_code(400);
@@ -86,7 +117,9 @@ try {
             }
 
             $stmt = $pdo->prepare("UPDATE auteurs SET nom = ?, biographie = ? WHERE id = ?");
-            $stmt->execute([$nom, $biographie, $id]);
+            $stmt->execute([$pseudo, $biographie, $id]);
+            $stmt = $pdo->prepare("UPDATE users SET nom = ? WHERE id = (SELECT user_id FROM auteurs WHERE id = ?)");
+            $stmt->execute([$nom, $id]);
 
             if ($stmt->rowCount() > 0) {
                 echo json_encode(["success" => true, "message" => "Auteur mis à jour."]);
@@ -95,10 +128,8 @@ try {
                 echo json_encode(["success" => false, "message" => "Aucune mise à jour effectuée. Auteur inexistant ou données inchangées."]);
             }
             break;
-
-
         case 'delete':
-            $id = $_GET['id'] ?? null;
+            $id = htmlspecialchars($_GET['id']) ?? null;
             if (!$id) {
                 http_response_code(400);
                 echo json_encode(["success" => false, "message" => "ID auteur manquant."]);

@@ -29,7 +29,7 @@ try {
     switch ($action) {
         case 'list':
             $stmt = $pdo->query("
-                SELECT l.id, l.titre, l.isbn, l.descr, l.disponible, a.id AS auteur_id, a.nom AS auteur_nom
+                SELECT l.id, l.titre, l.isbn, l.descr, l.disponible, l.emplacement , a.id AS auteur_id, a.nom AS auteur_nom
                 FROM livres l
                 JOIN auteurs a ON l.auteur_id = a.id
                 ORDER BY l.date_publication DESC

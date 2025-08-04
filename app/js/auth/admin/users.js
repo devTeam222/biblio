@@ -35,6 +35,11 @@ const authorsPageInfo = document.getElementById('authorsPageInfo');
 // Global state variables
 let currentActiveTab = sessionStorage.getItem('admin-tab') ?? 'users';
 const itemsPerPage = 5;
+const roles = {
+    'admin': 'Administrateur',
+    'user': 'Lecteur',
+    'author': 'Auteur',
+}
 let currentItemToDelete = null;
 let currentDeleteType = null;
 let usersState = {
@@ -112,14 +117,15 @@ function renderPaginatedUsers() {
     } else {
         data.forEach(user => {
             const row = document.createElement('tr');
+            const roleName = roles[user.role] || user.role; // Fallback to raw role if not found
             row.innerHTML = `
                 <td class="text-sm font-medium text-gray-900">${user.id}</td>
                 <td class="text-sm text-gray-600">${user.nom}</td>
                 <td class="text-sm text-gray-600">${user.email}</td>
-                <td class="text-sm text-gray-600 capitalize">${user.role}</td>
+                <td class="text-sm text-gray-600 capitalize">${roleName}</td>
                 <td class="flex space-x-2">
-                    <button class="edit-user-btn text-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200 action-button">Modifier</button>
-                    <button class="delete-user-btn text-sm bg-red-100 text-red-700 hover:bg-red-200 action-button">Supprimer</button>
+                    <button class="rounded-md edit-user-btn text-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200 action-button">Modifier</button>
+                    <button class="rounded-md delete-user-btn text-sm bg-red-100 text-red-700 hover:bg-red-200 action-button">Supprimer</button>
                 </td>
             `;
             // Add event listeners directly to the buttons after they are created
@@ -153,8 +159,8 @@ function renderPaginatedAuthors() {
                 <td class="text-sm text-gray-600">${author.nom_complet || 'N/A'}</td>
                 <td class="text-sm text-gray-600">${author.biographie ? author.biographie.substring(0, 50) + '...' : 'N/A'}</td>
                 <td class="flex space-x-2">
-                    <button class="edit-author-btn text-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200 action-button">Modifier</button>
-                    <button class="delete-author-btn text-sm bg-red-100 text-red-700 hover:bg-red-200 action-button">Supprimer</button>
+                    <button class="rounded-md edit-author-btn text-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200 action-button">Modifier</button>
+                    <button class="rounded-md delete-author-btn text-sm bg-red-100 text-red-700 hover:bg-red-200 action-button">Supprimer</button>
                 </td>
             `;
             // Add event listeners directly to the buttons after they are created
@@ -181,7 +187,8 @@ function renderPaginatedAuthors() {
 function updatePaginationControls(currentPage, totalPages, pageInfoEl, prevBtn, nextBtn) {
     pageInfoEl.textContent = `Page ${currentPage} sur ${totalPages || 1}`;
     prevBtn.disabled = currentPage === 1;
-    nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+    nextBtn.disabled = currentPage === totalPages || !totalPages;
+    
 }
 
 /**
@@ -190,7 +197,7 @@ function updatePaginationControls(currentPage, totalPages, pageInfoEl, prevBtn, 
  * @param {number} page - The page number to load.
  */
 async function loadUsers(searchQuery = '', page = 1) {
-    addLoader(usersTableBody);
+    addLoader(usersTableBody, "flex m-auto");
     usersState.searchQuery = searchQuery;
     usersState.currentPage = page;
     try {
@@ -216,7 +223,7 @@ async function loadUsers(searchQuery = '', page = 1) {
  * @param {number} page - The page number to load.
  */
 async function loadAuthors(searchQuery = '', page = 1) {
-    addLoader(authorsTableBody);
+    addLoader(authorsTableBody, "flex m-auto");
     authorsState.searchQuery = searchQuery;
     authorsState.currentPage = page;
     try {
@@ -396,7 +403,7 @@ async function saveUser() {
         email: document.getElementById('userEmail').value,
         role: document.getElementById('userRole').value,
     };
-    addLoader(userModal);
+    addLoader(userModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
     try {
         const url = `/api/admin/users?action=${userId ? 'update' : 'add'}`;
         const response = await apiClient.post(url, { body: userData });
@@ -420,7 +427,7 @@ async function saveUser() {
  * @param {string} userId - The ID of the user to delete.
  */
 async function deleteUser(userId) {
-    addLoader(usersTableBody);
+    addLoader(usersTableBody, "flex m-auto");
     try {
         const response = await apiClient.delete(`/api/admin/users?action=delete&id=${userId}`);
         if (response.data.success) {
@@ -442,10 +449,10 @@ async function deleteUser(userId) {
  * @param {string} authorId - The ID of the author to edit.
  */
 async function editAuthor(authorId) {
-    const author = authorsState.data.find(a => a.authorId == authorId);
+    const author = authorsState.data.find(a => a.authorid == authorId);
     if (author) {
         document.getElementById('authorModalTitle').textContent = `Modifier l'auteur: ${author.pseudo}`;
-        document.getElementById('authorId').value = author.authorId;
+        document.getElementById('authorId').value = author.authorid;
         document.getElementById('authorName').value = author.pseudo;
         document.getElementById('authorFullname').value = author.nom_complet || '';
         document.getElementById('authorBio').value = author.biographie;
@@ -457,13 +464,19 @@ async function editAuthor(authorId) {
  * Saves an author (add or update).
  */
 async function saveAuthor() {
-    const authorId = document.getElementById('authorId').value;
+    const id = document.getElementById('authorId').value;
+    const nom_complet = document.getElementById('authorFullname').value;
+    const pseudo = document.getElementById('authorName').value;
+    const biographie = document.getElementById('authorBio').value;
     const authorData = {
-        id: authorId,
-        nom: document.getElementById('authorName').value,
-        biographie: document.getElementById('authorBio').value,
+        id,
+        nom_complet,
+        pseudo,
+        biographie
     };
-    addLoader(authorModal);
+    console.log(authorData);
+    
+    addLoader(authorModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
     try {
         const url = `/api/admin/authors?action=${authorId ? 'update' : 'add'}`;
         const response = await apiClient.post(url, {body: authorData});
@@ -487,7 +500,7 @@ async function saveAuthor() {
  * @param {string} authorId - The ID of the author to delete.
  */
 async function deleteAuthor(authorId) {
-    addLoader(authorsTableBody);
+    addLoader(authorsTableBody, "flex m-auto");
     try {
         const response = await apiClient.delete(`/api/admin/authors?action=delete&id=${authorId}`);
         if (response.data.success) {
