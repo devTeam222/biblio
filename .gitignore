@@ -1,1 +1,5 @@
+
+# ignore public folder
+/public
+# ignore test.py
 /test.py

@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ma Bibliothèque - Accueil</title>
+    <title>GéoLib - Accueil</title>
     <!-- Tailwind CSS CDN -->
     <script src="/app/js/tailwind.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/app/css/modal.css">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -22,12 +23,11 @@
         }
 
         .nav-link {
-            transition: all 0.2s ease-in-out;
-        }
-
-        .nav-link:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 10px 20px;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+            cursor: pointer;
         }
 
         .book-cover {
@@ -62,7 +62,7 @@
             }
         }
 
-        /* Overlay pour les messages modaux */
+        /* Overlay pour les messages modaux (déjà dans modal.css mais inclus ici pour visibilité) */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -89,73 +89,75 @@
 </head>
 
 <body class="flex flex-col min-h-screen">
-    <!-- En-tête de la page -->
-    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-4 shadow-lg">
-        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
-            <h1 class="text-3xl font-bold mb-2 md:mb-0">
-                Bibliothèque
-            </h1>
-            <img loading="lazy" src="https://placehold.co/50x50/FFFFFF/000000?text=LIB" alt="Logo de la bibliothèque" class="rounded-full">
+    <!-- En-tête de la page (Style Admin) -->
+    <header class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0 gap-1">
+                    <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
+                    </svg>
+                    <h1 class="text-2xl md:text-3xl font-bold">GéoLib</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden md:block">
+                        <p id="userNameDisplay" class="font-medium">Bienvenue, Lecteur !</p>
+                        <p class="text-xs text-indigo-200" id="userRoleDisplay"></p>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
-    <!-- Barre de navigation -->
-    <nav class="bg-white shadow-md py-3">
-        <div class="container mx-auto flex flex-wrap justify-center md:justify-start gap-4 px-4" id="mainNav">
-            <a href="user.html" class="nav-link bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
-                <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house">
-                    <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
-                    <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                </svg>
-                Accueil
-            </a>
-            <a href="livres-user.html" class="nav-link bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search">
-                    <path d="m21 21-4.34-4.34" />
-                    <circle cx="11" cy="11" r="8" />
-                </svg>
-                Rechercher Livres
-            </a>
-            
+    <!-- Barre de navigation (Style Admin) -->
+    <nav class="bg-white shadow-sm">
+        <div class="container mx-auto p-4">
+            <div class="container mx-auto flex flex-wrap justify-center md:justify-start gap-4 px-4" id="mainNav">
+                <!-- Les liens seront injectés ici par JavaScript -->
+            </div>
         </div>
     </nav>
 
-    <!-- Contenu principal -->
-    <main class="flex-grow container mx-auto mt-8 px-4 py-8">
-        <h2 class="text-3xl font-bold text-gray-800 mb-6" id="userNameDisplay">Bienvenue, Lecteur !</h2>
-
-        <!-- Barre de recherche -->
-        <div class="card p-6 mb-8">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Rechercher des Livres</h3>
+    <!-- Contenu principal (Style Admin) -->
+    <main class="flex-grow container mx-auto px-4 py-6">
+        <div class="bg-white rounded-xl shadow p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Rechercher des Ouvrages</h2>
             <div class="flex flex-col md:flex-row gap-4">
-                <input type="text" id="searchInput" placeholder="Rechercher un livre, un auteur ou une catégorie..." class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button id="searchButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105">
+                <input type="text" id="searchInput" placeholder="Rechercher un ouvrage, un auteur ou une catégorie..."
+                    class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button id="searchButton"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105">
                     Rechercher
                 </button>
             </div>
         </div>
 
-        <!-- Section Mes Emprunts Actuels -->
-        <div class="card p-6 mb-8 hidden" id="current-loans-section">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Mes Emprunts Actuels <span id="loansLoading" class="loader hidden"></span></h3>
+        <!-- Section Mes Emprunts Actuels (Style Admin) -->
+        <div class="bg-white rounded-xl shadow p-6 mb-6 hidden" id="current-loans-section">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Mes Emprunts Actuels <span id="loansLoading"
+                    class="loader hidden"></span></h3>
             <div id="current-loans-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Les emprunts seront chargés ici par JavaScript -->
             </div>
             <p id="noLoansMessage" class="text-gray-500 hidden">Vous n'avez aucun emprunt en cours.</p>
         </div>
 
-        <!-- Section Ouvrages Tendances -->
-        <div class="card p-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Ouvrages Tendances <span id="trendingLoading" class="loader hidden"></span></h3>
-            <div id="trending-books-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- Les ouvrages tendances seront chargés ici par JavaScript -->
+        <!-- Section Ouvrages Tendances / Résultats de recherche (Style Admin) -->
+        <div class="bg-white rounded-xl shadow p-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4"><span id="trendingTitle">Ouvrages Tendances</span> <span id="trendingLoading"
+                    class="loader hidden"></span></h3>
+            <div id="trending-books-container"
+                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Les ouvrages tendances ou les résultats de recherche seront chargés ici par JavaScript -->
             </div>
         </div>
     </main>
 
-    <!-- Pied de page -->
-    <footer class="bg-gray-800 text-white text-center p-4 mt-8 shadow-inner">
-        <p>&copy; 2025 Système de Gestion de Bibliothèque. Tous droits réservés. Réalisé par Ochokom et dirigé par Didier Yina.</p>
+    <!-- Pied de page (Style Admin) -->
+    <footer class="bg-gray-800 text-white py-4 shadow-inner">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <p>&copy; 2025 Base des données Dimart Géosciences contient ouvrages scientifiques publiée à la mention géosciences/faculté des sciences et technologie/unikin realisé par Ochokom et dirigé par le professeur Didier Yina.</p>
+        </div>
     </footer>
     <!-- Conteneur pour les modales -->
     <div id="modalContainer"></div>

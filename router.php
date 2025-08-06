@@ -18,39 +18,75 @@ function send_json($code, $data)
 }
 
 // Styled Error HTML Page
-function send_error_page($code, $message, $details = '')
+function send_error_page($code, $message, $details = '', $bookTitle = null)
 {
     http_response_code($code);
-    $title = $code === 404 ? "404 - Page Non Trouvée" : "$code - Erreur Serveur";
-    $subtitle = $message;
+
+    // Définition des titres par défaut pour chaque code d'erreur
+    $errorTitles = [
+        400 => "Requête Invalide",
+        403 => "Accès Interdit", // Ajouté pour une meilleure couverture, même si non utilisé directement dans book-details.php
+        404 => "Page Non Trouvée",
+        500 => "Erreur Interne du Serveur"
+    ];
+
+    // Définition des sous-titres par défaut pour chaque code d'erreur
+    $errorSubtitles = [
+        400 => "Votre requête n'a pas pu être traitée en raison d'informations manquantes ou incorrectes.",
+        403 => "Vous n'êtes pas autorisé à accéder à cette ressource.",
+        404 => "La page demandée n'a pas pu être trouvée.",
+        500 => "Une erreur inattendue est survenue sur le serveur."
+    ];
+
+    // Récupérer le titre et le sous-titre par défaut, ou une valeur générique si le code n'est pas reconnu
+    $pageTitle = $errorTitles[$code] ?? "$code - Erreur";
+    $subtitle = $errorSubtitles[$code] ?? "Une erreur est survenue.";
+
+    // Personnalisation spécifique pour l'erreur 404 si un titre de livre est fourni
+    if ($code === 404 && $bookTitle) {
+        $pageTitle = "Livre non trouvé - " . htmlspecialchars($bookTitle);
+        $subtitle = "L'ouvrage '" . htmlspecialchars($bookTitle) . "' n'a pas pu être trouvé ou n'existe pas.";
+    }
+
+    // Utiliser le message fourni si celui-ci est plus spécifique que le sous-titre par défaut
+    if (!empty($message) && $message !== ($errorSubtitles[$code] ?? '')) {
+        $subtitle = $message;
+    }
+
     echo <<<HTML
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{$title}</title>
-  <script src="/app/js/tailwind.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{$pageTitle}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="/app/js/tailwind.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
 </head>
 <body class="flex items-center justify-center min-h-screen bg-gray-100 px-4">
-  <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-lg w-full">
-    <h1 class="text-6xl font-extrabold text-gray-800 mb-4">{$code}</h1>
-    <h2 class="text-2xl font-semibold text-gray-700 mb-4">{$subtitle}</h2>
-    <p class="text-gray-600">Une erreur est survenue. Si vous êtes développeur, ouvrez la console pour plus de détails.</p>
-    <script>
-        console.error("{$title} : {$subtitle}");
-        const details = decodeURIComponent("{$details}"
-            .replace(/<br\s*\/?>/g, '%0A')
-            .replace(/<[^>]*>/g, '')
-            .replace(/"/g, '\\"')
-            .trim()
-        );
-        if (details !== '') console.error(details);
-    </script>
-    <a href="/" class="mt-6 inline-block bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
-      Retour à l'accueil
-    </a>
-  </div>
+    <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-lg w-full">
+        <h1 class="text-6xl font-extrabold text-gray-800 mb-4">{$code}</h1>
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">{$subtitle}</h2>
+        <p class="text-gray-600">Une erreur est survenue. Si vous êtes développeur, ouvrez la console pour plus de détails.</p>
+        <script>
+            console.error("{$pageTitle} : {$subtitle}");
+            const details = decodeURIComponent("{$details}"
+                .replace(/<br\s*\/?>/g, '%0A')
+                .replace(/<[^>]*>/g, '')
+                .replace(/"/g, '\\"')
+                .trim()
+            );
+            if (details !== '') console.error(details);
+        </script>
+        <a href="/" class="mt-6 inline-block bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
+            Retour à l'accueil
+        </a>
+    </div>
 </body>
 </html>
 HTML;

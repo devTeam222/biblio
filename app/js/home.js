@@ -1,356 +1,263 @@
 import { apiClient } from "./util/ocho-api.js";
-import { TimeFormatter, NumberFormatter } from "./util/formatter.js";
-import { showCustomModal, showLoading, hideLoading, isAuth } from "./util/utils.js";
-// Sélection des éléments DOM
+import { showLoading, hideLoading, isAuth, updateNavBar } from "./util/utils.js";
+import { TimeFormatter } from "./util/formatter.js"; // Importer les fonctions utilitaires nécessaires
+
 const trendingBooksContainer = document.getElementById('trending-books-container');
-const currentLoansSection = document.getElementById('current-loans-section');
+const trendingLoadingSpinner = document.getElementById('trendingLoading');
 const currentLoansContainer = document.getElementById('current-loans-container');
+const loansLoadingSpinner = document.getElementById('loansLoading');
+const noLoansMessage = document.getElementById('noLoansMessage');
+const currentLoansSection = document.getElementById('current-loans-section');
+const userNameDisplay = document.getElementById('userNameDisplay');
+const userRoleDisplay = document.getElementById('userRoleDisplay');
+const modalContainer = document.getElementById('modalContainer'); // Assurez-vous que ce conteneur est présent dans index.php
+
+// Éléments de recherche
 const searchInput = document.getElementById('searchInput');
 const searchButton = document.getElementById('searchButton');
-const noLoansMessage = document.getElementById('noLoansMessage');
-const loansLoadingSpinner = document.getElementById('loansLoading');
-const trendingLoadingSpinner = document.getElementById('trendingLoading');
-const modalContainer = document.getElementById('modalContainer');
+const trendingBooksTitle = document.getElementById('trendingTitle'); // Pour changer le titre "Ouvrages Tendances"
 
-window.modalContainer = modalContainer; // Assurez-vous que modalContainer est accessible globalement
+let searchTimeout = null; // Variable pour stocker le timeout du debounce
 
+window.modalContainer = modalContainer; // Rendre modalContainer accessible globalement pour showCustomModal
 
-function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-}
+document.addEventListener('DOMContentLoaded', async () => {
+    // Mettre à jour la barre de navigation et le message de bienvenue
+    const authResult = await isAuth();
+    const userId = authResult?.user?.id; // Accès aux propriétés via authResult.user
+    const userName = authResult?.user?.name;
+    const userRole = authResult?.user?.role || 'guest';
+    const lecteurId = authResult?.user?.lecteurId || null; // Récupérer lecteurId si disponible
 
-function getGuestId() {
-    let guestId = document.cookie.split('; ').find(row => row.startsWith(GUEST_ID_COOKIE_NAME + '='));
-    if (guestId) {
-        return guestId.split('=')[1];
+    const possibleRoles = {
+        admin: 'Administrateur',
+        user: 'Lecteur',
+        author: 'Auteur',
+        guest: 'Visiteur',
+    }
+
+    if (authResult && userId) {
+        // Indiquer 'home' comme page active pour la navigation
+        updateNavBar(userRole, 'home'); 
+        userNameDisplay.textContent = `Bienvenue, ${userName || 'Lecteur'}!`;
+        userRoleDisplay.textContent = possibleRoles[userRole] || possibleRoles.guest;
+
+        // Afficher la section des emprunts actuels pour les utilisateurs connectés
+        if (userRole !== 'guest' && lecteurId) {
+            currentLoansSection.classList.remove('hidden');
+            fetchCurrentLoans();
+        } else {
+            currentLoansSection.classList.add('hidden');
+        }
     } else {
-        guestId = generateUUID();
-        // Définir le cookie pour 30 jours
-        document.cookie = `${GUEST_ID_COOKIE_NAME}=${guestId}; expires=${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString()}; path=/`;
-        return guestId;
-    }
-}
-
-
-// --- Fonctions de chargement des données (utilisant apiClient) ---
-
-/**
- * Vérifie l'état d'authentification de l'utilisateur.
- * Met à jour CURRENT_USER_ID, CURRENT_LECTEUR_ID et CURRENT_USER_NAME si authentifié.
- * @returns {Promise<boolean>} True si authentifié, False sinon.
- */
-async function session() {
-    try {
-        const response = await apiClient.get('/api/auth/check', { throwHttpErrors: false });
-        return {
-            success: response.data.success,
-            user_id: response.data.user_id || null,
-            lecteur_id: response.data.lecteur_id || null,
-            user_name: response.data.user_name || null
-        }
-    } catch (error) {
-        console.error("Erreur lors de la vérification de l'authentification :", error);
-        return {
-            success: false,
-            user_id: null,
-            lecteur_id: null,
-            user_name: null
-        };
-    }
-}
-
-/**
- * Gère la déconnexion de l'utilisateur.
- */
-async function handleLogout() {
-    const confirmed = await showCustomModal('Voulez-vous vraiment vous déconnecter ?', 'confirm');
-    if (!confirmed) {
-        return;
+        // Pour les invités, la page d'accueil est toujours la page active
+        updateNavBar('guest', 'home'); 
+        userNameDisplay.textContent = `Bienvenue, Lecteur !`;
+        userRoleDisplay.textContent = '';
+        currentLoansSection.classList.add('hidden'); // Cacher la section des emprunts pour les invités
     }
 
-    try {
-        const response = await apiClient.post('/api/auth/logout', {}, { throwHttpErrors: true });
-        if (response.data.success) {
-            await showCustomModal('Déconnexion réussie !');
-            // Recharger la page ou mettre à jour l'UI
-            await initUserSession(); // Réinitialise la session et met à jour l'UI
-        } else {
-            await showCustomModal(`Erreur de déconnexion: ${response.data.message}`);
-        }
-    } catch (error) {
-        console.error("Erreur lors de la déconnexion :", error);
-        await showCustomModal("Une erreur est survenue lors de la déconnexion.");
+    // Charger les ouvrages tendances pour tous les utilisateurs au chargement initial
+    fetchTrendingBooks();
+
+    // Gérer la recherche
+    if (searchButton) {
+        searchButton.addEventListener('click', () => {
+            clearTimeout(searchTimeout); // Annuler tout debounce en cours si le bouton est cliqué
+            performSearch();
+        });
     }
-}
 
-/**
- * Charge et affiche les emprunts actuels de l'utilisateur.
- */
-async function loadCurrentLoans() {
-    const isAuthenticated = await isAuth();
-    if (!isAuthenticated) {
-        currentLoansSection.classList.add('hidden'); // Cache la section si non authentifié
-        return;
-    }
-    console.log();
+    if (searchInput) {
+        // Écouteur pour le debounce sur chaque saisie
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout); // Annuler le timeout précédent
+            searchTimeout = setTimeout(() => {
+                performSearch();
+            }, 500); // Délai de 500ms après la dernière frappe
+        });
 
-
-    currentLoansSection.classList.remove('hidden'); // Affiche la section si authentifié
-    showLoading(loansLoadingSpinner);
-    currentLoansContainer.innerHTML = ''; // Vide le conteneur avant de charger
-    noLoansMessage.classList.add('hidden'); // Cache le message "pas d'emprunts"
-
-    try {
-        const response = await apiClient.get('/api/loans/current', { throwHttpErrors: true });
-        hideLoading(loansLoadingSpinner);
-
-        if (!response?.data?.success) {
-            currentLoansContainer.innerHTML = `<p class="text-red-500 col-span-full">${response?.data?.message || "Erreur inconnue lors du chargement des emprunts."}</p>`;
-            return;
-        }
-
-        const loans = response.data.data.map(loan => {
-
-            // Assurez-vous que l'objet emprunt a les propriétés nécessaires
-            if (!loan.date_emprunt || !loan.date_retour) {
-                console.warn("Emprunt sans date d'emprunt ou de retour :", loan);
-                showCustomModal("Un de vos emprunts ne contient pas de date valide. Veuillez contacter l'administrateur.");
-                return null; // Ignore cet emprunt
+        // Écouteur pour la touche Entrée (sans debounce, pour une recherche immédiate si l'utilisateur appuie sur Entrée)
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout); // Annuler le debounce pour une recherche immédiate
+                performSearch();
             }
-            const lang = navigator.language || 'fr-FR'; // Utilise la langue du navigateur ou 'fr-FR' par défaut
-            // Formate les dates pour l'affichage
-            const date_emprunt = `${(new TimeFormatter(loan.date_emprunt * 1000, { lang, long: true, full: true }).format())} (${(new TimeFormatter(loan.date_emprunt * 1000, { lang, long: true }).formatRelativeTime())})`;
-            const date_retour = new TimeFormatter(loan.date_retour * 1000, { lang, long: true, full: false }).format();
-            return {
-                id: loan.id,
-                livre_id: loan.livre_id,
-                titre: loan.titre,
-                auteur: loan.auteur,
-                rendu: loan.rendu,
-                lecteur_id: loan.lecteur_id,
-                date_emprunt,
-                date_retour
-            };
         });
-        // Prioriser les emprunts non rendus
-        loans.sort((a, b) => {
-            return a.rendu === b.rendu ? 0 : (a.rendu ? 1 : -1); // Si les deux ont le même état de rendu, on les considère égaux
-        });
+    }
+});
 
-        if (!loans || loans.length === 0) {
-            noLoansMessage.classList.remove('hidden');
-            return;
+/**
+ * Exécute une recherche basée sur l'entrée de l'utilisateur.
+ */
+async function performSearch() {
+    const query = searchInput.value.trim();
+
+    // Cacher la section des emprunts actuels si une recherche est lancée
+    // et qu'il y a un contenu non vide dans le champ de recherche.
+    if (currentLoansSection) {
+        if (query !== '') {
+            currentLoansSection.classList.add('hidden');
         } else {
-            noLoansMessage.classList.add('hidden');
+            // Si la recherche est vide, réafficher les emprunts si l'utilisateur est un lecteur
+            const authResult = await isAuth();
+            if (authResult?.user?.role === 'user' && authResult?.user?.lecteurId) {
+                currentLoansSection.classList.remove('hidden');
+            }
         }
+    }
 
-        loans.forEach((loan) => {
-            const returnDate = new Date(loan.date_retour);
-            const today = new Date();
-            const isReturned = loan.rendu;
-            const isOverdue = !isReturned && returnDate < today; // Vérifie si l'emprunt est en retard
-            console.log(loan);
-
-
-            const loanCard = document.createElement('div');
-            loanCard.className = 'bg-gray-100 p-4 rounded-lg shadow-sm';
-            loanCard.innerHTML = `
-                        <h4 class="font-bold text-gray-900 text-lg mb-1">${loan.titre}</h4>
-                        <p class="text-sm text-gray-600">Auteur : ${loan.auteur}</p>
-                        <p class="text-sm text-gray-600">Date d'emprunt : ${loan.date_emprunt}</p>
-                        ${!isReturned ? `<p class="text-sm ${isOverdue ? 'text-red-600' : 'text-green-600'} font-semibold">Date de retour : ${loan.date_retour} ${isOverdue ? '(En retard)' : ''}</p>` : ""}
-                        <button class="mt-3 ${!isReturned ? "bg-red-500 hover:bg-red-600 text-white" : "bg-green-400 hover:bg-green-500 text-green-950"} py-1.5 px-4 rounded-md text-sm transition duration-200 ease-in-out remind">${isReturned ? "Rendu" : "Rappeler le retour"}</button>
-                    `;
-            const remindBtn = loanCard.querySelector('.remind');
-            !isReturned && remindBtn.addEventListener('click', () => handleRemindReturn(loan.id))
-            currentLoansContainer.appendChild(loanCard);
-        });
-    } catch (error) {
-        console.error("Erreur lors du chargement des emprunts :", error);
-        hideLoading(loansLoadingSpinner);
-        currentLoansContainer.innerHTML = '<p class="text-red-500 col-span-full">Une erreur est survenue lors du chargement des emprunts.</p>';
+    if (query) {
+        trendingBooksTitle.innerHTML = `Résultats de recherche pour "${query}"`;
+        await fetchBooksBySearch(query);
+    } else {
+        trendingBooksTitle.innerHTML = `Ouvrages Tendances `;
+        await fetchTrendingBooks(); // Revenir aux ouvrages tendances si la recherche est vide
     }
 }
 
 
-async function loadTrendingBooks(searchTerm = '') {
+/**
+ * Récupère et affiche les ouvrages tendances.
+ */
+async function fetchTrendingBooks() {
     showLoading(trendingLoadingSpinner);
-    trendingBooksContainer.innerHTML = ''; // Vide le conteneur avant de charger
-
-    const endpoint = searchTerm ? `/api/books/search?query=${encodeURIComponent(searchTerm)}` : '/api/books/trending';
-
     try {
-        const response = await apiClient.get(endpoint, { throwHttpErrors: true });
-        hideLoading(trendingLoadingSpinner);
-
-        if (!response?.data?.success) {
-            trendingBooksContainer.innerHTML = `<p class="text-red-500 col-span-full">${response?.data?.message || "Erreur inconnue lors du chargement des ouvrages."}</p>`;
-            return;
+        const response = await apiClient.get('/api/books/trending', { throwHttpErrors: false });
+        console.log(response.data);
+        
+        
+        if (response.data.success && response.data.data.length > 0) {
+            trendingBooksContainer.innerHTML = ''; // Vider le conteneur avant d'ajouter de nouveaux livres
+            response.data.data.forEach(book => {
+                const bookCard = createBookCard(book);
+                trendingBooksContainer.appendChild(bookCard);
+            });
+        } else {
+            trendingBooksContainer.innerHTML = '<p class="text-gray-500 text-center w-full">Aucun ouvrage tendance disponible pour le moment.</p>';
         }
-        const result = response.data.data;
-
-        const booksToDisplay = searchTerm ? result : result.slice(0, 4); // Si recherche, affiche tous les résultats, sinon 4 tendances
-        if (!booksToDisplay || booksToDisplay.length === 0) {
-            trendingBooksContainer.innerHTML = '<p class="text-gray-500 col-span-full">Aucun ouvrage trouvé pour votre recherche.</p>';
-            return;
-        }
-
-        booksToDisplay.forEach((book) => {
-            const bookCard = renderBookCard(book, true);
-            trendingBooksContainer.appendChild(bookCard);
-        });
     } catch (error) {
-        console.error("Erreur lors du chargement des ouvrages tendances :", error);
+        console.error('Erreur lors de la récupération des ouvrages tendances:', error);
+        trendingBooksContainer.innerHTML = '<p class="text-red-500 text-center w-full">Une erreur est survenue lors du chargement des ouvrages tendances.</p>';
+    } finally {
         hideLoading(trendingLoadingSpinner);
-        trendingBooksContainer.innerHTML = '<p class="text-red-500 col-span-full">Une erreur est survenue lors du chargement des ouvrages.</p>';
     }
 }
 
-function renderBookCard(book, showBorrowButton = true) {
-    const availabilityClass = book.disponible ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800';
+/**
+ * Récupère et affiche les livres basés sur une requête de recherche.
+ * @param {string} query - La requête de recherche.
+ */
+async function fetchBooksBySearch(query) {
+    showLoading(trendingLoadingSpinner);
+    try {
+        const response = await apiClient.get(`/api/books/search?query=${encodeURIComponent(query)}`, { throwHttpErrors: false });
+        if (response.data.success && response.data.data.length > 0) {
+            trendingBooksContainer.innerHTML = ''; // Vider le conteneur avant d'ajouter de nouveaux livres
+            response.data.data.forEach(book => {
+                const bookCard = createBookCard(book);
+                trendingBooksContainer.appendChild(bookCard);
+            });
+        } else {
+            trendingBooksContainer.innerHTML = '<p class="text-gray-500 text-center w-full">Aucun résultat trouvé pour votre recherche.</p>';
+        }
+    } catch (error) {
+        console.error('Erreur lors de la recherche des ouvrages:', error);
+        trendingBooksContainer.innerHTML = '<p class="text-red-500 text-center w-full">Une erreur est survenue lors de la recherche des ouvrages.</p>';
+    } finally {
+        hideLoading(trendingLoadingSpinner);
+    }
+}
+
+
+/**
+ * Crée une carte de livre HTML.
+ * @param {object} book - L'objet livre.
+ * @returns {HTMLElement} L'élément HTML de la carte de livre.
+ */
+function createBookCard(book) {
+    const card = document.createElement('div');
+    card.className = 'bg-white rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-lg';
+
+    // Construire l'URL vers la page de détails du livre
+    const detailPageUrl = `/books?id=${book.id}`;
+
+    const coverImageUrl = book.cover_url || 'https://placehold.co/150x200/cccccc/333333?text=Pas+de+couverture';
+    const availabilityClass = book.disponible ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
     const availabilityText = book.disponible ? 'Disponible' : 'Non disponible';
 
-    // Générer une couleur de catégorie aléatoire pour la démo
-    const categoryColors = [
-        'bg-red-200 text-red-800', 'bg-purple-200 text-purple-800', 'bg-indigo-200 text-indigo-800', 'bg-teal-200 text-teal-800', 'bg-blue-200 text-blue-800', 'bg-yellow-200 text-yellow-800',
-    ];
-
-    // Utiliser une couleur  pour la catégorie avec son id
-    // Si la catégorie est définie, on utilise une couleur spécifique, sinon on en génère une aléatoire 
-    const categorieId = book.categorie_id - 1;
-    const colorIndex = categorieId % categoryColors.length; // Assure que l'index est dans les limites du tableau
-    // Utiliser la couleur de catégorie correspondante
-    const categoryColor = categoryColors[colorIndex] || 'bg-gray-200 text-gray-800'; // Valeur par défaut si l'index est hors limites
-    const categoryClass = `inline-block ${categoryColor} text-xs font-semibold px-2.5 py-0.5 rounded-full mt-2 mr-2`;
-    const categoryText = book.categorie || 'Non catégorisé';
-
-    const buttonHtml = showBorrowButton
-        ? `<button class="borrow-btn mt-3 ${book.disponible ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400 cursor-not-allowed'} text-white py-1.5 px-4 rounded-md text-sm transition duration-200 ease-in-out" ${book.disponible ? `` : 'disabled'}>
-                    ${book.disponible ? 'Emprunter' : 'Non disponible'}
-                   </button>`
-        : '';
-    const coverEl = book.cover ? `<img src="${book.cover}" alt="Couverture de ${book.titre}" class="book-cover mx-auto mb-3">` : `<svg xmlns="http://www.w3.org/2000/svg" width="800px" height="800px" viewBox="0 0 120 120" fill="none" class="book-cover mx-auto mb-3" title="Pas de couverture disponible">
-<rect width="120" height="120" fill="#aeb0b1"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M33.2503 38.4816C33.2603 37.0472 34.4199 35.8864 35.8543 35.875H83.1463C84.5848 35.875 85.7503 37.0431 85.7503 38.4816V80.5184C85.7403 81.9528 84.5807 83.1136 83.1463 83.125H35.8543C34.4158 83.1236 33.2503 81.957 33.2503 80.5184V38.4816ZM80.5006 41.1251H38.5006V77.8751L62.8921 53.4783C63.9172 52.4536 65.5788 52.4536 66.6039 53.4783L80.5006 67.4013V41.1251ZM43.75 51.6249C43.75 54.5244 46.1005 56.8749 49 56.8749C51.8995 56.8749 54.25 54.5244 54.25 51.6249C54.25 48.7254 51.8995 46.3749 49 46.3749C46.1005 46.3749 43.75 48.7254 43.75 51.6249Z" fill="#687787"/>
-</svg>`;
-
-    const bookCard = document.createElement('div');
-    bookCard.className = 'bg-gray-100 p-4 rounded-lg shadow-sm text-center transform hover:scale-105 transition duration-200 ease-in-out';
-    bookCard.innerHTML = `
-                ${coverEl}
-                <h4 class="font-bold text-gray-900 text-lg">${book.titre}</h4>
-                <p class="text-sm text-gray-600">${book.auteur}</p>
-                <span class="${categoryClass}">${categoryText}</span>
-                <span class="inline-block ${availabilityClass} text-xs font-semibold px-2.5 py-0.5 rounded-full mt-2">${availabilityText}</span>
-                ${buttonHtml}
-            `;
-    // Ajout de l'écouteur d'événement pour le bouton d'emprunt
-    if (showBorrowButton && book.disponible) {
-        const borrowButton = bookCard.querySelector('.borrow-btn');
-        borrowButton.addEventListener('click', () => handleBorrowBook(book.id));
-    }
-    return bookCard;
+    card.innerHTML = `
+        <a href="${detailPageUrl}" class="block">
+            <img src="${coverImageUrl}" alt="Couverture de ${book.titre}" class="w-full h-48 object-cover">
+            <div class="p-4">
+                <h4 class="text-lg font-semibold text-gray-800 truncate">${book.titre}</h4>
+                <p class="text-sm text-gray-600">${book.auteur || 'Auteur inconnu'}</p>
+                <p class="text-sm text-gray-500 mt-2">Catégorie: ${book.categorie || 'Non spécifiée'}</p>
+                <span class="inline-block px-2 py-1 mt-3 rounded-full text-xs font-semibold ${availabilityClass}">
+                    ${availabilityText}
+                </span>
+            </div>
+        </a>
+    `;
+    return card;
 }
 
-async function handleBorrowBook(bookId) {
-    await showCustomModal('Voulez-vous vraiment emprunter ce livre ?', {
-        type: 'confirm',
-        actions: [
-            {
-                label: 'Annuler',
-                callback: () => { },
-                className: 'bg-gray-400 hover:bg-gray-500 text-white',
-                value: false // valeur de retour explicite
-            },
-            {
-                label: 'Oui, emprunter',
-                class: 'bg-green-500 hover:bg-green-600 text-white',
-                callback: async () => {
-                    // Désactiver temporairement le bouton
-                    const button = event.target; // Récupère le bouton qui a été cliqué
-                    button.disabled = true;
-                    button.textContent = 'Emprunt en cours...';
-
-
-                    try {
-                        console.log(`Emprunt du livre avec ID: ${bookId}`);
-                        const response = await apiClient.post('/api/books/borrow', { body: { bookId: bookId } }, { throwHttpErrors: true });
-                        if (response.data.success) {
-                            await showCustomModal(response.data.message);
-                            // Recharger les sections pour mettre à jour l'état
-                            await loadTrendingBooks();
-                            await loadCurrentLoans();
-                        } else {
-                            console.log(response.data);
-
-                            await showCustomModal(`${response?.data?.message || "Erreur inconnue lors de l'emprunt."}`);
-                        }
-                    } catch (error) {
-                        console.error("Erreur lors de l'emprunt du livre :", error);
-                        await showCustomModal("Une erreur est survenue lors de l'emprunt. Veuillez réessayer.");
-                    } finally {
-                        // Le rechargement des données va réinitialiser les boutons, donc pas besoin de réactiver spécifiquement
-                        // Si le rechargement échoue, on peut réactiver manuellement ici
-                        if (button) {
-                            button.disabled = false;
-                            button.textContent = 'Emprunter';
-                        }
-                    }
-                }, // Retourne true pour confirmer l'emprunt
-                value: true,
-            },
-        ]
-    });
-
-
-}
-async function handleRemindReturn(loanId) {
-    const confirmed = await showCustomModal('Voulez-vous envoyer un rappel pour le retour de ce livre ?', { type: 'confirm' });
-    if (!confirmed) {
-        return;
-    }
-
-    // Désactiver temporairement le bouton
-    const button = event.target;
-    button.disabled = true;
-    button.textContent = 'Envoi...';
-
+/**
+ * Récupère et affiche les emprunts actuels de l'utilisateur.
+ * @param {number} lecteurId - L'ID du lecteur.
+ */
+async function fetchCurrentLoans() {
+    showLoading(loansLoadingSpinner);
     try {
-        const response = await apiClient.post('/api/loans/remind', { loanId: loanId }, { throwHttpErrors: true });
-        if (response.data.success) {
-            await showCustomModal(response.data.message);
+        const response = await apiClient.get(`/api/loans/current`, { throwHttpErrors: false });
+        
+        if (response.data.success && response.data.data.length > 0) {
+            currentLoansContainer.innerHTML = '';
+            noLoansMessage.classList.add('hidden');
+            response.data.data.forEach(loan => {
+                const loanCard = createLoanCard(loan);
+                currentLoansContainer.appendChild(loanCard);
+            });
         } else {
-            await showCustomModal(`Erreur: ${response.data.message}`);
+            currentLoansContainer.innerHTML = '';
+            noLoansMessage.classList.remove('hidden');
         }
     } catch (error) {
-        console.error("Erreur lors de l'envoi du rappel :", error);
-        await showCustomModal("Une erreur est survenue lors de l'envoi du rappel.");
+        console.error('Erreur lors de la récupération des emprunts actuels:', error);
+        currentLoansContainer.innerHTML = '<p class="text-red-500 text-center w-full">Une erreur est survenue lors du chargement de vos emprunts.</p>';
+        noLoansMessage.classList.add('hidden'); // Cacher le message "aucun emprunt" en cas d'erreur
     } finally {
-        if (button) {
-            button.disabled = false;
-            button.textContent = 'Rappeler le retour';
-        }
+        hideLoading(loansLoadingSpinner);
     }
 }
 
-function handleSearch() {
-    const query = searchInput.value.trim();
-    loadTrendingBooks(query); // Utilise la fonction de chargement des tendances pour la recherche
+/**
+ * Crée une carte d'emprunt HTML.
+ * @param {object} loan - L'objet emprunt.
+ * @returns {HTMLElement} L'élément HTML de la carte d'emprunt.
+ */
+function createLoanCard(loan) {
+    const card = document.createElement('div');
+    card.className = 'bg-white rounded-lg shadow-md overflow-hidden p-4';
+
+    const dateEmprunt = loan.date_emprunt ? new TimeFormatter(loan.date_emprunt * 1000).formatFullTime() : 'N/A';
+    const dateRetour = loan.date_retour ? new TimeFormatter(loan.date_retour * 1000).formatFullTime() : 'N/A';
+
+    // Construire l'URL vers la page de détails du livre emprunté
+    const detailPageUrl = `/books?id=${loan.livre_id}`;
+
+    const coverImageUrl = loan.cover_url || 'https://placehold.co/100x150/cccccc/333333?text=Pas+de+couverture';
+
+    card.innerHTML = `
+        <a href="${detailPageUrl}" class="flex items-center gap-4">
+            <img src="${coverImageUrl}" alt="Couverture de ${loan.titre}" class="w-20 h-24 object-cover rounded-md">
+            <div>
+                <h4 class="text-lg font-semibold text-gray-800">${loan.titre}</h4>
+                <p class="text-sm text-gray-600">Auteur: ${loan.auteur || 'Inconnu'}</p>
+                <p class="text-sm text-gray-500">Emprunté le: ${dateEmprunt}</p>
+                <p class="text-sm text-gray-500">Retour prévu le: ${dateRetour}</p>
+            </div>
+        </a>
+    `;
+    return card;
 }
-
-// --- Initialisation de la page ---
-document.addEventListener('DOMContentLoaded', () => {
-    loadCurrentLoans();
-    loadTrendingBooks();
-
-    // Ajout des écouteurs d'événements
-    searchButton.addEventListener('click', handleSearch);
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            handleSearch();
-        }
-    });
-});

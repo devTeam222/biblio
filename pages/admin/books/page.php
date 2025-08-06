@@ -181,6 +181,11 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                     </select>
                 </div>
                 <div>
+                    <label for="bookPosition" class="block text-sm font-medium text-gray-700 text-left">Emplacement</label>
+                    <input type="text" id="bookPosition"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
                     <label for="bookIsbn" class="block text-sm font-medium text-gray-700 text-left">ISBN</label>
                     <input type="text" id="bookIsbn"
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">

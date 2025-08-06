@@ -160,7 +160,8 @@ function renderBooks(booksToDisplay) {
                 </span>
             </td>
             <td class="py-3 px-2 flex space-x-2">
-                <button class="action-button bg-blue-100 text-blue-700 hover:bg-blue-200 text-sm edit-book-btn" data-book-id="${book.id}">Éditer</button>
+                <a href="/books?id=${book.id}" class="action-button bg-blue-100 text-blue-700 hover:bg-blue-200 text-sm info-book-btn" data-book-id="${book.id}">Info</a>
+                <button class="action-button bg-yellow-100 text-yellow-700 hover:bg-yellow-200 text-sm edit-book-btn" data-book-id="${book.id}">Éditer</button>
                 <button class="action-button bg-red-100 text-red-700 hover:bg-red-200 text-sm delete-book-btn" data-book-id="${book.id}" data-book-title="${book.titre}">Supprimer</button>
             </td>
         `;
@@ -209,6 +210,7 @@ async function openBookModal(bookId = null) {
                     id: data.id,
                     titre: data.titre,
                     auteur_id: data.auteur_id,
+                    emplacement: data.emplacement || '', // Utiliser l'emplacement au lieu de l'ISBN
                     isbn: data.isbn || '',
                     description: data.description || '',
                     disponible: data.disponible || false
@@ -238,6 +240,7 @@ async function openBookModal(bookId = null) {
             id: '',
             titre: '',
             auteur_id: '',
+            emplacement: '',
             isbn: '',
             description: '',
             disponible: true // Par défaut, un nouveau livre est disponible
@@ -263,6 +266,7 @@ function updateBookForm(book) {
     const bookIdInput = form.querySelector('#bookId');
     const bookTitleInput = form.querySelector('#bookTitle');
     const bookAuthorSelect = form.querySelector('#bookAuthor');
+    const bookPositionInput = form.querySelector('#bookPosition');
     const bookIsbnInput = form.querySelector('#bookIsbn');
     const bookDescriptionInput = form.querySelector('#bookDescription');
     const bookAvailableCheckbox = form.querySelector('#bookAvailable');
@@ -270,6 +274,7 @@ function updateBookForm(book) {
     bookIdInput.value = book.id;
     bookTitleInput.value = book.titre;
     bookAuthorSelect.value = book.auteur_id;
+    bookPositionInput.value = book.emplacement || ''; // Utiliser l'emplacement au lieu de l'ISBN
     bookIsbnInput.value = book.isbn || '';
     bookDescriptionInput.value = book.description || '';
     bookAvailableCheckbox.checked = book.disponible || false;
@@ -290,6 +295,7 @@ async function handleBookFormSubmit(event) {
     const bookIdInput = form.querySelector('#bookId');
     const bookTitleInput = form.querySelector('#bookTitle');
     const bookAuthorSelect = form.querySelector('#bookAuthor');
+    const bookPositionInput = form.querySelector('#bookPosition'); // Utiliser l'emplacement au lieu de l'ISBN
     const bookIsbnInput = form.querySelector('#bookIsbn');
     const bookDescriptionInput = form.querySelector('#bookDescription');
     const bookAvailableCheckbox = form.querySelector('#bookAvailable');
@@ -298,6 +304,7 @@ async function handleBookFormSubmit(event) {
         titre: bookTitleInput.value,
         auteur_id: bookAuthorSelect.value,
         isbn: bookIsbnInput.value,
+        emplacement: bookPositionInput.value, // Utiliser l'emplacement au lieu de l'ISBN
         description: bookDescriptionInput.value,
     };
     const initialBookData = {
@@ -305,6 +312,7 @@ async function handleBookFormSubmit(event) {
         titre: bookTitleInput.value,
         auteur_id: bookAuthorSelect.value,
         isbn: bookIsbnInput.value,
+        emplacement: bookPositionInput.value, // Utiliser l'emplacement au lieu de l'ISBN
         description: bookDescriptionInput.value,
         disponible: bookAvailableCheckbox.checked
     }

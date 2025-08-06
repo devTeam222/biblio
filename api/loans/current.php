@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once __DIR__.'/../db_connect.php';
+require_once __DIR__ . '/../db_connect.php';
 session_start();
 // Simule l'ID de l'utilisateur connecté.
 // En production, ceci viendrait d'une session sécurisée ou d'un token JWT.
@@ -50,24 +50,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 e.date_retour,
                 e.rendu,
                 l.titre,
-                a.nom AS auteur
+                a.nom AS auteur,
+                f.chemin AS cover_url
             FROM
                 emprunts e
             JOIN
                 livres l ON e.livre_id = l.id
             JOIN
                 auteurs a ON l.auteur_id = a.id
+            LEFT JOIN
+                fichiers f ON l.cover_image_id = f.id
             WHERE
                 e.lecteur_id = :lecteur_id
             ORDER BY
-                e.date_retour ASC
+                e.date_retour ASC;
+
         ");
         $stmt->bindParam(':lecteur_id', $current_lecteur_id, PDO::PARAM_INT);
         $stmt->execute();
         $loans = $stmt->fetchAll();
 
         echo json_encode(["success" => true, "data" => $loans]);
-
     } catch (PDOException $e) {
         http_response_code(500); // Internal Server Error
         echo json_encode(["success" => false, "message" => "Erreur lors de la récupération des emprunts: " . $e->getMessage()]);
@@ -76,4 +79,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     http_response_code(405); // Method Not Allowed
     echo json_encode(["success" => false, "message" => "Méthode non autorisée."]);
 }
-?>

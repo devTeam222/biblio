@@ -1,11 +1,19 @@
 import { apiClient } from './ocho-api.js';
 
-function showCustomModal(message, { type = 'alert', actions = [] } = {}) {
+/** * Affiche une modale personnalisée avec un message, des actions et un corps personnalisé.
+ * @param {string|null} message - Le message à afficher dans la modale. Peut être une chaîne ou null si un corps personnalisé est fourni.
+ * @param {Object} options - Options pour la modale.   
+ * @param {string} [options.type='alert'] - Le type de la modale ('alert', 'confirm', 'success').
+ * @param {Array} [options.actions=[]] - Un tableau d'actions personnalisées pour la modale. Chaque action doit être un objet avec les propriétés `label`, `callback`, et `className`.
+ * @param {HTMLElement|null} [options.body=null] - Un élément HTML personnalisé à afficher dans la modale. Si fourni, le message et les actions seront ignorés.
+ * @returns {Promise} - Une promesse qui résout avec la valeur de l'action sélectionnée ou une fonction de fermeture si un corps personnalisé est fourni.
+ */
+function showCustomModal(message, { type = 'alert', actions = [], body = null } = {}) {
     return new Promise((resolve, reject) => { // Ajouter reject pour gérer les erreurs
         // Vérification du type du message
-        if (typeof message !== 'string') {
-            console.error("Erreur: Le paramètre 'message' doit être une chaîne de caractères.");
-            return reject(new TypeError("Le message doit être une chaîne de caractères."));
+        if (typeof message !== 'string' && message !== null) { // message peut être null si body est fourni
+            console.error("Erreur: Le paramètre 'message' doit être une chaîne de caractères ou null.");
+            return reject(new TypeError("Le message doit être une chaîne de caractères ou null."));
         }
 
         // Vérification du type des actions
@@ -13,11 +21,50 @@ function showCustomModal(message, { type = 'alert', actions = [] } = {}) {
             console.error("Erreur: Le paramètre 'actions' doit être un tableau.");
             return reject(new TypeError("Les actions doivent être un tableau."));
         }
+        // Vérification du type du type
+        if (typeof type !== 'string' || !['alert', 'confirm', 'success'].includes(type)) {
+            console.error("Erreur: Le paramètre 'type' doit être 'alert', 'confirm' ou 'success'.");
+            return reject(new TypeError("Le type doit être 'alert', 'confirm' ou 'success'."));
+        }
+        // Vérification du body personnalisé
+        if (body && !(body instanceof HTMLElement)) {
+            console.error("Erreur: Le paramètre 'body' doit être un élément HTML ou null.");
+            return reject(new TypeError("Le body doit être un élément HTML ou null."));
+        }
 
         const modalOverlay = document.createElement('div');
         modalOverlay.className = 'modal-overlay';
 
         let buttonsHtml = '';
+        let modalContentHtml = '';
+
+        // Si un body personnalisé est fourni, ignorez le message et les actions par défaut
+        if (body) {
+            modalContentHtml = `<div class="modal-content"></div>`; // Conteneur pour le custom body
+            modalOverlay.innerHTML = modalContentHtml;
+            const contentDiv = modalOverlay.querySelector('.modal-content');
+            if (contentDiv) {
+                contentDiv.appendChild(body); // Ajouter le custom body au modal
+            }
+            
+            // Retourne une fonction pour fermer la modale
+            const dismiss = () => {
+                if (modalContainer.contains(modalOverlay)) {
+                    modalContainer.removeChild(modalOverlay);
+                }
+            };
+            
+            // Assurez-vous que modalContainer est défini globalement ou passé en paramètre
+            if (!window.modalContainer) {
+                console.error("Erreur: 'modalContainer' n'est pas défini. Veuillez vous assurer qu'un élément conteneur pour le modal existe dans le DOM.");
+                return reject(new Error("'modalContainer' non défini."));
+            }
+            modalContainer.appendChild(modalOverlay); // <--- Ligne déplacée ici pour s'assurer qu'elle est toujours ajoutée
+            
+            resolve({ dismiss }); // Résoudre avec la fonction de fermeture
+            return; // Sortir, car le reste de la logique n'est pas applicable
+        }
+
 
         // Si des actions personnalisées sont fournies, générez les boutons à partir de celles-ci.
         if (actions.length > 0) {
@@ -45,9 +92,7 @@ function showCustomModal(message, { type = 'alert', actions = [] } = {}) {
         } else {
             // Si aucune action personnalisée n'est fournie, utilisez les types 'alert' ou 'confirm' par défaut.
             if(type === 'success'){
-
                 buttonsHtml = `<button id="modalOkBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">OK</button>`;
-
             }else if (type === 'alert') {
                 buttonsHtml = `<button id="modalCancelBtn" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Fermer</button>`;
             } else if (type === 'confirm') {
@@ -61,8 +106,7 @@ function showCustomModal(message, { type = 'alert', actions = [] } = {}) {
             }
         }
 
-
-        modalOverlay.innerHTML = `
+        modalContentHtml = `
             <div class="modal-content">
                 <p class="text-lg mb-4">${message}</p>
                 <div class="flex justify-center gap-4">
@@ -70,13 +114,14 @@ function showCustomModal(message, { type = 'alert', actions = [] } = {}) {
                 </div>
             </div>
         `;
+        modalOverlay.innerHTML = modalContentHtml;
+
         // Assurez-vous que modalContainer est défini globalement ou passé en paramètre
-        // Par exemple: const modalContainer = document.getElementById('modal-container');
         if (!window.modalContainer) {
             console.error("Erreur: 'modalContainer' n'est pas défini. Veuillez vous assurer qu'un élément conteneur pour le modal existe dans le DOM.");
             return reject(new Error("'modalContainer' non défini."));
         }
-        modalContainer.appendChild(modalOverlay);
+        modalContainer.appendChild(modalOverlay); // <--- Cette ligne est maintenant ici aussi pour les modales par défaut
 
         if (actions.length > 0) {
             // Attacher les écouteurs d'événements aux boutons générés
@@ -148,6 +193,7 @@ function isAuth() {
                 role: userDetails?.role || null // Rôle de l'utilisateur authentifié
             }
         });
+        
         document.dispatchEvent(authEvent); // Déclenche l'événement d'authentification
         resolve(!!response?.data?.success ? response.data : null); // Retourne true si l'utilisateur est authentifié
     });
@@ -171,7 +217,14 @@ function updateNavBar(type = 'user', page = '') {
     switch (type) {
         case 'admin':
             navHtml = `
-                <a href="/admin" class="nav-link ${page === "" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"}  font-semibold py-2 px-4 rounded-lg flex items-center">
+                <a href="/" class="nav-link ${page === "home" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
+                    <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house">
+                        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+                        <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    </svg>
+                    Accueil
+                </a>
+                 <a href="/admin" class="nav-link ${page === "" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"}  font-semibold py-2 px-4 rounded-lg flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard-icon lucide-layout-dashboard">
                         <rect width="7" height="9" x="3" y="3" rx="1" />
                         <rect width="7" height="5" x="14" y="3" rx="1" />
@@ -179,13 +232,6 @@ function updateNavBar(type = 'user', page = '') {
                         <rect width="7" height="5" x="3" y="16" rx="1" />
                     </svg>
                     Tableau de bord
-                </a>
-                <a href="/" class="nav-link bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg flex items-center">
-                    <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house">
-                        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
-                        <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    </svg>
-                    Accueil
                 </a>
                 <a href="/admin/books" class="nav-link ${page === "books" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -249,29 +295,55 @@ function updateNavBar(type = 'user', page = '') {
             break;
         case 'user':
             navHtml = `
-            <a href="/" class="nav-link bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
-                <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house">
-                    <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
-                    <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            
+           <a href="/" class="nav-link ${page === "home" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
+                    <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house">
+                        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+                        <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    </svg>
+                    Accueil
+                </a>
+                <a href="#" class="nav-link bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
                 </svg>
-                Accueil
+                Mes Livres
             </a>
-            <a href="livres-user.html" class="nav-link bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg"  class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search">
-                    <path d="m21 21-4.34-4.34" />
-                    <circle cx="11" cy="11" r="8" />
+            <a href="#" class="nav-link bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
-                Rechercher Livres
+                Statistiques Livres
             </a>
+            <button id="logoutButton" class="nav-link bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Déconnexion
+            </button>
+            
             `;
             break;
         default:
             navHtml = `
-                <a href="/" class="nav-link bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 9.414V17a1 1 0 01-1.447.894l-3-1A1 1 0 017 15V9.414L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                <a href="/" class="nav-link ${page === "home" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
+                    <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house">
+                        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+                        <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                     </svg>
                     Accueil
+                </a>
+                <a href="/login" class="nav-link ${page === "login" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Se connecter
+                </a>
+                <a href="/register" class="nav-link ${page === "register" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    S'inscrire
                 </a>
             `;
             break;

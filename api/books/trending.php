@@ -25,12 +25,12 @@ try {
             auteurs.nom AS auteur,
             categories.nom AS categorie,
             categories.id AS categorie_id,
-            fichiers.chemin AS cover,
+            fichiers.chemin AS cover_url,
             livres.date_publication,
             livres.disponible
         FROM livres
         JOIN auteurs ON livres.auteur_id = auteurs.id
-        JOIN categories ON livres.categorie_id = categories.id
+        LEFT JOIN categories ON livres.categorie_id = categories.id
         LEFT JOIN fichiers ON livres.cover_image_id = fichiers.id
         WHERE livres.disponible = TRUE
         ORDER BY livres.date_publication DESC

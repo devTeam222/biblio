@@ -29,10 +29,21 @@ try {
     switch ($action) {
         case 'list':
             $stmt = $pdo->query("
-                SELECT l.id, l.titre, l.isbn, l.descr, l.disponible, l.emplacement , a.id AS auteur_id, a.nom AS auteur_nom
+                SELECT 
+                    l.id,
+                    l.titre,
+                    l.isbn,
+                    l.descr,
+                    l.disponible,
+                    l.emplacement,
+                    a.id AS auteur_id,
+                    a.nom AS auteur_nom,
+                    f.chemin AS cover_url
                 FROM livres l
                 JOIN auteurs a ON l.auteur_id = a.id
-                ORDER BY l.date_publication DESC
+                LEFT JOIN fichiers f ON l.cover_image_id = f.id
+                ORDER BY l.date_publication DESC;
+
             ");
             $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode(["success" => true, "data" => $books]);
@@ -66,6 +77,8 @@ try {
             $titre = $_POST['titre'] ?? null;
             $auteur_id = $_POST['auteur_id'] ?? null;
             $isbn = $_POST['isbn'] ?? null;
+            $emplacement = $_POST['emplacement'] ?? null;
+            $isbn = $_POST['emplacement'] ?? null;
             $description = $_POST['description'] ?? null;
             $disponible = true; // Par défaut disponible
 
@@ -75,8 +88,8 @@ try {
                 exit();
             }
 
-            $stmt = $pdo->prepare("INSERT INTO livres (titre, auteur_id, isbn, descr, disponible) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$titre, $auteur_id, $isbn, $description, $disponible]);
+            $stmt = $pdo->prepare("INSERT INTO livres (titre, auteur_id, emplacement, isbn, descr, disponible) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$titre, $auteur_id, $emplacement, $isbn, $description, $disponible]);
             if ($stmt->rowCount() === 0) {
                 http_response_code(500);
                 echo json_encode(["success" => false, "message" => "Erreur lors de l'ajout du livre."]);
@@ -89,6 +102,7 @@ try {
             $id = $_POST['id'] ?? null;
             $titre = $_POST['titre'] ?? null;
             $auteur_id = $_POST['auteur_id'] ?? null;
+            $emplacement = $_POST['emplacement'] ?? null;
             $isbn = $_POST['isbn'] ?? null;
             $description = $_POST['description'] ?? null;
 
@@ -97,14 +111,15 @@ try {
                     'id' => $id,
                     'titre' => $titre,
                     'auteur_id' => $auteur_id,
+                    'emplacement'=> $emplacement,
                     'isbn' => $isbn,
                     'description' => $description
                 ], "post" => $_POST]);
                 exit();
             }
 
-            $stmt = $pdo->prepare("UPDATE livres SET titre = ?, auteur_id = ?, isbn = ?, descr = ? WHERE id = ?");
-            $stmt->execute([$titre, $auteur_id, $isbn, $description, $id]);
+            $stmt = $pdo->prepare("UPDATE livres SET titre = ?, auteur_id = ?, emplacement = ?, isbn = ?, descr = ? WHERE id = ?");
+            $stmt->execute([$titre, $auteur_id, $emplacement, $isbn, $description, $id]);
             if ($stmt->rowCount() === 0) {
                 echo json_encode(["success" => false, "message" => "Erreur lors de la mise à jour du livre."]);
                 exit();

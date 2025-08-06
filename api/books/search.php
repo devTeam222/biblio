@@ -25,7 +25,7 @@ try {
             auteurs.nom AS auteur,
             categories.nom AS categorie,
             categories.id AS categorie_id,
-            fichiers.chemin AS cover,
+            fichiers.chemin AS cover_url,
             livres.date_publication,
             livres.disponible
         FROM livres
@@ -36,7 +36,7 @@ try {
             livres.titre ILIKE :search_term OR 
             auteurs.nom ILIKE :search_term OR 
             categories.nom ILIKE :search_term
-        ORDER BY livres.titre ASC -- Ordre alphabétique par titre pour la recherche
+        ORDER BY livres.date_publication DESC
     ");
     $stmt->bindParam(':search_term', $search_term);
     $stmt->execute();

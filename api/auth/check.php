@@ -15,6 +15,15 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || !isset($_SESS
     ]);
     exit();
 }
+$readerId = null;
+
+$sql = "SELECT id FROM lecteurs WHERE user_id = ?";
+$stmt = $pdo->prepare($sql);
+$stmt->execute([$_SESSION['user_id']]);
+$reader = $stmt->fetch(PDO::FETCH_ASSOC);
+if ($reader) {
+    $readerId = $reader['id'];
+}
 
 echo json_encode([
     'success' => true,
@@ -24,6 +33,7 @@ echo json_encode([
         'name'=> $_SESSION['user_name'],
         'email'=> $_SESSION['user_email'] ?? '', // Assurez-vous que l'email est défini dans la session
         'role'=> $_SESSION['user_role'],
+        'lecteurId'=> $readerId,
     ],
     'roles' => explode(',', $_SESSION['user_role']), // Si le rôle est une chaîne, le convertir en tableau
 ]);
