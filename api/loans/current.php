@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             LEFT JOIN
                 fichiers f ON l.cover_image_id = f.id
             WHERE
-                e.lecteur_id = :lecteur_id
+                e.lecteur_id = :lecteur_id AND e.rendu = false
             ORDER BY
                 e.date_retour ASC;
 

@@ -135,7 +135,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                             <th>Titre</th>
                             <th>Auteur</th>
                             <th>Emplacement</th>
-                            <th>ISBN</th>
+                            <th>Année academique</th>
                             <th>Disponible</th>
                             <th>Actions</th>
                         </tr>
@@ -186,8 +186,8 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
                 <div>
-                    <label for="bookIsbn" class="block text-sm font-medium text-gray-700 text-left">ISBN</label>
-                    <input type="text" id="bookIsbn"
+                    <label for="bookYear" class="block text-sm font-medium text-gray-700 text-left">Année académique</label>
+                    <input type="text" id="bookYear" maxlength="9"
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
                 <div>

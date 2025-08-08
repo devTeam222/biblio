@@ -22,21 +22,30 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || !isset($_SESS
     exit();
 }
 
-// Simule l'ID de l'utilisateur connecté.
-// En production, ceci viendrait d'une session sécurisée ou d'un token JWT.
-// Pour cette démo, nous allons le fixer à un ID de lecteur existant pour les tests.
-// Vous devrez implémenter une logique pour obtenir le lecteur_id à partir du user_id authentifié.
 $current_user_id = $_SESSION['user_id']; // ID de l'utilisateur (de la table 'users')
 $current_lecteur_id = null; // Sera récupéré à partir de $current_user_id
+$subscription_end_date = null; // Date de fin de l'abonnement du lecteur
 
-// Récupérer le lecteur_id basé sur le user_id authentifié
 try {
-    $stmt = $pdo->prepare("SELECT id FROM lecteurs WHERE user_id = :user_id");
+    // Récupérer le lecteur_id et la date de fin de l'abonnement basé sur le user_id authentifié
+    $stmt = $pdo->prepare("
+        SELECT 
+            l.id AS lecteur_id,
+            MAX(a.date_fin) AS last_subscription_end_date,
+            a.statut AS subscription_status
+        FROM lecteurs l 
+        LEFT JOIN abonnements a ON l.id = a.lecteur_id AND a.statut = 'actif'
+        WHERE l.user_id = :user_id
+        GROUP BY l.id, a.statut
+    ");
     $stmt->bindParam(':user_id', $current_user_id, PDO::PARAM_INT);
     $stmt->execute();
-    $lecteur = $stmt->fetch();
-    if ($lecteur) {
-        $current_lecteur_id = $lecteur['id'];
+    $lecteur_data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($lecteur_data) {
+        $current_lecteur_id = $lecteur_data['lecteur_id'];
+        $subscription_end_date = $lecteur_data['last_subscription_end_date'];
+        $subscription_status = $lecteur_data['subscription_status'];
     } else {
         http_response_code(403); // Forbidden
         echo json_encode(["success" => false, "message" => "L'utilisateur n'est pas enregistré comme lecteur."]);
@@ -44,7 +53,7 @@ try {
     }
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["success" => false, "message" => "Erreur lors de la vérification du lecteur: " . $e->getMessage()]);
+    echo json_encode(["success" => false, "message" => "Erreur lors de la vérification du lecteur ou de l'abonnement: " . $e->getMessage()]);
     exit();
 }
 
@@ -54,8 +63,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $book_id = isset($_POST['bookId']) ? $_POST['bookId'] : null;
 
     if ($book_id === null || !is_numeric($book_id)) {
-
-        // http_response_code(400); // Bad Request
         echo json_encode(["success" => false, "message" => "ID du livre manquant ou invalide." ]);
         return;
     }
@@ -73,10 +80,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             return;
         }
 
-        // 2. Insérer un nouvel enregistrement d'emprunt
         $date_emprunt = time(); // Timestamp Unix actuel
-        $date_retour = $date_emprunt + 15*24*3600; // Timestamp Unix pour 15 jours plus tard
+        $default_return_period_seconds = 15 * 24 * 3600; // 15 jours en secondes
+        $suggested_date_retour = $date_emprunt + $default_return_period_seconds;
 
+        // Vérifier l'abonnement du lecteur
+        if ($subscription_end_date === null || $subscription_end_date < $date_emprunt) {
+            // Pas d'abonnement actif ou abonnement expiré
+            echo json_encode([
+                "success" => false,
+                "message" => "Vous n'avez pas d'abonnement actif ou votre abonnement est expiré. Veuillez contacter un administrateur pour renouveler votre abonnement.",
+                "action" => "contact_admin"
+            ]);
+            return;
+        }
+
+        // Calculer la date de retour : 15 jours ou fin de l'abonnement si moins de 2 semaines
+        $two_weeks_in_seconds = 14 * 24 * 3600;
+        
+        if (($subscription_end_date - $date_emprunt) < $two_weeks_in_seconds) {
+            // Si la durée restante de l'abonnement est inférieure à 2 semaines
+            $date_retour = $subscription_end_date;
+            echo json_encode([
+                "success" => true, 
+                "message" => "Livre emprunté. La date de retour a été ajustée à la fin de votre abonnement.",
+                "return_date_adjusted" => true
+            ]);
+        } else {
+            // Sinon, la date de retour est 15 jours après l'emprunt
+            $date_retour = $suggested_date_retour;
+            echo json_encode([
+                "success" => true, 
+                "message" => "Livre emprunté avec succès!"
+            ]);
+        }
+
+        // 2. Insérer un nouvel enregistrement d'emprunt
         $stmt = $pdo->prepare("INSERT INTO emprunts (lecteur_id, livre_id, date_emprunt, date_retour, rendu) VALUES (:lecteur_id, :livre_id, :date_emprunt, :date_retour, FALSE)");
         $stmt->bindParam(':lecteur_id', $current_lecteur_id, PDO::PARAM_INT);
         $stmt->bindParam(':livre_id', $book_id, PDO::PARAM_INT);
@@ -88,8 +127,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare("UPDATE livres SET disponible = FALSE WHERE id = :book_id");
         $stmt->bindParam(':book_id', $book_id, PDO::PARAM_INT);
         $stmt->execute();
-
-        echo json_encode(["success" => true, "message" => "Livre emprunté avec succès!"]);
 
     } catch (PDOException $e) {
         http_response_code(500); // Internal Server Error

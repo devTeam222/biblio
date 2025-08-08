@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gérer les Utilisateurs & Auteurs - Ma Bibliothèque</title>
+    <title>Gérer les Utilisateurs, Auteurs & Abonnements - Ma Bibliothèque</title>
     <link rel="stylesheet" href="/app/css/modal.css">
     <style>
         body {
@@ -75,7 +75,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                         <path d="M6.376 18.91a6 6 0 0 1 11.249.003" />
                         <circle cx="12" cy="11" r="4" />
                     </svg>
-                    <h1 class="text-2xl md:text-3xl font-bold">Gérer les Utilisateurs & Auteurs</h1>
+                    <h1 class="text-2xl md:text-3xl font-bold">Gérer les Utilisateurs</h1>
                 </div>
                 <div class="flex items-center space-x-4">
                     <div class="flex items-center space-x-2 text-white bg-indigo-700/50 px-3 py-1 rounded-full">
@@ -134,6 +134,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
             <div class="flex border-b border-gray-200 mb-4">
                 <button id="usersTabBtn" class="tab-button active bg-white text-indigo-700 border-indigo-500">Utilisateurs</button>
                 <button id="authorsTabBtn" class="tab-button bg-gray-100 text-gray-700">Auteurs</button>
+                <button id="subscriptionsTabBtn" class="tab-button bg-gray-100 text-gray-700">Abonnements</button>
             </div>
 
             <!-- Contenu des onglets -->
@@ -179,7 +180,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                         <tbody>
                             <!-- Les auteurs seront chargés ici par JavaScript -->
                             <tr>
-                                <td colspan="4" class="text-center py-4 text-gray-500">Chargement des auteurs...</td>
+                                <td colspan="5" class="text-center py-4 text-gray-500">Chargement des auteurs...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -188,6 +189,34 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                     <button id="authorsPrevPageBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">Précédent</button>
                     <span id="authorsPageInfo" class="text-sm text-gray-700"></span>
                     <button id="authorsNextPageBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">Suivant</button>
+                </div>
+            </div>
+
+            <div id="subscriptionsContent" class="tab-content hidden">
+                <div class="table-container overflow-x-auto">
+                    <table id="subscriptionsTable" class="min-w-full bg-white rounded-md overflow-hidden w-full border-collapse">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Lecteur</th>
+                                <th>Date Début</th>
+                                <th>Date Fin</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Les abonnements seront chargés ici par JavaScript -->
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-gray-500">Chargement des abonnements...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="subscriptionsPagination" class="flex justify-between items-center mt-4">
+                    <button id="subscriptionsPrevPageBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">Précédent</button>
+                    <span id="subscriptionsPageInfo" class="text-sm text-gray-700"></span>
+                    <button id="subscriptionsNextPageBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">Suivant</button>
                 </div>
             </div>
         </div>
@@ -200,9 +229,6 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
             <p class="mt-1 text-gray-400">Dernière mise à jour: <span id="lastUpdateTime">maintenant</span></p>
         </div>
     </footer>
-
-    <!-- Conteneur pour les modales -->
-    <div id="modalContainer"></div>
 
     <!-- Modale Ajouter/Modifier Utilisateur -->
     <div id="userModal" class="modal-overlay hidden">
@@ -223,10 +249,16 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                         readonly>
                 </div>
                 <div>
+                    <label for="userPassword" class="block text-sm font-medium text-gray-700 text-left">Mot de passe</label>
+                    <input type="password" id="userPassword"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                </div>
+                <div>
                     <label for="userRole" class="block text-sm font-medium text-gray-700 text-left">Rôle</label>
                     <select id="userRole"
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                        required>
+                        required value="user">
                         <option value="author">Auteur</option>
                         <option value="user">Lecteur</option>
                         <option value="admin">Administrateur</option>
@@ -260,6 +292,11 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
                 <div>
+                    <label for="authorEmail" class="block text-sm font-medium text-gray-700 text-left">Nom Complet</label>
+                    <input type="text" id="authorEmail"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
                     <label for="authorBio" class="block text-sm font-medium text-gray-700 text-left">Biographie</label>
                     <textarea id="authorBio" rows="3"
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
@@ -274,6 +311,53 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
         </div>
     </div>
     
+    <!-- Modale Ajouter/Modifier Abonnement -->
+    <div id="subscriptionModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="subscriptionModalTitle" class="text-xl font-semibold text-gray-800 mb-4">Ajouter un nouvel abonnement</h3>
+            <form id="subscriptionForm" class="space-y-4" method="post">
+                <input type="hidden" id="subscriptionId">
+                <div>
+                    <label for="subscriptionReader" class="block text-sm font-medium text-gray-700 text-left">Lecteur</label>
+                    <select id="subscriptionReader"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        required>
+                        <!-- Options will be loaded by JavaScript -->
+                    </select>
+                </div>
+                <div>
+                    <label for="subscriptionStartDate" class="block text-sm font-medium text-gray-700 text-left">Date de début</label>
+                    <input type="date" id="subscriptionStartDate"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        required>
+                </div>
+                <div>
+                    <label for="subscriptionEndDate" class="block text-sm font-medium text-gray-700 text-left">Date de fin</label>
+                    <input type="date" id="subscriptionEndDate"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        required>
+                </div>
+                <div>
+                    <label for="subscriptionStatus" class="block text-sm font-medium text-gray-700 text-left">Statut</label>
+                    <select id="subscriptionStatus"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        required>
+                        <option value="actif">Actif</option>
+                        <option value="expire">Expiré</option>
+                        <option value="annule">Annulé</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="cancelSubscriptionModalBtn"
+                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Annuler</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
     <!-- Modale de Confirmation Personnalisée -->
     <div id="confirmationModal" class="modal-overlay hidden">
         <div class="modal-content text-center">
@@ -285,6 +369,9 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
         </div>
     </div>
 
+
+    <!-- Conteneur pour les modales -->
+    <div id="modalContainer"></div>
     <script type="module" src="/app/js/auth/admin/users.js"></script>
 </body>
 

@@ -98,14 +98,27 @@ try {
             }
             $password = $input['password'] ?? null;
             $role = $input['role'] ?? 'user';
-            if (!$nom || !$email || !$password) {
+            if (!$nom || !$email) {
                 http_response_code(400);
                 echo json_encode(["success" => false, "message" => "Nom, email et mot de passe sont requis."]);
                 exit();
             }
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users (nom, email, password, role) VALUES (?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (nom, email, mot_de_passe, role) VALUES (?, ?, ?, ?)");
             $stmt->execute([$nom, $email, $hashed_password, $role]);
+            if ($role == 'author') {
+                // Check if author exists
+                $stmt = $pdo->prepare("SELECT id FROM auteurs WHERE user_id = :id");
+                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+                $stmt->execute();
+                if ($stmt->rowCount() === 0) {
+                    // If not, create a new author entry
+                    $stmt = $pdo->prepare("INSERT INTO auteurs (nom, user_id) VALUES (:nom, :id)");
+                    $stmt->bindParam(':nom', $nom);
+                    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+                    $stmt->execute();
+                }
+            }
             echo json_encode(["success" => true, "message" => "Utilisateur ajouté avec succès.", "id" => $pdo->lastInsertId()]);
             break;
 
@@ -139,6 +152,19 @@ try {
                 $stmt->bindParam(':password', $hashed_password);
             }
             $stmt->execute();
+            if ($role == 'author') {
+                // Check if author exists
+                $stmt = $pdo->prepare("SELECT id FROM auteurs WHERE user_id = :id");
+                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+                $stmt->execute();
+                if ($stmt->rowCount() === 0) {
+                    // If not, create a new author entry
+                    $stmt = $pdo->prepare("INSERT INTO auteurs (nom, user_id) VALUES (:nom, :id)");
+                    $stmt->bindParam(':nom', $nom);
+                    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+                    $stmt->execute();
+                }
+            }
             echo json_encode(["success" => true, "message" => "Utilisateur mis à jour."]);
             break;
 

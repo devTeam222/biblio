@@ -147,7 +147,7 @@ function renderBookDetails(book, userRole, lecteurId) {
 
     const coverEl = book.cover_image_url ? `<img src="${book.cover_image_url}" alt="Couverture de ${book.titre}" class="book-cover-detail mx-auto md:mx-0 mb-6 md:mb-0">` : `<svg xmlns="http://www.w3.org/2000/svg" width="800px" height="800px" viewBox="0 0 120 120" fill="none" class="book-cover-detail mx-auto md:mx-0 mb-6 md:mb-0" title="Pas de couverture disponible">
 <rect width="120" height="120" fill="#aeb0b1"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M33.2503 38.4816C33.2603 37.0472 34.4199 35.8864 35.8543 35.875H83.1463C84.5848 35.875 85.7503 37.0431 85.7503 38.4816V80.5184C85.7403 81.9528 84.5807 83.1136 83.1463 83.125H35.8543C34.4158 83.1236 33.2503 81.957 33.2503 80.5184V38.4816ZM80.5006 41.1251H38.5006V77.8751L62.8921 53.4783C63.9172 52.4536 65.5788 52.4536 66.6039 53.4783L80.5006 67.4013V41.1251ZM43.75 51.6249C43.75 54.5244 46.1005 56.8749 49 56.8749C51.8995 56.8749 54.25 54.5244 54.25 51.6249C54.25 48.7254 51.8995 46.3749 49 46.3749C46.1005 46.3749 43.75 48.7254 43.75 51.6249Z" fill="#687787"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M33.2503 38.4816C33.2603 37.0472 34.4199 35.8864 35.8543 35.875H83.1463C84.5848 35.875 85.7503 37.0431 85.7503 38.4816V80.5184C85.7403 81.9528 84.5807 83.1136 83.1463 83.125H35.8543C34.4158 83.1236 33.2503 81.957 33.2503 80.5184V38.4816ZM80.5006 41.1251H38.5006V77.8751L62.8921 53.4783C63.9172 52.4536 65.5788 52.4536 66.6039 53.4783L80.5006 67.4013V41.1251ZM43.75 51.6249C43.75 54.5244 46.1005 56.8749 49 56.8749C51.8995 56.8749 54.25 54.5244 54.25 51.6249C54.25 48.7254 51.8995 46.3749 43.75 46.3749C46.1005 46.3749 43.75 48.7254 43.75 51.6249Z" fill="#687787"/>
 </svg>`;
 
     const date_publication = book.date_publication ? new TimeFormatter(book.date_publication * 1000).formatFullTime() : 'N/A';
@@ -191,7 +191,7 @@ function renderBookDetails(book, userRole, lecteurId) {
             <h3 class="text-3xl font-bold text-gray-900 mb-2">${book.titre}</h3>
             <p class="text-xl text-gray-700 mb-2"><strong>Auteur:</strong> ${book.auteur_nom || 'N/A'}</p>
             <p class="text-lg text-gray-600 mb-2"><strong>Catégorie:</strong> ${book.categorie_nom || 'N/A'}</p>
-            <p class="text-lg text-gray-600 mb-2"><strong>ISBN:</strong> ${book.isbn || 'N/A'}</p>
+            <p class="text-lg text-gray-600 mb-2"><strong>Année Académique:</strong> ${book.annee_academique || 'N/A'}</p> <!-- Changed from ISBN -->
             <p class="text-lg text-gray-600 mb-2"><strong>Date de publication:</strong> ${date_publication}</p>
             <p class="text-lg text-gray-600 mb-4"><strong>Statut:</strong>
                 <span class="px-3 py-1 rounded-full text-sm font-semibold ${availabilityClass}">
@@ -452,7 +452,7 @@ async function handleDeleteFile(type, bookId) {
  */
 async function handleBorrowBook(bookId) {
     const authResult = await isAuth();
-    const userId = authResult?.user?.id; // Accès corrigé
+    const userId = authResult?.user?.id;
 
     if (!authResult || !userId) {
         showCustomModal('Vous devez être connecté pour emprunter un livre.', { type: 'alert' });
@@ -474,29 +474,57 @@ async function handleBorrowBook(bookId) {
                 callback: async () => {
                     const button = document.getElementById('borrowButton');
                     if (button) {
-                        addLoader(button); // Utiliser showLoading pour le bouton
+                        addLoader(button);
                         button.disabled = true;
                     }
 
                     try {
                         const response = await apiClient.post('/api/books/borrow', { body: { bookId }, throwHttpErrors: true });
                         if (response.data.success) {
-                            showCustomModal('Livre emprunté avec succès !', { type: 'success' });
-                            // Recharger les détails pour mettre à jour le statut avec le rôle et lecteurId actuels
+                            let message = response.data.message || 'Livre emprunté avec succès !';
+                            if (response.data.return_date_adjusted) {
+                                message += " La date de retour a été ajustée à la fin de votre abonnement.";
+                            }
+                            showCustomModal(message, { type: 'success' });
                             const authResult = await isAuth();
-                            const userRole = authResult?.user?.role || 'guest'; // Accès corrigé
-                            const lecteurId = authResult?.user?.lecteurId || null; // Accès corrigé
-                            fetchBookDetails(bookId, userRole, lecteurId); 
+                            const userRole = authResult?.user?.role || 'guest';
+                            const lecteurId = authResult?.user?.lecteurId || null;
+                            fetchBookDetails(bookId, userRole, lecteurId);
                         } else {
-                            showCustomModal(`${response?.data?.message || "Erreur inconnue lors de l'emprunt."}`, { type: 'alert' });
+                            if (response.data.action === 'contact_admin') {
+                                showCustomModal(
+                                    response.data.message || "Vous n'avez pas d'abonnement actif. Veuillez contacter un administrateur.",
+                                    {
+                                        type: 'alert',
+                                        actions: [
+                                            {
+                                                label: 'Contacter l\'administrateur',
+                                                callback: () => {
+                                                    // Rediriger vers une page de contact ou afficher un formulaire
+                                                    // Pour l'exemple, nous allons juste afficher une alerte
+                                                    showCustomModal('Veuillez envoyer un email à admin@example.com pour renouveler votre abonnement.', { type: 'alert' });
+                                                },
+                                                className: 'bg-blue-600 hover:bg-blue-700 text-white'
+                                            },
+                                            {
+                                                label: 'Fermer',
+                                                callback: () => {},
+                                                className: 'bg-gray-400 hover:bg-gray-500 text-white'
+                                            }
+                                        ]
+                                    }
+                                );
+                            } else {
+                                showCustomModal(`${response?.data?.message || "Erreur inconnue lors de l'emprunt."}`, { type: 'alert' });
+                            }
                         }
                     } catch (error) {
                         console.error("Erreur lors de l'emprunt du livre :", error);
                         showCustomModal("Une erreur est survenue lors de l'emprunt. Veuillez réessayer.", { type: 'alert' });
                     } finally {
                         if (button) {
-                            removeLoader(button); // Utiliser hideLoading pour le bouton
-                            button.disabled = false; // Réactiver le bouton (sera désactivé si non disponible après rechargement)
+                            removeLoader(button);
+                            button.disabled = false;
                         }
                     }
                 },

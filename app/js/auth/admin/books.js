@@ -1,4 +1,3 @@
-
 import { apiClient } from "../../util/ocho-api.js";
 import { TimeFormatter } from "../../util/formatter.js";
 import { showCustomModal, addLoader, removeLoader, isAuth, updateNavBar } from "../../util/utils.js";
@@ -12,7 +11,36 @@ const lastUpdateTimeEl = document.getElementById('lastUpdateTime');
 const booksTableBody = document.querySelector('#booksTable tbody');
 const bookSearchInput = document.getElementById('bookSearchInput');
 const addBookBtn = document.getElementById('addBookBtn');
+// Sélecteurs pour les éléments de la modale et du formulaire
+const bookYearInput = document.getElementById('bookYear'); // Champ pour l'année académique
 
+bookYearInput.maxLength = 9; // Limite de caractères pour l'année académique
+bookYearInput.placeholder = 'Ex: 2023-2024'; // Placeholder pour l'année académique
+bookYearInput.title = 'Entrez l\'année académique au format YYYY-YYYY'; // Info-bulle pour l'année académique
+bookYearInput.pattern = '^(\\d{4}-\\d{4})$'; // Regex pour valider le format de l'année académique
+bookYearInput.addEventListener('input', ()=> {
+    // Ajouter un tiret au 4ème caractère si c'est un nombre
+    if (bookYearInput.value.length === 4 && !bookYearInput.value.includes('-')) {
+        bookYearInput.value += '-';
+        // Ajouter l'année suivante si l'année de début est valide
+        const startYear = parseInt(bookYearInput.value, 10);
+        if (!isNaN(startYear)) {
+            const nextYear = startYear + 1;
+            bookYearInput.value += nextYear.toString();
+        }
+    }
+    // Si la longueur est 9 vérifier si l'année de fin est de 1 supérieur à l'année de début
+    if (bookYearInput.value.length === 9) {
+        const years = bookYearInput.value.split('-');
+        if (years.length === 2 && years[0].length === 4 && years[1].length === 4) {
+            const startYear = parseInt(years[0], 10);
+            const endYear = parseInt(years[1], 10);
+            if (endYear !== startYear + 1) {
+                showCustomModal('L\'année de fin doit être l\'année de début + 1.', { type: 'alert' });
+            }
+        }
+    }
+});
 // Modale et éléments du formulaire
 const bookModal = document.getElementById('bookModal');
 const bookModalTitle = document.getElementById('bookModalTitle');
@@ -153,7 +181,7 @@ function renderBooks(booksToDisplay) {
             <td class="py-3 px-2">${book.titre}</td>
             <td class="py-3 px-2">${book.auteur_nom}</td>
             <td class="py-3 px-2">${book.emplacement || 'N/A'}</td>
-            <td class="py-3 px-2">${book.isbn || 'N/A'}</td>
+            <td class="py-3 px-2">${book.annee_academique || 'N/A'}</td> <!-- Changed from book.year -->
             <td class="py-3 px-2">
                 <span class="${book.disponible ? 'text-green-600' : 'text-red-600'} font-medium">
                     ${book.disponible ? 'Oui' : 'Non'}
@@ -177,7 +205,8 @@ function handleSearch() {
     const filteredBooks = allBooks.filter(book =>
         book.titre.toLowerCase().includes(searchTerm) ||
         book.auteur_nom.toLowerCase().includes(searchTerm) ||
-        (book.isbn && book.isbn.toLowerCase().includes(searchTerm))
+        (book.isbn && book.isbn.toLowerCase().includes(searchTerm)) ||
+        (book.annee_academique && book.annee_academique.toLowerCase().includes(searchTerm)) // Added academic year to search
     );
     renderBooks(filteredBooks);
 }
@@ -210,10 +239,11 @@ async function openBookModal(bookId = null) {
                     id: data.id,
                     titre: data.titre,
                     auteur_id: data.auteur_id,
-                    emplacement: data.emplacement || '', // Utiliser l'emplacement au lieu de l'ISBN
+                    emplacement: data.emplacement || '',
                     isbn: data.isbn || '',
                     description: data.description || '',
-                    disponible: data.disponible || false
+                    disponible: data.disponible || false,
+                    annee_academique: data.annee_academique || '' // Ensure this field is populated
                 }
                 updateBookForm(book);
 
@@ -243,7 +273,8 @@ async function openBookModal(bookId = null) {
             emplacement: '',
             isbn: '',
             description: '',
-            disponible: true // Par défaut, un nouveau livre est disponible
+            disponible: true, // Par défaut, un nouveau livre est disponible
+            annee_academique: '' // Initialize academic year for new books
         };
         updateBookForm(emptyBook);
         bookAvailableCheckbox.disabled = false; // Assurez-vous que la case à cocher est
@@ -267,15 +298,15 @@ function updateBookForm(book) {
     const bookTitleInput = form.querySelector('#bookTitle');
     const bookAuthorSelect = form.querySelector('#bookAuthor');
     const bookPositionInput = form.querySelector('#bookPosition');
-    const bookIsbnInput = form.querySelector('#bookIsbn');
+    const bookYearInput = form.querySelector('#bookYear'); // Academic year input
     const bookDescriptionInput = form.querySelector('#bookDescription');
     const bookAvailableCheckbox = form.querySelector('#bookAvailable');
 
     bookIdInput.value = book.id;
     bookTitleInput.value = book.titre;
     bookAuthorSelect.value = book.auteur_id;
-    bookPositionInput.value = book.emplacement || ''; // Utiliser l'emplacement au lieu de l'ISBN
-    bookIsbnInput.value = book.isbn || '';
+    bookPositionInput.value = book.emplacement || '';
+    bookYearInput.value = book.annee_academique || ''; // Use annee_academique here
     bookDescriptionInput.value = book.description || '';
     bookAvailableCheckbox.checked = book.disponible || false;
     bookAvailableCheckbox.disabled = false; // Assurez-vous que la case à cocher est activée
@@ -295,24 +326,48 @@ async function handleBookFormSubmit(event) {
     const bookIdInput = form.querySelector('#bookId');
     const bookTitleInput = form.querySelector('#bookTitle');
     const bookAuthorSelect = form.querySelector('#bookAuthor');
-    const bookPositionInput = form.querySelector('#bookPosition'); // Utiliser l'emplacement au lieu de l'ISBN
-    const bookIsbnInput = form.querySelector('#bookIsbn');
+    const bookPositionInput = form.querySelector('#bookPosition');
+    const bookYearInput = form.querySelector('#bookYear'); // Academic year input
     const bookDescriptionInput = form.querySelector('#bookDescription');
     const bookAvailableCheckbox = form.querySelector('#bookAvailable');
+
+    // Frontend validation for academic year format and difference
+    const academicYear = bookYearInput.value;
+    const yearPattern = /^(\d{4})-(\d{4})$/;
+    const match = academicYear.match(yearPattern);
+
+    if (match) {
+        const startYear = parseInt(match[1], 10);
+        const endYear = parseInt(match[2], 10);
+        if (endYear !== startYear + 1) {
+            showCustomModal('L\'année de fin doit être l\'année de début + 1 (ex: 2023-2024).', { type: 'alert' });
+            removeLoader(bookModal);
+            bookModal.classList.remove('opacity-[0.75]');
+            bookModal.classList.remove('pointer-events-none');
+            return; // Stop form submission
+        }
+    } else if (academicYear !== '') { // Allow empty if not required, otherwise add an else for required
+        showCustomModal('Le format de l\'année académique doit être YYYY-YYYY (ex: 2023-2024).', { type: 'alert' });
+        removeLoader(bookModal);
+        bookModal.classList.remove('opacity-[0.75]');
+        bookModal.classList.remove('pointer-events-none');
+        return; // Stop form submission
+    }
+
 
     const bookData = {
         titre: bookTitleInput.value,
         auteur_id: bookAuthorSelect.value,
-        isbn: bookIsbnInput.value,
-        emplacement: bookPositionInput.value, // Utiliser l'emplacement au lieu de l'ISBN
+        annee_academique: bookYearInput.value, // Send academic year
+        emplacement: bookPositionInput.value,
         description: bookDescriptionInput.value,
     };
     const initialBookData = {
         id: bookIdInput.value,
         titre: bookTitleInput.value,
         auteur_id: bookAuthorSelect.value,
-        isbn: bookIsbnInput.value,
-        emplacement: bookPositionInput.value, // Utiliser l'emplacement au lieu de l'ISBN
+        annee_academique: bookYearInput.value, // Initial academic year
+        emplacement: bookPositionInput.value,
         description: bookDescriptionInput.value,
         disponible: bookAvailableCheckbox.checked
     }

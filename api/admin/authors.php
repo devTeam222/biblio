@@ -93,7 +93,7 @@ try {
                 echo json_encode(["success" => false, "message" => "Nom de l'auteur est requis."]);
                 exit();
             }
-            $sql = "INSERT INTO users (nom, `role`) VALUES (?, 'author')";
+            $sql = "INSERT INTO users (nom, role, email) VALUES (?, 'author', '')";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$nom]);
             $userId = $pdo->lastInsertId();

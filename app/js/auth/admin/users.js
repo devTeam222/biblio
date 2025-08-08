@@ -1,14 +1,18 @@
 import { apiClient } from "../../util/ocho-api.js";
 import { TimeFormatter } from "../../util/formatter.js";
 import { showCustomModal, addLoader, removeLoader, isAuth, updateNavBar } from "../../util/utils.js";
+import { loadSubscriptions, openSubscriptionModal, closeSubscriptionModal, handleSubscriptionFormSubmit, deleteSubscription } from "./subscriptions.js"; // Import subscription functions
 
 // DOM elements from page.php
 const usersTabBtn = document.getElementById('usersTabBtn');
 const authorsTabBtn = document.getElementById('authorsTabBtn');
+const subscriptionsTabBtn = document.getElementById('subscriptionsTabBtn'); // New tab button
 const usersContent = document.getElementById('usersContent');
 const authorsContent = document.getElementById('authorsContent');
+const subscriptionsContent = document.getElementById('subscriptionsContent'); // New content area
 const usersTableBody = document.querySelector('#usersTable tbody');
 const authorsTableBody = document.querySelector('#authorsTable tbody');
+const subscriptionsTableBody = document.querySelector('#subscriptionsTable tbody'); // New table body
 const entitySearchInput = document.getElementById('entitySearchInput');
 const addEntityBtn = document.getElementById('addEntityBtn');
 const lastUpdateTimeEl = document.getElementById('lastUpdateTime');
@@ -16,10 +20,13 @@ const lastUpdateTimeEl = document.getElementById('lastUpdateTime');
 // Modal elements
 const userModal = document.getElementById('userModal');
 const authorModal = document.getElementById('authorModal');
+const subscriptionModal = document.getElementById('subscriptionModal'); // New modal
 const userForm = document.getElementById('userForm');
 const authorForm = document.getElementById('authorForm');
+const subscriptionForm = document.getElementById('subscriptionForm'); // New form
 const cancelUserModalBtn = document.getElementById('cancelUserModalBtn');
 const cancelAuthorModalBtn = document.getElementById('cancelAuthorModalBtn');
+const cancelSubscriptionModalBtn = document.getElementById('cancelSubscriptionModalBtn'); // New cancel button
 const confirmationModal = document.getElementById('confirmationModal');
 const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
@@ -31,10 +38,13 @@ const usersPageInfo = document.getElementById('usersPageInfo');
 const authorsPrevPageBtn = document.getElementById('authorsPrevPageBtn');
 const authorsNextPageBtn = document.getElementById('authorsNextPageBtn');
 const authorsPageInfo = document.getElementById('authorsPageInfo');
+const subscriptionsPrevPageBtn = document.getElementById('subscriptionsPrevPageBtn'); // New pagination buttons
+const subscriptionsNextPageBtn = document.getElementById('subscriptionsNextPageBtn');
+const subscriptionsPageInfo = document.getElementById('subscriptionsPageInfo');
 
 // Global state variables
 let currentActiveTab = sessionStorage.getItem('admin-tab') ?? 'users';
-const itemsPerPage = 5;
+export const itemsPerPage = 5;
 const roles = {
     'admin': 'Administrateur',
     'user': 'Lecteur',
@@ -54,6 +64,7 @@ let authorsState = {
     totalPages: 1,
     searchQuery: ''
 };
+
 
 // ----------------------------------------------------
 // Utility and rendering functions
@@ -75,7 +86,7 @@ function debounce(func, delay) {
 
 /**
  * Updates the UI based on the active tab.
- * @param {string} tabName - 'users' or 'authors'.
+ * @param {string} tabName - 'users', 'authors' or 'subscriptions'.
  */
 async function switchTab(tabName) {
     currentActiveTab = tabName;
@@ -84,24 +95,43 @@ async function switchTab(tabName) {
     usersTabBtn.classList.add('bg-gray-100', 'text-gray-700');
     authorsTabBtn.classList.remove('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
     authorsTabBtn.classList.add('bg-gray-100', 'text-gray-700');
+    subscriptionsTabBtn.classList.remove('active', 'bg-white', 'text-indigo-700', 'border-indigo-500'); // New
+    subscriptionsTabBtn.classList.add('bg-gray-100', 'text-gray-700'); // New
 
     usersContent.classList.add('hidden');
     authorsContent.classList.add('hidden');
+    subscriptionsContent.classList.add('hidden'); // New
 
     if (tabName === 'users') {
         usersTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
         usersContent.classList.remove('hidden');
         await loadUsers();
         addEntityBtn.textContent = 'Ajouter un utilisateur';
-        addEntityBtn.onclick = () => openModal(userModal, true);
+        addEntityBtn.onclick = () => {
+            openModal(userModal, true)
+            document.getElementById('userForm').reset();
+            document.getElementById('userRole').value = 'user'; // Reset to default role
+        };
         sessionStorage.setItem('admin-tab', 'users');
-    } else {
+    } else if (tabName === 'authors') {
         authorsTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
         authorsContent.classList.remove('hidden');
         await loadAuthors();
         addEntityBtn.textContent = 'Ajouter un auteur';
-        addEntityBtn.onclick = () => openModal(authorModal, true);
+        addEntityBtn.onclick = () => {
+            openModal(authorModal, true)
+            document.getElementById('authorForm').reset();
+        };
         sessionStorage.setItem('admin-tab', 'authors');
+    } else if (tabName === 'subscriptions') { // New tab logic
+        subscriptionsTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+        subscriptionsContent.classList.remove('hidden');
+        await loadSubscriptions();
+        addEntityBtn.textContent = 'Ajouter un abonnement';
+        addEntityBtn.onclick = () => {
+            openSubscriptionModal(); // Call the specific modal function for subscriptions
+        };
+        sessionStorage.setItem('admin-tab', 'subscriptions');
     }
 }
 
@@ -133,8 +163,7 @@ function renderPaginatedUsers() {
             const deleteButton = row.querySelector('.delete-user-btn');
 
             editButton.addEventListener('click', () => editUser(user.id));
-            deleteButton.addEventListener('click', () => showConfirmationModal('user', user.id));
-
+            deleteButton.addEventListener('click', () => showConfirmationModal('user', user.id, user.nom)); // Pass user.nom
             usersTableBody.appendChild(row);
         });
     }
@@ -168,8 +197,7 @@ function renderPaginatedAuthors() {
             const deleteButton = row.querySelector('.delete-author-btn');
 
             editButton.addEventListener('click', () => editAuthor(author.authorid));
-            deleteButton.addEventListener('click', () => showConfirmationModal('author', author.authorid));
-
+            deleteButton.addEventListener('click', () => showConfirmationModal('author', author.authorid, author.pseudo)); // Pass author.pseudo
             authorsTableBody.appendChild(row);
         });
     }
@@ -263,6 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateNavBar("admin", 'users'); // Mettre en surbrillance le lien actif
             loadUsers();
             loadAuthors();
+            loadSubscriptions(); // Load subscriptions on page load
             switchTab(currentActiveTab);
             updateLastModifiedTime();
         } else {
@@ -273,14 +302,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Tab switching
     usersTabBtn.addEventListener('click', () => switchTab('users'));
     authorsTabBtn.addEventListener('click', () => switchTab('authors'));
+    subscriptionsTabBtn.addEventListener('click', () => switchTab('subscriptions')); // New tab event listener
 
     // Debounced search functionality
     const debouncedSearch = debounce((e) => {
         const searchQuery = e.target.value;
         if (currentActiveTab === 'users') {
             loadUsers(searchQuery);
-        } else {
+        } else if (currentActiveTab === 'authors') {
             loadAuthors(searchQuery);
+        } else if (currentActiveTab === 'subscriptions') { // New search for subscriptions
+            loadSubscriptions(searchQuery);
         }
     }, 500); // 500ms delay
     entitySearchInput.addEventListener('input', debouncedSearch);
@@ -309,12 +341,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Pagination for Subscriptions (New)
+    subscriptionsPrevPageBtn.addEventListener('click', () => {
+        if (subscriptionsState.currentPage > 1) {
+            loadSubscriptions(subscriptionsState.searchQuery, subscriptionsState.currentPage - 1);
+        }
+    });
+    subscriptionsNextPageBtn.addEventListener('click', () => {
+        if (subscriptionsState.currentPage < subscriptionsState.totalPages) {
+            loadSubscriptions(subscriptionsState.searchQuery, subscriptionsState.currentPage + 1);
+        }
+    });
+
     // Confirmation modal logic
     confirmDeleteBtn.addEventListener('click', async () => {
         if (currentDeleteType === 'user' && currentItemToDelete) {
             await deleteUser(currentItemToDelete);
         } else if (currentDeleteType === 'author' && currentItemToDelete) {
             await deleteAuthor(currentItemToDelete);
+        } else if (currentDeleteType === 'subscription' && currentItemToDelete) { // New delete for subscriptions
+            await deleteSubscription(currentItemToDelete);
         }
         closeModal(confirmationModal);
         currentItemToDelete = null;
@@ -337,19 +383,31 @@ document.addEventListener('DOMContentLoaded', () => {
         await saveAuthor();
     });
 
+    subscriptionForm.addEventListener('submit', async (e) => { // New subscription form submission
+        e.preventDefault();
+        await handleSubscriptionFormSubmit(e);
+    });
+
     // Modal close buttons
     cancelUserModalBtn.addEventListener('click', () => closeModal(userModal));
     cancelAuthorModalBtn.addEventListener('click', () => closeModal(authorModal));
+    cancelSubscriptionModalBtn.addEventListener('click', () => closeSubscriptionModal()); // New cancel button
 });
 
 /**
  * Displays a custom confirmation modal.
- * @param {string} type - 'user' or 'author'.
+ * @param {string} type - 'user', 'author' or 'subscription'.
  * @param {string} id - The ID of the item to delete.
+ * @param {string} [name='cet élément'] - The name of the item to delete (for user-friendly message).
  */
-function showConfirmationModal(type, id) {
+export function showConfirmationModal(type, id, name = 'cet élément') {
     currentItemToDelete = id;
     currentDeleteType = type;
+    // Update the message based on the type and name
+    const messageElement = confirmationModal.querySelector('p.mb-4');
+    if (messageElement) {
+        messageElement.textContent = `Voulez-vous vraiment supprimer ${name} ?`;
+    }
     openModal(confirmationModal);
 }
 
@@ -361,6 +419,8 @@ function showConfirmationModal(type, id) {
 function openModal(modal, isNew = false) {
     if (modal === userModal) {
         document.getElementById('userModalTitle').textContent = isNew ? 'Ajouter un nouvel utilisateur' : 'Modifier un utilisateur';
+        isNew && document.getElementById('userEmail').removeAttribute('readonly');
+        document.getElementById('userPassword').classList.toggle('hidden', !isNew); // Show password field only for new users
     } else if (modal === authorModal) {
         document.getElementById('authorModalTitle').textContent = isNew ? 'Ajouter un nouvel auteur' : 'Modifier un auteur';
     }
@@ -386,7 +446,7 @@ async function editUser(userId) {
         document.getElementById('userId').value = user.id;
         document.getElementById('userName').value = user.nom;
         document.getElementById('userEmail').value = user.email;
-        document.getElementById('userEmail').setAttribute('readonly', 'true');
+        document.getElementById('userEmail').setAttribute('readonly', !!user.email.trim() ? 'true' : 'false');
         document.getElementById('userRole').value = user.role;
         openModal(userModal);
     }
@@ -402,6 +462,7 @@ async function saveUser() {
         nom: document.getElementById('userName').value,
         email: document.getElementById('userEmail').value,
         role: document.getElementById('userRole').value,
+        password: document.getElementById('userPassword').value.trim() || null // Allow empty password for updates
     };
     addLoader(userModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
     try {
@@ -464,24 +525,25 @@ async function editAuthor(authorId) {
  * Saves an author (add or update).
  */
 async function saveAuthor() {
-    const id = document.getElementById('authorId').value;
+    const id = +document.getElementById('authorId')?.value.trim();
     const nom_complet = document.getElementById('authorFullname').value;
     const pseudo = document.getElementById('authorName').value;
+    const email = document.getElementById('authorEmail').value;
     const biographie = document.getElementById('authorBio').value;
     const authorData = {
         id,
         nom_complet,
+        email,
         pseudo,
         biographie
     };
-    console.log(authorData);
     
     addLoader(authorModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
     try {
-        const url = `/api/admin/authors?action=${authorId ? 'update' : 'add'}`;
+        const url = `/api/admin/authors?action=${id ? 'update' : 'add'}`;
         const response = await apiClient.post(url, {body: authorData});
         if (response.data.success) {
-            showCustomModal(`Auteur ${authorId ? 'modifié' : 'ajouté'} avec succès !`, { type: 'success' });
+            showCustomModal(`Auteur ${id ? 'modifié' : 'ajouté'} avec succès !`, { type: 'success' });
             closeModal(authorModal);
             await loadAuthors(authorsState.searchQuery, authorsState.currentPage); // Reload data
         } else {

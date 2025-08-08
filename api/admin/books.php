@@ -26,6 +26,40 @@ $action = $_GET['action'] ?? '';
 $input = $_POST;
 
 try {
+    // Function to get or create academic year ID
+    function getOrCreateAcademicYearId($pdo, $academicYearString) {
+        // Validate format YYYY-YYYY
+        if (!preg_match('/^(\d{4})-(\d{4})$/', $academicYearString, $matches)) {
+            return ["success" => false, "message" => "Format d'année académique invalide. Utilisez YYYY-YYYY."];
+        }
+        $startYear = (int)$matches[1];
+        $endYear = (int)$matches[2];
+
+        // Validate end year is start year + 1
+        if ($endYear !== $startYear + 1) {
+            return ["success" => false, "message" => "L'année de fin doit être l'année de début + 1."];
+        }
+
+        // Check if academic year exists
+        $stmt = $pdo->prepare("SELECT id FROM academic_year WHERE start = ? AND \"end\" = ?");
+        $stmt->execute([$startYear, $endYear]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($result) {
+            return ["success" => true, "id" => $result['id']];
+        } else {
+            // Create new academic year
+            $stmt = $pdo->prepare("INSERT INTO academic_year (start, \"end\") VALUES (?, ?)");
+            $stmt->execute([$startYear, $endYear]);
+            if ($stmt->rowCount() > 0) {
+                return ["success" => true, "id" => $pdo->lastInsertId()];
+            } else {
+                return ["success" => false, "message" => "Erreur lors de la création de l'année académique."];
+            }
+        }
+    }
+
+
     switch ($action) {
         case 'list':
             $stmt = $pdo->query("
@@ -38,12 +72,13 @@ try {
                     l.emplacement,
                     a.id AS auteur_id,
                     a.nom AS auteur_nom,
-                    f.chemin AS cover_url
+                    f.chemin AS cover_url,
+                    ay.start || '-' || ay.\"end\" AS annee_academique
                 FROM livres l
                 JOIN auteurs a ON l.auteur_id = a.id
                 LEFT JOIN fichiers f ON l.cover_image_id = f.id
+                LEFT JOIN academic_year ay ON l.annee_id = ay.id
                 ORDER BY l.date_publication DESC;
-
             ");
             $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode(["success" => true, "data" => $books]);
@@ -57,9 +92,13 @@ try {
                 exit();
             }
             $stmt = $pdo->prepare("
-                SELECT l.id, l.titre, l.isbn, l.descr, l.disponible, a.id AS auteur_id, a.nom AS auteur_nom
+                SELECT 
+                    l.id, l.titre, l.isbn, l.descr, l.disponible, l.emplacement,
+                    a.id AS auteur_id, a.nom AS auteur_nom,
+                    ay.start || '-' || ay.\"end\" AS annee_academique
                 FROM livres l
                 JOIN auteurs a ON l.auteur_id = a.id
+                LEFT JOIN academic_year ay ON l.annee_id = ay.id
                 WHERE l.id = :id
             ");
             $stmt->bindParam(':id', $id, PDO::PARAM_INT);
@@ -76,10 +115,9 @@ try {
         case 'add':
             $titre = $_POST['titre'] ?? null;
             $auteur_id = $_POST['auteur_id'] ?? null;
-            $isbn = $_POST['isbn'] ?? null;
             $emplacement = $_POST['emplacement'] ?? null;
-            $isbn = $_POST['emplacement'] ?? null;
             $description = $_POST['description'] ?? null;
+            $annee_academique = $_POST['annee_academique'] ?? null; // New field
             $disponible = true; // Par défaut disponible
 
             if (!$titre || !$auteur_id) {
@@ -88,8 +126,19 @@ try {
                 exit();
             }
 
-            $stmt = $pdo->prepare("INSERT INTO livres (titre, auteur_id, emplacement, isbn, descr, disponible) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$titre, $auteur_id, $emplacement, $isbn, $description, $disponible]);
+            $annee_id = null;
+            if ($annee_academique) {
+                $yearResult = getOrCreateAcademicYearId($pdo, $annee_academique);
+                if (!$yearResult['success']) {
+                    http_response_code(400);
+                    echo json_encode(["success" => false, "message" => $yearResult['message']]);
+                    exit();
+                }
+                $annee_id = $yearResult['id'];
+            }
+
+            $stmt = $pdo->prepare("INSERT INTO livres (titre, auteur_id, emplacement, descr, disponible, annee_id) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$titre, $auteur_id, $emplacement, $description, $disponible, $annee_id]);
             if ($stmt->rowCount() === 0) {
                 http_response_code(500);
                 echo json_encode(["success" => false, "message" => "Erreur lors de l'ajout du livre."]);
@@ -103,8 +152,8 @@ try {
             $titre = $_POST['titre'] ?? null;
             $auteur_id = $_POST['auteur_id'] ?? null;
             $emplacement = $_POST['emplacement'] ?? null;
-            $isbn = $_POST['isbn'] ?? null;
             $description = $_POST['description'] ?? null;
+            $annee_academique = $_POST['annee_academique'] ?? null; // New field
 
             if (!$id || !$titre || !$auteur_id) {
                 echo json_encode(["success" => false, "message" => "ID, titre et auteur sont requis.", "error" => "Missing required fields", "input" => [
@@ -112,14 +161,25 @@ try {
                     'titre' => $titre,
                     'auteur_id' => $auteur_id,
                     'emplacement'=> $emplacement,
-                    'isbn' => $isbn,
-                    'description' => $description
+                    'description' => $description,
+                    'annee_academique' => $annee_academique
                 ], "post" => $_POST]);
                 exit();
             }
 
-            $stmt = $pdo->prepare("UPDATE livres SET titre = ?, auteur_id = ?, emplacement = ?, isbn = ?, descr = ? WHERE id = ?");
-            $stmt->execute([$titre, $auteur_id, $emplacement, $isbn, $description, $id]);
+            $annee_id = null;
+            if ($annee_academique) {
+                $yearResult = getOrCreateAcademicYearId($pdo, $annee_academique);
+                if (!$yearResult['success']) {
+                    http_response_code(400);
+                    echo json_encode(["success" => false, "message" => $yearResult['message']]);
+                    exit();
+                }
+                $annee_id = $yearResult['id'];
+            }
+
+            $stmt = $pdo->prepare("UPDATE livres SET titre = ?, auteur_id = ?, emplacement = ?, descr = ?, annee_id = ? WHERE id = ?");
+            $stmt->execute([$titre, $auteur_id, $emplacement, $description, $annee_id, $id]);
             if ($stmt->rowCount() === 0) {
                 echo json_encode(["success" => false, "message" => "Erreur lors de la mise à jour du livre."]);
                 exit();

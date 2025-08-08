@@ -1,6 +1,7 @@
 import { apiClient } from './ocho-api.js';
 
-/** * Affiche une modale personnalisée avec un message, des actions et un corps personnalisé.
+/**
+ * Affiche une modale personnalisée avec un message, des actions et un corps personnalisé.
  * @param {string|null} message - Le message à afficher dans la modale. Peut être une chaîne ou null si un corps personnalisé est fourni.
  * @param {Object} options - Options pour la modale.   
  * @param {string} [options.type='alert'] - Le type de la modale ('alert', 'confirm', 'success').
@@ -198,219 +199,120 @@ function isAuth() {
         resolve(!!response?.data?.success ? response.data : null); // Retourne true si l'utilisateur est authentifié
     });
 }
+
+// Définir les liens de navigation de manière structurée
+const navLinksConfig = {
+    admin: [
+        { href: "/", text: "Accueil", icon: `<svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>`, pageMatch: "" }, // Default for admin dashboard
+        { href: "/admin", text: "Tableau de bord", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard-icon lucide-layout-dashboard"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg>`, pageMatch: "admin" },
+        { href: "/admin/books", text: "Gérer Livres", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" /></svg>`, pageMatch: "admin/books" },
+        { href: "/admin/users", text: "Gérer Utilisateurs", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-cog-icon lucide-user-round-cog"><path d="m14.305 19.53.923-.382" /><path d="m15.228 16.852-.923-.383" /><path d="m16.852 15.228-.383-.923" /><path d="m16.852 20.772-.383.924" /><path d="m19.148 15.228.383-.923" /><path d="m19.53 21.696-.382-.924" /><path d="M2 21a8 8 0 0 1 10.434-7.62" /><path d="m20.772 16.852.924-.383" /><path d="m20.772 19.148.924.383" /><circle cx="10" cy="8" r="5" /><circle cx="18" cy="18" r="3" /></svg>`, pageMatch: "admin/users" },
+        { href: "/admin/subscriptions", text: "Gérer Abonnements", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>`, pageMatch: "admin/subscriptions" },
+    ],
+    author: [
+        { href: "/", text: "Accueil", icon: `<svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>`, pageMatch: "" },
+        { href: "/author-dashboard.html", text: "Tableau de bord", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard-icon lucide-layout-dashboard"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg>`, pageMatch: "author-dashboard.html" },
+        { href: "/my-books.html", text: "Mes Livres", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" /></svg>`, pageMatch: "my-books.html" },
+        { href: "/book-stats.html", text: "Statistiques Livres", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>`, pageMatch: "book-stats.html" },
+    ],
+    user: [
+        { href: "/", text: "Accueil", icon: `<svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>`, pageMatch: "" },
+        { href: "/loans-history.html", text: "Mes Emprunts", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history-icon lucide-history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M12 7v5l4 2" /></svg>`, pageMatch: "loans-history.html" },
+        { href: "/profile", text: "Mon Compte", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-icon lucide-user-round"><circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 0 0-16 0" /></svg>`, pageMatch: "profile" },
+    ],
+    guest: [
+        { href: "/", text: "Accueil", icon: `<svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>`, pageMatch: "" },
+        { href: "/login", text: "Se connecter", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>`, pageMatch: "login" },
+        { href: "/register", text: "S'inscrire", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>`, pageMatch: "register" },
+    ]
+};
+
+/**
+ * Met à jour la barre de navigation en fonction du rôle de l'utilisateur et de la page active.
+ * @param {string} userRole - Le rôle de l'utilisateur ('admin', 'author', 'user', 'guest').
+ * @param {string} currentPagePath - Le chemin de la page actuelle (ex: "/admin/books", "/profile.html").
+ */
+function updateNavBar(userRole = 'guest', currentPagePath = window.location.pathname) {
+    const mainNav = document.getElementById('mainNav');
+    if (!mainNav) {
+        console.warn("Element #mainNav not found. Navigation bar cannot be updated.");
+        return;
+    }
+
+    mainNav.innerHTML = ''; // Vider la navigation existante pour éviter les doublons
+
+    const linksToRender = navLinksConfig[userRole] || navLinksConfig.guest;
+
+    linksToRender.forEach(link => {
+        // Déterminer si le lien est actif
+        const isActive = (link.href !== '/' && currentPagePath.includes(link.pageMatch) && link.pageMatch) || (link.href === '/' && !currentPagePath.split('/')?.[1]);
+        
+        const activeClass = isActive ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800";
+        
+        const linkElement = document.createElement('a');
+        linkElement.href = link.href;
+        linkElement.className = `nav-link font-semibold py-2 px-4 rounded-lg flex items-center ${activeClass}`;
+        linkElement.innerHTML = `${link.icon} ${link.text}`;
+        
+        mainNav.appendChild(linkElement);
+    });
+
+    // Ajouter le bouton de déconnexion séparément pour les rôles authentifiés
+    if (userRole !== 'guest') {
+        const logoutButton = document.createElement('button');
+        logoutButton.id = 'logoutButton';
+        logoutButton.className = 'nav-link bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center';
+        logoutButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Déconnexion
+        `;
+        mainNav.appendChild(logoutButton);
+        logoutButton.addEventListener('click', handleLogout);
+    }
+}
+
 // Create a custom event to handle user authentication state
 const userAuthEvent = new CustomEvent('authchange', {
     detail: {
         userId: null,
-        userName: null
+        userName: null,
+        role: null // Initialize role
     }
 });
 document.dispatchEvent(userAuthEvent); // Dispatch the event initially
-function updateNavBar(type = 'user', page = '') {
-    const mainNav = document.getElementById('mainNav');
-    if (!mainNav) {
-        return; // Sortir si l'élément n'existe pas
-    }
-    mainNav.innerHTML = ''; // Vider la navigation existante
-    let navHtml; // Initialiser la variable navHtml
-    // Vérifier le type d'utilisateur
-    switch (type) {
-        case 'admin':
-            navHtml = `
-                <a href="/" class="nav-link ${page === "home" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
-                    <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house">
-                        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
-                        <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    </svg>
-                    Accueil
-                </a>
-                 <a href="/admin" class="nav-link ${page === "" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"}  font-semibold py-2 px-4 rounded-lg flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard-icon lucide-layout-dashboard">
-                        <rect width="7" height="9" x="3" y="3" rx="1" />
-                        <rect width="7" height="5" x="14" y="3" rx="1" />
-                        <rect width="7" height="9" x="14" y="12" rx="1" />
-                        <rect width="7" height="5" x="3" y="16" rx="1" />
-                    </svg>
-                    Tableau de bord
-                </a>
-                <a href="/admin/books" class="nav-link ${page === "books" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
-                    </svg>
-                    Gérer Livres
-                </a>
-                <a href="/admin/users" class="nav-link ${page === "users" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-cog-icon lucide-user-round-cog">
-                        <path d="m14.305 19.53.923-.382" />
-                        <path d="m15.228 16.852-.923-.383" />
-                        <path d="m16.852 15.228-.383-.923" />
-                        <path d="m16.852 20.772-.383.924" />
-                        <path d="m19.148 15.228.383-.923" />
-                        <path d="m19.53 21.696-.382-.924" />
-                        <path d="M2 21a8 8 0 0 1 10.434-7.62" />
-                        <path d="m20.772 16.852.924-.383" />
-                        <path d="m20.772 19.148.924.383" />
-                        <circle cx="10" cy="8" r="5" />
-                        <circle cx="18" cy="18" r="3" />
-                    </svg>
-                    Gérer Utilisateurs
-                </a>
-                <button id="logoutButton" class="nav-link bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Déconnexion
-                </button>
-            `;
-            break;
-        case 'author':
-            navHtml = `
-            <a href="author-dashboard.html" class="nav-link bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard-icon lucide-layout-dashboard">
-                    <rect width="7" height="9" x="3" y="3" rx="1" />
-                    <rect width="7" height="5" x="14" y="3" rx="1" />
-                    <rect width="7" height="9" x="14" y="12" rx="1" />
-                    <rect width="7" height="5" x="3" y="16" rx="1" />
-                </svg>
-                Tableau de bord
-            </a>
-            <a href="#" class="nav-link bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
-                </svg>
-                Mes Livres
-            </a>
-            <a href="#" class="nav-link bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                </svg>
-                Statistiques Livres
-            </a>
-            <button id="logoutButton" class="nav-link bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Déconnexion
-            </button>`;
-            break;
-        case 'user':
-            navHtml = `
-            
-           <a href="/" class="nav-link ${page === "home" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
-                    <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house">
-                        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
-                        <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    </svg>
-                    Accueil
-                </a>
-                <a href="#" class="nav-link bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
-                </svg>
-                Mes Livres
-            </a>
-            <a href="#" class="nav-link bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                </svg>
-                Statistiques Livres
-            </a>
-            <button id="logoutButton" class="nav-link bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Déconnexion
-            </button>
-            
-            `;
-            break;
-        default:
-            navHtml = `
-                <a href="/" class="nav-link ${page === "home" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
-                    <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house">
-                        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
-                        <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    </svg>
-                    Accueil
-                </a>
-                <a href="/login" class="nav-link ${page === "login" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Se connecter
-                </a>
-                <a href="/register" class="nav-link ${page === "register" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"} font-semibold py-2 px-4 rounded-lg flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                    </svg>
-                    S'inscrire
-                </a>
-            `;
-            break;
-    }
-    mainNav.innerHTML = navHtml; // Met à jour la barre de navigation avec le contenu approprié
-    const logoutButton = document.getElementById('logoutButton');
-    // Gestion de la déconnexion
-    logoutButton && (logoutButton.addEventListener('click', handleLogout));
-}
 
+// Listen for authchange event to update the navigation bar
 document.addEventListener('authchange', (event) => {
-    updateNavBar();
-    const mainNav = document.getElementById('mainNav');
-    const { userId, userName } = event.detail;
+    const { userId, userName, role } = event.detail;
     const userNameDisplay = document.getElementById('userNameDisplay');
-    const CURRENT_USER_ID = userId || null; // Utilisateur authentifié
-    const CURRENT_USER_NAME = userName || null; // Nom de l'utilisateur authentifié
+    const userRoleDisplay = document.getElementById('userRoleDisplay'); // Assuming this element exists
+    const currentPath = window.location.pathname; // Get current page path
 
-
-    if (CURRENT_USER_ID) {
-        // Liens pour utilisateur authentifié
-        userNameDisplay.textContent = `Bonjour, ${CURRENT_USER_NAME || 'Lecteur'}!`;
-        mainNav.innerHTML += `
-                        <a href="loans-history.html" class="nav-link bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history-icon lucide-history">
-                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                                <path d="M3 3v5h5" />
-                                <path d="M12 7v5l4 2" />
-                            </svg>
-                            Mes Emprunts
-                        </a>
-                        <a href="profile.html" class="nav-link bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-icon lucide-user-round">
-                                <circle cx="12" cy="8" r="5" />
-                                <path d="M20 21a8 8 0 0 0-16 0" />
-                            </svg>
-                            Mon Compte
-                        </a>
-                        <button id="logoutButton" class="nav-link bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                            </svg>
-                            Déconnexion
-                        </button>
-                    `;
-        document.getElementById('logoutButton').addEventListener('click', handleLogout);
-
-    } else {
-        // Liens pour utilisateur non authentifié (invité)
-        userNameDisplay && (userNameDisplay.textContent = ''); // Cacher le nom d'utilisateur
-        mainNav && (mainNav.innerHTML += `
-                        <a href="/login" class="nav-link bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                            </svg>
-                            Se connecter
-                        </a>
-                        <a href="/register" class="nav-link bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                            </svg>
-                            S'inscrire
-                        </a>
-                    `);
+    if (userNameDisplay) {
+        userNameDisplay.textContent = userId ? `Bonjour, ${userName || 'Lecteur'}!` : '';
     }
-})
-updateNavBar(); // Appel initial pour mettre à jour la barre de navigation
+    if (userRoleDisplay) {
+        const possibleRoles = {
+            admin: 'Administrateur',
+            user: 'Lecteur',
+            author: 'Auteur',
+            guest: 'Visiteur',
+        };
+        userRoleDisplay.textContent = userId ? (possibleRoles[role] || possibleRoles.guest) : '';
+    }
+
+    // Call updateNavBar with the determined role and current path
+    updateNavBar(role || 'guest', currentPath);
+});
+
+// Initial call to updateNavBar when the script loads
+// This ensures the navigation is set up correctly on first load
+// based on the initial authentication state (which will be checked by isAuth()
+// and then trigger the 'authchange' event).
+// No direct call here, as the 'authchange' listener will handle it.
+
 
 async function handleLogout() {
     const logoutButton = document.getElementById('logoutButton');
