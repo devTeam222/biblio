@@ -148,7 +148,7 @@ function renderBookCard(book, showBorrowButton = true) {
     return `
                 <div class="bg-gray-100 p-4 rounded-lg shadow-sm text-center transform hover:scale-105 transition duration-200 ease-in-out">
                     ${coverEl}
-                    <h4 class="font-bold text-gray-900 text-lg">${book.titre}</h4>
+                    <h4 class="font-bold text-gray-900 text-lg line-clamp-2 text-ellipsis ">${book.titre}</h4>
                     <p class="text-sm text-gray-600">${book.auteur}</p>
                     <span class="inline-block ${availabilityClass} text-xs font-semibold px-2.5 py-0.5 rounded-full mt-2">${availabilityText}</span>
                     ${buttonHtml}
@@ -210,7 +210,7 @@ async function loadCurrentLoans() {
 
                     currentLoansContainer.innerHTML += `
                                 <div class="bg-gray-100 p-4 rounded-lg shadow-sm">
-                                    <h4 class="font-bold text-gray-900 text-lg mb-1">${loan.titre}</h4>
+                                    <h4 class="font-bold text-gray-900 text-lg mb-1 line-clamp-2 text-ellipsis">${loan.titre}</h4>
                                     <p class="text-sm text-gray-600">Auteur : ${loan.auteur}</p>
                                     <p class="text-sm text-gray-600">Date d'emprunt : ${loan.date_emprunt}</p>
                                     <p class="text-sm ${isOverdue ? 'text-red-600' : 'text-green-600'} font-semibold">Date de retour : ${loan.date_retour} ${isOverdue ? '(En retard)' : ''}</p>

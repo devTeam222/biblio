@@ -136,7 +136,7 @@ function updateOverdueLoans(loans) {
             loanEl.className = 'py-3 flex items-center justify-between hover:bg-gray-50 px-2 rounded';
             loanEl.innerHTML = `
                 <div>
-                    <p class="font-medium text-gray-800">${loan.titre}</p>
+                    <p class="font-medium text-gray-800 text-ellipsis line-clamp-2 overflow-hidden" title="${loan.title}">${loan.titre}</p>
                     <p class="text-sm text-gray-500">${loan.auteur}</p>
                     <p class="text-xs text-red-500 mt-1 flex items-center gap-0.5">
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert-icon lucide-circle-alert">

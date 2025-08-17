@@ -192,7 +192,7 @@ function createBookCard(book) {
         <a href="${detailPageUrl}" class="block">
             ${cover}
             <div class="p-4">
-                <h4 class="text-lg font-semibold text-gray-800 truncate">${book.titre}</h4>
+                <h4 class="text-lg font-semibold text-gray-800 truncate line-clamp-3 text-ellipsis overflow-hidden">${book.titre}</h4>
                 <p class="text-sm text-gray-600">${book.auteur || 'Auteur inconnu'}</p>
                 <p class="text-sm text-gray-500 mt-2">Département: ${book.departement || 'Non spécifiée'}</p>
                 <span class="inline-block px-2 py-1 mt-3 rounded-full text-xs font-semibold ${availabilityClass}">
@@ -260,7 +260,7 @@ function createLoanCard(loan) {
         <a href="${detailPageUrl}" class="flex items-center gap-4">
             ${cover}
             <div>
-                <h4 class="text-lg font-semibold text-gray-800" title="${loan.titre}">${loan.titre}</h4>
+                <h4 class="text-lg font-semibold text-gray-800 text-ellipsis line-clamp-2 overflow-hidden" title="${loan.titre}">${loan.titre}</h4>
                 <p class="text-sm text-gray-600">Auteur: ${loan.auteur || 'Inconnu'}</p>
                 <p class="text-sm text-gray-500">Emprunté le: ${dateEmprunt}</p>
                 <p class="text-sm text-gray-500">Retour prévu le: ${dateRetour}</p>

@@ -422,7 +422,7 @@ function renderBooks(booksToDisplay) {
 
         row.innerHTML = `
             <td class="py-3 px-2">${book.id}</td>
-            <td class="py-3 px-2">${book.titre}</td>
+            <td class="py-3 px-2 line-clamp-3 text-ellipsis overflow-hidden">${book.titre}</td>
             <td class="py-3 px-2">${book.auteur_nom || 'N/A'}</td>
             <td class="py-3 px-2">${book.emplacement || 'N/A'}</td>
             <td class="py-3 px-2">${book.annee_academique || 'N/A'}</td>

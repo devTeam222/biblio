@@ -126,7 +126,7 @@ function renderLoans(loansToDisplay) {
 
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td class="py-3 px-2">${loan.titre}</td>
+            <td class="py-3 px-2 text-ellipsis line-clamp-2 overflow-hidden" title="${loan.title}">${loan.titre}</td>
             <td class="py-3 px-2">${loan.lecteur_nom}</td>
             <td class="py-3 px-2">${loanDate}</td>
             <td class="py-3 px-2">${returnDate}</td>
