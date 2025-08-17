@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion de Bibliothèque - Livres</title>
     <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/app/js/tailwind.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -123,7 +123,7 @@
                         <tr>
                             <th>Titre</th>
                             <th>Auteur</th>
-                            <th>Catégorie</th>
+                            <th>Département</th>
                             <th>Disponible</th>
                             <th>Actions</th>
                         </tr>

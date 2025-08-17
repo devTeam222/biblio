@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Espace Auteur - Accueil</title>
     <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/app/js/tailwind.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -109,7 +109,7 @@
                 <div class="bg-gray-100 p-4 rounded-lg shadow-sm text-center">
                     <img loading="lazy" src="https://placehold.co/150x200/F0F8FF/000000?text=Mon+Livre+1" alt="Couverture Mon Livre 1" class="book-cover mx-auto mb-3">
                     <h4 class="font-bold text-gray-900 text-lg">Mon Premier Roman</h4>
-                    <p class="text-sm text-gray-600">Catégorie : Fiction</p>
+                    <p class="text-sm text-gray-600">Département : Fiction</p>
                     <span class="inline-block bg-orange-200 text-orange-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mt-2">En cours de révision</span>
                     <button class="mt-3 bg-indigo-500 hover:bg-indigo-600 text-white py-1.5 px-4 rounded-md text-sm transition duration-200 ease-in-out">Modifier</button>
                 </div>
@@ -117,7 +117,7 @@
                 <div class="bg-gray-100 p-4 rounded-lg shadow-sm text-center">
                     <img loading="lazy" src="https://placehold.co/150x200/FFF0F5/000000?text=Mon+Livre+2" alt="Couverture Mon Livre 2" class="book-cover mx-auto mb-3">
                     <h4 class="font-bold text-gray-900 text-lg">Le Guide du Développement Web</h4>
-                    <p class="text-sm text-gray-600">Catégorie : Informatique</p>
+                    <p class="text-sm text-gray-600">Département : Informatique</p>
                     <span class="inline-block bg-green-200 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mt-2">Publié</span>
                     <button class="mt-3 bg-blue-500 hover:bg-blue-600 text-white py-1.5 px-4 rounded-md text-sm transition duration-200 ease-in-out">Voir les détails</button>
                 </div>

@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (authResult && userId) {
         
-        updateNavBar(userRole, userRole); // 'book-details' pour indiquer la page active
+        updateNavBar(userRole, window.location.pathname); // Utilisez window.location.pathname pour la page active
         userNameDisplay.textContent = `Bienvenue, ${userName || 'Lecteur'}!`;
         userRoleDisplay.textContent = possibleRoles[userRole] || possibleRoles.guest;
         if (userRole === 'admin') {
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (adminFileManagement) adminFileManagement.classList.add('hidden'); // Cacher la section de gestion des fichiers pour les autres rôles
         }
     } else {
-        updateNavBar('guest', 'book-details'); // 'guest' si non connecté
+        updateNavBar('guest', window.location.pathname); // 'guest' si non connecté
         userNameDisplay.textContent = `Bienvenue, Lecteur !`;
         userRoleDisplay.textContent = '';
     }
@@ -152,6 +152,26 @@ function renderBookDetails(book, userRole, lecteurId) {
 
     const date_publication = book.date_publication ? new TimeFormatter(book.date_publication * 1000).formatFullTime() : 'N/A';
 
+    // Générer le HTML pour la zone d'étude et le bouton de carte
+    let studyAreaHtml = '';
+    if (book.study_area_name) {
+        studyAreaHtml = `
+            <p class="text-lg text-gray-600 mb-2"><strong>Zone d'étude:</strong> ${book.study_area_name || 'N/A'}`;
+        if (book.study_area_latitude && book.study_area_longitude) {
+            const mapUrl = `https://www.google.com/maps/search/?api=1&query=${book.study_area_latitude},${book.study_area_longitude}`;
+            studyAreaHtml += ` 
+                <a href="${mapUrl}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition duration-200 ml-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin-icon lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    Voir carte
+                </a>
+            `;
+        }
+        studyAreaHtml += `</p>`;
+    } else {
+        studyAreaHtml = `<p class="text-lg text-gray-600 mb-2"><strong>Zone d'étude:</strong> Non spécifiée</p>`;
+    }
+
+
     // Vérification de l'accès au fichier électronique
     let electronicFileHtml = '';
     if (book.electronic_file_url && book.file_id) {
@@ -190,8 +210,9 @@ function renderBookDetails(book, userRole, lecteurId) {
         <div class="md:w-2/3">
             <h3 class="text-3xl font-bold text-gray-900 mb-2">${book.titre}</h3>
             <p class="text-xl text-gray-700 mb-2"><strong>Auteur:</strong> ${book.auteur_nom || 'N/A'}</p>
-            <p class="text-lg text-gray-600 mb-2"><strong>Catégorie:</strong> ${book.categorie_nom || 'N/A'}</p>
-            <p class="text-lg text-gray-600 mb-2"><strong>Année Académique:</strong> ${book.annee_academique || 'N/A'}</p> <!-- Changed from ISBN -->
+            <p class="text-lg text-gray-600 mb-2"><strong>Département:</strong> ${book.departement_nom || 'N/A'}</p>
+            <p class="text-lg text-gray-600 mb-2"><strong>Année Académique:</strong> ${book.annee_academique || 'N/A'}</p>
+            ${studyAreaHtml} <!-- Affichage de la zone d'étude -->
             <p class="text-lg text-gray-600 mb-2"><strong>Date de publication:</strong> ${date_publication}</p>
             <p class="text-lg text-gray-600 mb-4"><strong>Statut:</strong>
                 <span class="px-3 py-1 rounded-full text-sm font-semibold ${availabilityClass}">

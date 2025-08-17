@@ -54,12 +54,12 @@ try {
             $totalCount = $countStmt->fetchColumn();
 
             $sql = "SELECT 
-                        s.id AS subscription_id, 
+                        s.id AS id,  -- Changed to 'id' to match frontend expectation for row identification
                         s.date_debut, 
                         s.date_fin, 
                         s.statut,
-                        u.id AS user_id,
-                        u.nom AS user_name,
+                        l.id AS lecteur_id, -- Ensure lecteur_id is available for dropdown
+                        u.nom AS lecteur_nom, -- Changed from user_name to lecteur_nom for rendering in frontend table
                         u.email AS user_email
                     FROM abonnements s
                     JOIN lecteurs l ON s.lecteur_id = l.id
@@ -87,12 +87,12 @@ try {
                 exit();
             }
             $stmt = $pdo->prepare("SELECT 
-                                        s.id AS subscription_id, 
+                                        s.id AS id,  -- Changed to 'id' to match frontend expectation
                                         s.lecteur_id, 
                                         s.date_debut, 
                                         s.date_fin, 
                                         s.statut,
-                                        u.nom AS user_name,
+                                        u.nom AS lecteur_nom, -- Changed from user_name to lecteur_nom
                                         u.email AS user_email
                                     FROM abonnements s
                                     JOIN lecteurs l ON s.lecteur_id = l.id
@@ -127,7 +127,7 @@ try {
             break;
 
         case 'update':
-            $id = $input['id'] ?? null;
+            $id = $input['id'] ?? null; // Frontend sends 'id'
             $lecteur_id = $input['lecteur_id'] ?? null;
             $date_debut = $input['date_debut'] ?? null;
             $date_fin = $input['date_fin'] ?? null;
@@ -145,7 +145,7 @@ try {
             break;
 
         case 'delete':
-            $id = intval($_GET['id']) ?? null;
+            $id = intval($_GET['id']) ?? null; // Frontend sends 'id'
             if (!$id) {
                 http_response_code(400);
                 echo json_encode(["success" => false, "message" => "ID d'abonnement manquant."]);
@@ -159,7 +159,8 @@ try {
 
         // Action pour lister les lecteurs (pour le dropdown dans le formulaire d'abonnement)
         case 'list_readers':
-            $stmt = $pdo->query("SELECT l.id AS lecteur_id, u.nom AS user_name, u.email AS user_email FROM lecteurs l JOIN users u ON l.user_id = u.id ORDER BY u.nom ASC");
+            // This endpoint is correct as is, it returns lecteur_id and user_name
+            $stmt = $pdo->query("SELECT l.id AS id, u.nom AS nom, u.email AS email FROM lecteurs l JOIN users u ON l.user_id = u.id ORDER BY u.nom ASC");
             $readers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode(["success" => true, "data" => $readers]);
             break;

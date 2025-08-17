@@ -50,8 +50,8 @@ CREATE TABLE IF NOT EXISTS auteurs (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL -- Si l'utilisateur est supprimé, le champ user_id de l'auteur est mis à NULL
 );
 
--- Table des catégories de livres : Permet de classer les livres.
-CREATE TABLE IF NOT EXISTS categories (
+-- Table des départements de livres : Permet de classer les livres.
+CREATE TABLE IF NOT EXISTS departement (
     id SERIAL PRIMARY KEY,
     nom VARCHAR(100) NOT NULL UNIQUE,
     description TEXT,
@@ -63,12 +63,12 @@ CREATE TABLE IF NOT EXISTS livres (
     id SERIAL PRIMARY KEY,
     titre VARCHAR(255) NOT NULL,
     auteur_id INT NOT NULL,
-    categorie_id INT NOT NULL,
+    departement_id INT NOT NULL,
     disponible BOOLEAN DEFAULT TRUE,
     cover_image_id INT, -- Image de couverture du livre
     date_publication BIGINT DEFAULT EXTRACT(EPOCH FROM CURRENT_TIMESTAMP),
     FOREIGN KEY (auteur_id) REFERENCES auteurs(id) ON DELETE RESTRICT, -- Empêche la suppression d'un auteur s'il y a des livres associés
-    FOREIGN KEY (categorie_id) REFERENCES categories(id) ON DELETE RESTRICT, -- Empêche la suppression d'une catégorie si elle contient des livres
+    FOREIGN KEY (departement_id) REFERENCES departement(id) ON DELETE RESTRICT, -- Empêche la suppression d'un département si elle contient des livres
     FOREIGN KEY (cover_image_id) REFERENCES fichiers(id) ON DELETE SET NULL -- Si l'image est supprimée, la référence est mise à NULL
 );
 

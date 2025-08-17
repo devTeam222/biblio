@@ -123,7 +123,7 @@
         <div class="bg-white rounded-xl shadow p-6 mb-6">
             <h2 class="text-2xl font-semibold text-gray-800 mb-4">Rechercher des Ouvrages</h2>
             <div class="flex flex-col md:flex-row gap-4">
-                <input type="text" id="searchInput" placeholder="Rechercher un ouvrage, un auteur ou une catégorie..."
+                <input type="text" id="searchInput" placeholder="Rechercher un ouvrage, un auteur ou un département..."
                     class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <button id="searchButton"
                     class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105">

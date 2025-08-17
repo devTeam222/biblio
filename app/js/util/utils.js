@@ -1,20 +1,29 @@
-import { apiClient } from './ocho-api.js';
+import { apiClient } from "./ocho-api.js";
 
 /**
  * Affiche une modale personnalisée avec un message, des actions et un corps personnalisé.
  * @param {string|null} message - Le message à afficher dans la modale. Peut être une chaîne ou null si un corps personnalisé est fourni.
- * @param {Object} options - Options pour la modale.   
+ * @param {Object} options - Options pour la modale.
  * @param {string} [options.type='alert'] - Le type de la modale ('alert', 'confirm', 'success').
  * @param {Array} [options.actions=[]] - Un tableau d'actions personnalisées pour la modale. Chaque action doit être un objet avec les propriétés `label`, `callback`, et `className`.
  * @param {HTMLElement|null} [options.body=null] - Un élément HTML personnalisé à afficher dans la modale. Si fourni, le message et les actions seront ignorés.
  * @returns {Promise} - Une promesse qui résout avec la valeur de l'action sélectionnée ou une fonction de fermeture si un corps personnalisé est fourni.
  */
-function showCustomModal(message, { type = 'alert', actions = [], body = null } = {}) {
-    return new Promise((resolve, reject) => { // Ajouter reject pour gérer les erreurs
+function showCustomModal(
+    message,
+    { type = "alert", actions = [], body = null } = {}
+) {
+    return new Promise((resolve, reject) => {
+        // Ajouter reject pour gérer les erreurs
         // Vérification du type du message
-        if (typeof message !== 'string' && message !== null) { // message peut être null si body est fourni
-            console.error("Erreur: Le paramètre 'message' doit être une chaîne de caractères ou null.");
-            return reject(new TypeError("Le message doit être une chaîne de caractères ou null."));
+        if (typeof message !== "string" && message !== null) {
+            // message peut être null si body est fourni
+            console.error(
+                "Erreur: Le paramètre 'message' doit être une chaîne de caractères ou null."
+            );
+            return reject(
+                new TypeError("Le message doit être une chaîne de caractères ou null.")
+            );
         }
 
         // Vérification du type des actions
@@ -23,86 +32,118 @@ function showCustomModal(message, { type = 'alert', actions = [], body = null } 
             return reject(new TypeError("Les actions doivent être un tableau."));
         }
         // Vérification du type du type
-        if (typeof type !== 'string' || !['alert', 'confirm', 'success'].includes(type)) {
-            console.error("Erreur: Le paramètre 'type' doit être 'alert', 'confirm' ou 'success'.");
-            return reject(new TypeError("Le type doit être 'alert', 'confirm' ou 'success'."));
+        if (
+            typeof type !== "string" ||
+            !["alert", "confirm", "success"].includes(type)
+        ) {
+            console.error(
+                "Erreur: Le paramètre 'type' doit être 'alert', 'confirm' ou 'success'."
+            );
+            return reject(
+                new TypeError("Le type doit être 'alert', 'confirm' ou 'success'.")
+            );
         }
         // Vérification du body personnalisé
         if (body && !(body instanceof HTMLElement)) {
-            console.error("Erreur: Le paramètre 'body' doit être un élément HTML ou null.");
-            return reject(new TypeError("Le body doit être un élément HTML ou null."));
+            console.error(
+                "Erreur: Le paramètre 'body' doit être un élément HTML ou null."
+            );
+            return reject(
+                new TypeError("Le body doit être un élément HTML ou null.")
+            );
         }
 
-        const modalOverlay = document.createElement('div');
-        modalOverlay.className = 'modal-overlay';
+        const modalOverlay = document.createElement("div");
+        modalOverlay.className = "modal-overlay";
 
-        let buttonsHtml = '';
-        let modalContentHtml = '';
+        let buttonsHtml = "";
+        let modalContentHtml = "";
 
         // Si un body personnalisé est fourni, ignorez le message et les actions par défaut
         if (body) {
             modalContentHtml = `<div class="modal-content"></div>`; // Conteneur pour le custom body
             modalOverlay.innerHTML = modalContentHtml;
-            const contentDiv = modalOverlay.querySelector('.modal-content');
+            const contentDiv = modalOverlay.querySelector(".modal-content");
             if (contentDiv) {
                 contentDiv.appendChild(body); // Ajouter le custom body au modal
             }
-            
+
             // Retourne une fonction pour fermer la modale
             const dismiss = () => {
                 if (modalContainer.contains(modalOverlay)) {
                     modalContainer.removeChild(modalOverlay);
                 }
             };
-            
+
             // Assurez-vous que modalContainer est défini globalement ou passé en paramètre
             if (!window.modalContainer) {
-                console.error("Erreur: 'modalContainer' n'est pas défini. Veuillez vous assurer qu'un élément conteneur pour le modal existe dans le DOM.");
+                console.error(
+                    "Erreur: 'modalContainer' n'est pas défini. Veuillez vous assurer qu'un élément conteneur pour le modal existe dans le DOM."
+                );
                 return reject(new Error("'modalContainer' non défini."));
             }
             modalContainer.appendChild(modalOverlay); // <--- Ligne déplacée ici pour s'assurer qu'elle est toujours ajoutée
-            
+
             resolve({ dismiss }); // Résoudre avec la fonction de fermeture
             return; // Sortir, car le reste de la logique n'est pas applicable
         }
 
-
         // Si des actions personnalisées sont fournies, générez les boutons à partir de celles-ci.
         if (actions.length > 0) {
-            buttonsHtml = actions.map((action, index) => {
-                // Vérification du type de chaque action
-                if (typeof action !== 'object' || action === null) {
-                    console.error(`Erreur: L'action à l'index ${index} n'est pas un objet.`);
-                    return reject(new TypeError(`L'action à l'index ${index} doit être un objet.`));
-                }
-                if (typeof action.label !== 'string' || action.label.trim() === '') {
-                    console.error(`Erreur: L'action à l'index ${index} doit avoir une propriété 'label' de type chaîne non vide.`);
-                    return reject(new TypeError(`L'action à l'index ${index} doit avoir un label de type chaîne.`));
-                }
-                if (typeof action.callback !== 'function') {
-                    console.error(`Erreur: L'action à l'index ${index} doit avoir une propriété 'callback' de type fonction.`);
-                    return reject(new TypeError(`L'action à l'index ${index} doit avoir une callback de type fonction.`));
-                }
+            buttonsHtml = actions
+                .map((action, index) => {
+                    // Vérification du type de chaque action
+                    if (typeof action !== "object" || action === null) {
+                        console.error(
+                            `Erreur: L'action à l'index ${index} n'est pas un objet.`
+                        );
+                        return reject(
+                            new TypeError(`L'action à l'index ${index} doit être un objet.`)
+                        );
+                    }
+                    if (typeof action.label !== "string" || action.label.trim() === "") {
+                        console.error(
+                            `Erreur: L'action à l'index ${index} doit avoir une propriété 'label' de type chaîne non vide.`
+                        );
+                        return reject(
+                            new TypeError(
+                                `L'action à l'index ${index} doit avoir un label de type chaîne.`
+                            )
+                        );
+                    }
+                    if (typeof action.callback !== "function") {
+                        console.error(
+                            `Erreur: L'action à l'index ${index} doit avoir une propriété 'callback' de type fonction.`
+                        );
+                        return reject(
+                            new TypeError(
+                                `L'action à l'index ${index} doit avoir une callback de type fonction.`
+                            )
+                        );
+                    }
 
+                    const defaultClasses = "font-bold py-2 px-4 rounded-lg";
+                    const buttonClasses =
+                        action.className || "bg-blue-600 hover:bg-blue-700 text-white"; // Style par défaut si non spécifié
 
-                const defaultClasses = "font-bold py-2 px-4 rounded-lg";
-                const buttonClasses = action.className || "bg-blue-600 hover:bg-blue-700 text-white"; // Style par défaut si non spécifié
-
-                return `<button id="modalBtn-${index}" class="${defaultClasses} ${buttonClasses}">${action.label}</button>`;
-            }).join('');
+                    return `<button id="modalBtn-${index}" class="${defaultClasses} ${buttonClasses}">${action.label}</button>`;
+                })
+                .join("");
         } else {
             // Si aucune action personnalisée n'est fournie, utilisez les types 'alert' ou 'confirm' par défaut.
-            if(type === 'success'){
+            if (type === "success") {
                 buttonsHtml = `<button id="modalOkBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">OK</button>`;
-            }else if (type === 'alert') {
+            } else if (type === "alert") {
                 buttonsHtml = `<button id="modalCancelBtn" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Fermer</button>`;
-            } else if (type === 'confirm') {
+            } else if (type === "confirm") {
                 buttonsHtml = `
                     <button id="modalOkBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">OK</button>
                     <button id="modalCancelBtn" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Annuler</button>
                 `;
             } else {
-                console.error("Erreur: Le paramètre 'type' doit être 'alert' ou 'confirm' si aucune action n'est spécifiée.");
+                console.error(
+                    "Erreur: Le paramètre 'type' doit être 'alert' ou 'confirm' si aucune action n'est spécifiée."
+                );
                 return reject(new Error("Type de modal invalide."));
             }
         }
@@ -119,7 +160,9 @@ function showCustomModal(message, { type = 'alert', actions = [], body = null } 
 
         // Assurez-vous que modalContainer est défini globalement ou passé en paramètre
         if (!window.modalContainer) {
-            console.error("Erreur: 'modalContainer' n'est pas défini. Veuillez vous assurer qu'un élément conteneur pour le modal existe dans le DOM.");
+            console.error(
+                "Erreur: 'modalContainer' n'est pas défini. Veuillez vous assurer qu'un élément conteneur pour le modal existe dans le DOM."
+            );
             return reject(new Error("'modalContainer' non défini."));
         }
         modalContainer.appendChild(modalOverlay); // <--- Cette ligne est maintenant ici aussi pour les modales par défaut
@@ -138,7 +181,7 @@ function showCustomModal(message, { type = 'alert', actions = [], body = null } 
             });
         } else {
             // Gestion des types 'alert' et 'confirm' si aucune action n'est spécifiée
-            const okButton = document.getElementById('modalOkBtn');
+            const okButton = document.getElementById("modalOkBtn");
             if (okButton) {
                 okButton.onclick = () => {
                     modalContainer.removeChild(modalOverlay);
@@ -146,7 +189,7 @@ function showCustomModal(message, { type = 'alert', actions = [], body = null } 
                 };
             }
 
-            const cancelButton = document.getElementById('modalCancelBtn');
+            const cancelButton = document.getElementById("modalCancelBtn");
             if (cancelButton) {
                 cancelButton.onclick = () => {
                     modalContainer.removeChild(modalOverlay);
@@ -157,11 +200,11 @@ function showCustomModal(message, { type = 'alert', actions = [], body = null } 
     });
 }
 
-function addLoader(el, className = 'loader') {
-    const loaderEl = document.createElement('span');
-    const existingLoader = el.querySelectorAll('.loader');
+function addLoader(el, className = "loader") {
+    const loaderEl = document.createElement("span");
+    const existingLoader = el.querySelectorAll(".loader");
     if (existingLoader.length) {
-        existingLoader.forEach(loader => {
+        existingLoader.forEach((loader) => {
             loader.remove(); // Retirer les loaders existants
         });
     }
@@ -169,32 +212,34 @@ function addLoader(el, className = 'loader') {
     el.appendChild(loaderEl); // Ajouter le loader à l'élément spécifié
 }
 function removeLoader(el) {
-    const loader = el.querySelector('.loader');
+    const loader = el.querySelector(".loader");
     if (loader) {
         el.removeChild(loader);
     }
 }
 
 function showLoading(spinnerElement) {
-    spinnerElement.classList.remove('hidden');
+    spinnerElement.classList.remove("hidden");
 }
 
 function hideLoading(spinnerElement) {
-    spinnerElement.classList.add('hidden');
+    spinnerElement.classList.add("hidden");
 }
 
 function isAuth() {
     return new Promise(async (resolve) => {
-        const response = await apiClient.get('/api/auth/check', { throwHttpErrors: true });
+        const response = await apiClient.get("/api/auth/check", {
+            throwHttpErrors: true,
+        });
         const userDetails = response?.data?.user || null; // Détails de l'utilisateur authentifié
-        const authEvent = new CustomEvent('authchange', {
+        const authEvent = new CustomEvent("authchange", {
             detail: {
                 userId: userDetails?.id || null, // ID de l'utilisateur authentifié
                 userName: userDetails?.name || null, // Nom de l'utilisateur authentifié
-                role: userDetails?.role || null // Rôle de l'utilisateur authentifié
-            }
+                role: userDetails?.role || null, // Rôle de l'utilisateur authentifié
+            },
         });
-        
+
         document.dispatchEvent(authEvent); // Déclenche l'événement d'authentification
         resolve(!!response?.data?.success ? response.data : null); // Retourne true si l'utilisateur est authentifié
     });
@@ -203,28 +248,103 @@ function isAuth() {
 // Définir les liens de navigation de manière structurée
 const navLinksConfig = {
     admin: [
-        { href: "/", text: "Accueil", icon: `<svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>`, pageMatch: "" }, // Default for admin dashboard
-        { href: "/admin", text: "Tableau de bord", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard-icon lucide-layout-dashboard"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg>`, pageMatch: "admin" },
-        { href: "/admin/books", text: "Gérer Livres", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" /></svg>`, pageMatch: "admin/books" },
-        { href: "/admin/users", text: "Gérer Utilisateurs", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-cog-icon lucide-user-round-cog"><path d="m14.305 19.53.923-.382" /><path d="m15.228 16.852-.923-.383" /><path d="m16.852 15.228-.383-.923" /><path d="m16.852 20.772-.383.924" /><path d="m19.148 15.228.383-.923" /><path d="m19.53 21.696-.382-.924" /><path d="M2 21a8 8 0 0 1 10.434-7.62" /><path d="m20.772 16.852.924-.383" /><path d="m20.772 19.148.924.383" /><circle cx="10" cy="8" r="5" /><circle cx="18" cy="18" r="3" /></svg>`, pageMatch: "admin/users" },
-        { href: "/admin/subscriptions", text: "Gérer Abonnements", icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>`, pageMatch: "admin/subscriptions" },
+        {
+            href: "/",
+            text: "Accueil",
+            icon: `<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>`,
+            pageMatch: "",
+        }, // Default for admin dashboard
+        {
+            href: "/admin",
+            text: "Tableau de bord",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard-icon lucide-layout-dashboard"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg>`,
+            pageMatch: "admin",
+        },
+        {
+            href: "/admin/books",
+            text: "Gérer Livres",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" /></svg>`,
+            pageMatch: "admin/books",
+        },
+        {
+            href: "/admin/users",
+            text: "Gérer Utilisateurs",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-cog-icon lucide-user-round-cog"><path d="m14.305 19.53.923-.382" /><path d="m15.228 16.852-.923-.383" /><path d="m16.852 15.228-.383-.923" /><path d="m16.852 20.772-.383.924" /><path d="m19.148 15.228.383-.923" /><path d="m19.53 21.696-.382-.924" /><path d="M2 21a8 8 0 0 1 10.434-7.62" /><path d="m20.772 16.852.924-.383" /><path d="m20.772 19.148.924.383" /><circle cx="10" cy="8" r="5" /><circle cx="18" cy="18" r="3" /></svg>`,
+            pageMatch: "admin/users",
+        },
+        {
+            href: "/admin/subscriptions",
+            text: "Gérer Abonnements",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>`,
+            pageMatch: "admin/subscriptions",
+        },
     ],
     author: [
-        { href: "/", text: "Accueil", icon: `<svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>`, pageMatch: "" },
-        { href: "/author-dashboard.html", text: "Tableau de bord", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard-icon lucide-layout-dashboard"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg>`, pageMatch: "author-dashboard.html" },
-        { href: "/my-books.html", text: "Mes Livres", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" /></svg>`, pageMatch: "my-books.html" },
-        { href: "/book-stats.html", text: "Statistiques Livres", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>`, pageMatch: "book-stats.html" },
+        {
+            href: "/",
+            text: "Accueil",
+            icon: `<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>`,
+            pageMatch: "",
+        },
+        {
+            href: "/author-dashboard.html",
+            text: "Tableau de bord",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-dashboard-icon lucide-layout-dashboard"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg>`,
+            pageMatch: "author-dashboard.html",
+        },
+        {
+            href: "/my-books.html",
+            text: "Mes Livres",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" /></svg>`,
+            pageMatch: "my-books.html",
+        },
+        {
+            href: "/book-stats.html",
+            text: "Statistiques Livres",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>`,
+            pageMatch: "book-stats.html",
+        },
     ],
     user: [
-        { href: "/", text: "Accueil", icon: `<svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>`, pageMatch: "" },
-        { href: "/loans-history.html", text: "Mes Emprunts", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history-icon lucide-history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M12 7v5l4 2" /></svg>`, pageMatch: "loans-history.html" },
-        { href: "/profile", text: "Mon Compte", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-icon lucide-user-round"><circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 0 0-16 0" /></svg>`, pageMatch: "profile" },
+        {
+            href: "/",
+            text: "Accueil",
+            icon: `<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>`,
+            pageMatch: "",
+        },
+        {
+            href: "/loans-history.html",
+            text: "Mes Emprunts",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history-icon lucide-history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M12 7v5l4 2" /></svg>`,
+            pageMatch: "loans-history.html",
+        },
+        {
+            href: "/profile",
+            text: "Mon Compte",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-icon lucide-user-round"><circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 0 0-16 0" /></svg>`,
+            pageMatch: "profile",
+        },
     ],
     guest: [
-        { href: "/", text: "Accueil", icon: `<svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>`, pageMatch: "" },
-        { href: "/login", text: "Se connecter", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>`, pageMatch: "login" },
-        { href: "/register", text: "S'inscrire", icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>`, pageMatch: "register" },
-    ]
+        {
+            href: "/",
+            text: "Accueil",
+            icon: `<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>`,
+            pageMatch: "",
+        },
+        {
+            href: "/login",
+            text: "Se connecter",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>`,
+            pageMatch: "login",
+        },
+        {
+            href: "/register",
+            text: "S'inscrire",
+            icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>`,
+            pageMatch: "register",
+        },
+    ],
 };
 
 /**
@@ -232,36 +352,48 @@ const navLinksConfig = {
  * @param {string} userRole - Le rôle de l'utilisateur ('admin', 'author', 'user', 'guest').
  * @param {string} currentPagePath - Le chemin de la page actuelle (ex: "/admin/books", "/profile.html").
  */
-function updateNavBar(userRole = 'guest', currentPagePath = window.location.pathname) {
-    const mainNav = document.getElementById('mainNav');
+function updateNavBar(
+    userRole = "guest",
+    currentPagePath = window.location.pathname
+) {
+    const mainNav = document.getElementById("mainNav");
     if (!mainNav) {
-        console.warn("Element #mainNav not found. Navigation bar cannot be updated.");
+        console.warn(
+            "Element #mainNav not found. Navigation bar cannot be updated."
+        );
         return;
     }
 
-    mainNav.innerHTML = ''; // Vider la navigation existante pour éviter les doublons
+    mainNav.innerHTML = ""; // Vider la navigation existante pour éviter les doublons
 
     const linksToRender = navLinksConfig[userRole] || navLinksConfig.guest;
 
-    linksToRender.forEach(link => {
+    linksToRender.forEach((link) => {
         // Déterminer si le lien est actif
-        const isActive = (link.href !== '/' && currentPagePath.includes(link.pageMatch) && link.pageMatch) || (link.href === '/' && !currentPagePath.split('/')?.[1]);
-        
-        const activeClass = isActive ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800";
-        
-        const linkElement = document.createElement('a');
+        const isActive =
+            (link.href !== "/" &&
+                currentPagePath.includes(link.pageMatch) &&
+                link.pageMatch) && !currentPagePath.split(link.href)?.[1] ||
+            (link.href === "/" && !currentPagePath.split("/")?.[1]);
+
+        const activeClass = isActive
+            ? "bg-purple-600 hover:bg-purple-700 text-white"
+            : "bg-gray-200 hover:bg-gray-300 text-gray-800";
+
+        const linkElement = document.createElement("a");
         linkElement.href = link.href;
-        linkElement.className = `nav-link font-semibold py-2 px-4 rounded-lg flex items-center ${activeClass}`;
+        linkElement.className = `nav-link font-semibold py-2 px-4 rounded-lg flex items-center gap-2 ${activeClass}`;
         linkElement.innerHTML = `${link.icon} ${link.text}`;
-        
+
         mainNav.appendChild(linkElement);
     });
 
     // Ajouter le bouton de déconnexion séparément pour les rôles authentifiés
-    if (userRole !== 'guest') {
-        const logoutButton = document.createElement('button');
-        logoutButton.id = 'logoutButton';
-        logoutButton.className = 'nav-link bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center';
+    if (userRole !== "guest") {
+        const logoutButton = document.createElement("button");
+        logoutButton.id = "logoutButton";
+        logoutButton.className =
+            "nav-link bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center";
         logoutButton.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -269,42 +401,46 @@ function updateNavBar(userRole = 'guest', currentPagePath = window.location.path
             Déconnexion
         `;
         mainNav.appendChild(logoutButton);
-        logoutButton.addEventListener('click', handleLogout);
+        logoutButton.addEventListener("click", handleLogout);
     }
 }
 
 // Create a custom event to handle user authentication state
-const userAuthEvent = new CustomEvent('authchange', {
+const userAuthEvent = new CustomEvent("authchange", {
     detail: {
         userId: null,
         userName: null,
-        role: null // Initialize role
-    }
+        role: null, // Initialize role
+    },
 });
 document.dispatchEvent(userAuthEvent); // Dispatch the event initially
 
 // Listen for authchange event to update the navigation bar
-document.addEventListener('authchange', (event) => {
+document.addEventListener("authchange", (event) => {
     const { userId, userName, role } = event.detail;
-    const userNameDisplay = document.getElementById('userNameDisplay');
-    const userRoleDisplay = document.getElementById('userRoleDisplay'); // Assuming this element exists
+    const userNameDisplay = document.getElementById("userNameDisplay");
+    const userRoleDisplay = document.getElementById("userRoleDisplay"); // Assuming this element exists
     const currentPath = window.location.pathname; // Get current page path
 
     if (userNameDisplay) {
-        userNameDisplay.textContent = userId ? `Bonjour, ${userName || 'Lecteur'}!` : '';
+        userNameDisplay.textContent = userId
+            ? `Bonjour, ${userName || "Lecteur"}!`
+            : "";
     }
     if (userRoleDisplay) {
         const possibleRoles = {
-            admin: 'Administrateur',
-            user: 'Lecteur',
-            author: 'Auteur',
-            guest: 'Visiteur',
+            admin: "Administrateur",
+            user: "Lecteur",
+            author: "Auteur",
+            guest: "Visiteur",
         };
-        userRoleDisplay.textContent = userId ? (possibleRoles[role] || possibleRoles.guest) : '';
+        userRoleDisplay.textContent = userId
+            ? possibleRoles[role] || possibleRoles.guest
+            : "";
     }
 
     // Call updateNavBar with the determined role and current path
-    updateNavBar(role || 'guest', currentPath);
+    updateNavBar(role || "guest", currentPath);
 });
 
 // Initial call to updateNavBar when the script loads
@@ -313,57 +449,86 @@ document.addEventListener('authchange', (event) => {
 // and then trigger the 'authchange' event).
 // No direct call here, as the 'authchange' listener will handle it.
 
-
 async function handleLogout() {
-    const logoutButton = document.getElementById('logoutButton');
-    await showCustomModal('Êtes-vous sûr de vouloir vous déconnecter ?', {
-        type: 'confirm',
+    const logoutButton = document.getElementById("logoutButton");
+    await showCustomModal("Êtes-vous sûr de vouloir vous déconnecter ?", {
+        type: "confirm",
         actions: [
             {
-                label: 'Oui, déconnecter',
+                label: "Oui, déconnecter",
                 callback: async () => {
                     addLoader(logoutButton); // Ajouter un loader au bouton de déconnexion
                     await logout();
                     removeLoader(logoutButton); // Retirer le loader après la déconnexion
                 },
-                className: 'bg-red-600 hover:bg-red-700 text-white',
-                value: true  // valeur de retour explicite
+                className: "bg-red-600 hover:bg-red-700 text-white",
+                value: true, // valeur de retour explicite
             },
             {
-                label: 'Annuler',
+                label: "Annuler",
                 callback: () => { },
-                className: 'bg-gray-400 hover:bg-gray-500 text-white',
-                value: false // valeur de retour explicite
-            }
-        ]
+                className: "bg-gray-400 hover:bg-gray-500 text-white",
+                value: false, // valeur de retour explicite
+            },
+        ],
     });
-
 }
 async function logout() {
     try {
-        const response = await apiClient.post('/api/auth/logout');
+        const response = await apiClient.post("/api/auth/logout");
         if (!response?.data?.success) {
-            console.log('Échec de la déconnexion:', response?.data?.message || 'Erreur inconnue');
-            showCustomModal('Échec de la déconnexion. Veuillez réessayer.');
+            console.log(
+                "Échec de la déconnexion:",
+                response?.data?.message || "Erreur inconnue"
+            );
+            showCustomModal("Échec de la déconnexion. Veuillez réessayer.");
             return;
         }
         // Déconnexion réussie, réinitialiser l'état de l'utilisateur
-        const authEvent = new CustomEvent('authchange', {
+        const authEvent = new CustomEvent("authchange", {
             detail: {
                 userId: null, // Réinitialiser l'ID de l'utilisateur
                 userName: null, // Réinitialiser le nom de l'utilisateur
-                role: null // Réinitialiser le rôle de l'utilisateur
-            }
+                role: null, // Réinitialiser le rôle de l'utilisateur
+            },
         });
         document.dispatchEvent(authEvent); // Déclenche l'événement d'authentification
-        showCustomModal('Vous avez été déconnecté avec succès.', { type: 'alert' });
+        showCustomModal("Vous avez été déconnecté avec succès.", { type: "alert" });
         // Rediriger vers la page de connexion ou d'accueil
-        window.location.href = '/'; // Redirection vers la page de connexion
+        window.location.href = "/"; // Redirection vers la page de connexion
     } catch (error) {
-        console.error('Erreur lors de la déconnexion:', error);
-        showCustomModal('Une erreur est survenue lors de la déconnexion. Veuillez réessayer.');
+        console.error("Erreur lors de la déconnexion:", error);
+        showCustomModal(
+            "Une erreur est survenue lors de la déconnexion. Veuillez réessayer."
+        );
     }
 }
 
+/**
+ * Fonction de débounce pour limiter la fréquence d'exécution d'une fonction.
+ * @param {Function} func - La fonction à débouncer.
+ * @param {number} delay - Le délai en millisecondes.
+ * @returns {Function} La fonction débouncée.
+ */
+function debounce(func, delay) {
+    let timeout;
+    return function (...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), delay);
+    };
+}
 
-export { showCustomModal, showLoading, hideLoading, isAuth, updateNavBar, addLoader, removeLoader, logout, handleLogout, userAuthEvent }; // Exporter les fonctions et variables nécessaires
+export {
+    showCustomModal,
+    showLoading,
+    hideLoading,
+    isAuth,
+    updateNavBar,
+    addLoader,
+    removeLoader,
+    logout,
+    handleLogout,
+    userAuthEvent,
+    debounce,
+}; // Exporter les fonctions et variables nécessaires

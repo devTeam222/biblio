@@ -194,7 +194,7 @@ function createBookCard(book) {
             <div class="p-4">
                 <h4 class="text-lg font-semibold text-gray-800 truncate">${book.titre}</h4>
                 <p class="text-sm text-gray-600">${book.auteur || 'Auteur inconnu'}</p>
-                <p class="text-sm text-gray-500 mt-2">Catégorie: ${book.categorie || 'Non spécifiée'}</p>
+                <p class="text-sm text-gray-500 mt-2">Département: ${book.departement || 'Non spécifiée'}</p>
                 <span class="inline-block px-2 py-1 mt-3 rounded-full text-xs font-semibold ${availabilityClass}">
                     ${availabilityText}
                 </span>

@@ -12,7 +12,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau de Bord Administrateur - Ma Bibliothèque</title>
+    <title>Tableau de Bord Administrateur - GéoLib</title>
     <link rel="stylesheet" href="/app/css/modal.css">
     <style>
         body {
@@ -373,7 +373,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
     <!-- Pied de page -->
     <footer class="bg-gray-800 text-white py-4 shadow-inner">
         <div class="container mx-auto px-4 text-center text-sm">
-            <p>&copy; 2025 Système de Gestion de Bibliothèque. Tous droits réservés. Réalisé par Ochokom.</p>
+            <p>&copy; 2025 Base des données Dimart Géosciences contient ouvrages scientifiques publiée à la mention géosciences/faculté des sciences et technologie/unikin realisé par Ochokom et dirigé par le professeur Didier Yina.</p>
             <p class="mt-1 text-gray-400">Dernière mise à jour: <span id="lastUpdateTime">maintenant</span></p>
         </div>
     </footer>

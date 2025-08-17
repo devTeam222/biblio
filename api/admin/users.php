@@ -139,7 +139,7 @@ try {
 
             $sql = "UPDATE users SET nom = :nom, role = :role";
             if ($password) {
-                $sql .= ", password = :password";
+                $sql .= ", mot_de_passe = :password";
             }
             $sql .= " WHERE id = :id";
             $stmt = $pdo->prepare($sql);
@@ -187,7 +187,6 @@ try {
             break;
     }
 } catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(["success" => false, "message" => "Erreur de base de données: " . $e->getMessage()]);
+    echo json_encode(["success" => false, "message" => "Erreur de base de données", "msg" =>  $e->getMessage()]);
 }
 

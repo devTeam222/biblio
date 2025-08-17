@@ -12,8 +12,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription - Ma Bibliothèque</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Inscription - GéoLib</title>
+    <script src="/app/js/tailwind.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {

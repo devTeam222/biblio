@@ -29,22 +29,28 @@ try {
         SELECT 
             l.id, 
             l.titre, 
+            l.isbn, 
             l.descr, 
             l.disponible, 
             l.emplacement,
             l.date_publication,
             l.file_id, -- Ajout de l'ID du fichier électronique
             a.nom AS auteur_nom,
-            c.nom AS categorie_nom,
+            c.nom AS departement_nom,
             f_cover.chemin AS cover_image_url,
             f_electronic.chemin AS electronic_file_url, -- Chemin du fichier électronique
-            ay.start || '-' || ay.\"end\" AS annee_academique -- Ajout de l'année académique
+            ay.start || '-' || ay.\"end\" AS annee_academique, -- Ajout de l'année académique
+            sa.id AS study_area_id,
+            sa.name AS study_area_name,
+            sa.latitude AS study_area_latitude,
+            sa.longitude AS study_area_longitude
         FROM livres l
         JOIN auteurs a ON l.auteur_id = a.id
-        LEFT JOIN categories c ON l.categorie_id = c.id
+        LEFT JOIN departement c ON l.departement_id = c.id
         LEFT JOIN fichiers f_cover ON l.cover_image_id = f_cover.id
         LEFT JOIN fichiers f_electronic ON l.file_id = f_electronic.id -- Jointure pour le fichier électronique
         LEFT JOIN academic_year ay ON l.annee_id = ay.id -- Jointure pour l'année académique
+        LEFT JOIN study_areas sa ON l.study_area_id = sa.id -- Nouvelle jointure pour la zone d'étude
         WHERE l.id = :id
     ");
     $stmt->bindParam(':id', $id, PDO::PARAM_INT);
@@ -62,4 +68,3 @@ try {
     http_response_code(500);
     echo json_encode(["success" => false, "message" => "Erreur de base de données", "error" => $e->getMessage()]);
 }
-?>

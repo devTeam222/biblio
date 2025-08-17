@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 try {
-    // Récupère les livres disponibles, avec les noms de l'auteur et de la catégorie,
+    // Récupère les livres disponibles, avec les noms de l'auteur et de la département,
     // ainsi que le chemin de l'image de couverture.
     // Les livres sont triés par date de publication (les plus récents en premier) et limités à 8.
     $stmt = $pdo->query("
@@ -23,14 +23,14 @@ try {
             livres.id,
             livres.titre,
             auteurs.nom AS auteur,
-            categories.nom AS categorie,
-            categories.id AS categorie_id,
+            departement.nom AS departement,
+            departement.id AS departement_id,
             fichiers.chemin AS cover_url,
             livres.date_publication,
             livres.disponible
         FROM livres
         JOIN auteurs ON livres.auteur_id = auteurs.id
-        LEFT JOIN categories ON livres.categorie_id = categories.id
+        LEFT JOIN departement ON livres.departement_id = departement.id
         LEFT JOIN fichiers ON livres.cover_image_id = fichiers.id
         WHERE livres.disponible = TRUE
         ORDER BY livres.date_publication DESC

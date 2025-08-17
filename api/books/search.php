@@ -17,25 +17,25 @@ $query_param = $_GET['query'] ?? ''; // Terme de recherche
 
 try {
     $search_term = '%' . $query_param . '%';
-    // Recherche de livres par titre, nom d'auteur ou nom de catégorie
+    // Recherche de livres par titre, nom d'auteur ou nom de département
     $stmt = $pdo->prepare("
         SELECT 
             livres.id,
             livres.titre,
             auteurs.nom AS auteur,
-            categories.nom AS categorie,
-            categories.id AS categorie_id,
+            departement.nom AS departement,
+            departement.id AS departement_id,
             fichiers.chemin AS cover_url,
             livres.date_publication,
             livres.disponible
         FROM livres
         JOIN auteurs ON livres.auteur_id = auteurs.id
-        JOIN categories ON livres.categorie_id = categories.id
+        JOIN departement ON livres.departement_id = departement.id
         LEFT JOIN fichiers ON livres.cover_image_id = fichiers.id
         WHERE 
             livres.titre ILIKE :search_term OR 
             auteurs.nom ILIKE :search_term OR 
-            categories.nom ILIKE :search_term
+            departement.nom ILIKE :search_term
         ORDER BY livres.date_publication DESC
     ");
     $stmt->bindParam(':search_term', $search_term);

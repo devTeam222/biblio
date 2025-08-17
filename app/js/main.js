@@ -6,15 +6,15 @@
 const MOCK_USER_ID = 1; // ID de l'utilisateur fictif pour cette démo
 
 const mockBooksData = [
-    { id: 1, titre: "Le Cycle de Dune", auteur: "Frank Herbert", categorie: "Science-Fiction", disponible: true, cover: "https://placehold.co/150x200/F0F8FF/000000?text=Dune" },
-    { id: 2, titre: "L'Alchimiste", auteur: "Paulo Coelho", categorie: "Philosophie", disponible: false, cover: "https://placehold.co/150x200/FFF0F5/000000?text=Alchimiste" },
-    { id: 3, titre: "Sapiens", auteur: "Yuval Noah Harari", categorie: "Histoire", disponible: true, cover: "https://placehold.co/150x200/E6E6FA/000000?text=Sapiens" },
-    { id: 4, titre: "Harry Potter", auteur: "J.K. Rowling", categorie: "Fantasy", disponible: true, cover: "https://placehold.co/150x200/F5FFFA/000000?text=HP" },
-    { id: 5, titre: "1984", auteur: "George Orwell", categorie: "Dystopie", disponible: false, cover: "https://placehold.co/150x200/C0C0C0/000000?text=1984" },
-    { id: 6, titre: "Orgueil et Préjugés", auteur: "Jane Austen", categorie: "Roman", disponible: true, cover: "https://placehold.co/150x200/ADD8E6/000000?text=Orgueil" },
-    { id: 7, titre: "Le Petit Prince", auteur: "Antoine de Saint-Exupéry", categorie: "Philosophie", disponible: true, cover: "https://placehold.co/150x200/FFDAB9/000000?text=Petit+Prince" },
-    { id: 8, titre: "Les Misérables", auteur: "Victor Hugo", categorie: "Classique", disponible: true, cover: "https://placehold.co/150x200/E0FFFF/000000?text=Miserables" },
-    { id: 9, titre: "Crime et Châtiment", auteur: "Fiodor Dostoïevski", categorie: "Classique", disponible: false, cover: "https://placehold.co/150x200/F8F8FF/000000?text=Crime" },
+    { id: 1, titre: "Le Cycle de Dune", auteur: "Frank Herbert", departement: "Science-Fiction", disponible: true, cover: "https://placehold.co/150x200/F0F8FF/000000?text=Dune" },
+    { id: 2, titre: "L'Alchimiste", auteur: "Paulo Coelho", departement: "Philosophie", disponible: false, cover: "https://placehold.co/150x200/FFF0F5/000000?text=Alchimiste" },
+    { id: 3, titre: "Sapiens", auteur: "Yuval Noah Harari", departement: "Histoire", disponible: true, cover: "https://placehold.co/150x200/E6E6FA/000000?text=Sapiens" },
+    { id: 4, titre: "Harry Potter", auteur: "J.K. Rowling", departement: "Fantasy", disponible: true, cover: "https://placehold.co/150x200/F5FFFA/000000?text=HP" },
+    { id: 5, titre: "1984", auteur: "George Orwell", departement: "Dystopie", disponible: false, cover: "https://placehold.co/150x200/C0C0C0/000000?text=1984" },
+    { id: 6, titre: "Orgueil et Préjugés", auteur: "Jane Austen", departement: "Roman", disponible: true, cover: "https://placehold.co/150x200/ADD8E6/000000?text=Orgueil" },
+    { id: 7, titre: "Le Petit Prince", auteur: "Antoine de Saint-Exupéry", departement: "Philosophie", disponible: true, cover: "https://placehold.co/150x200/FFDAB9/000000?text=Petit+Prince" },
+    { id: 8, titre: "Les Misérables", auteur: "Victor Hugo", departement: "Classique", disponible: true, cover: "https://placehold.co/150x200/E0FFFF/000000?text=Miserables" },
+    { id: 9, titre: "Crime et Châtiment", auteur: "Fiodor Dostoïevski", departement: "Classique", disponible: false, cover: "https://placehold.co/150x200/F8F8FF/000000?text=Crime" },
 ];
 
 const mockLoansData = [
@@ -83,7 +83,7 @@ function mockApiCall(endpoint, data = null, method = 'GET') {
                     const filteredBooks = mockBooksData.filter(book =>
                         book.titre.toLowerCase().includes(query.toLowerCase()) ||
                         book.auteur.toLowerCase().includes(query.toLowerCase()) ||
-                        book.categorie.toLowerCase().includes(query.toLowerCase())
+                        book.departement.toLowerCase().includes(query.toLowerCase())
                     );
                     responseData = { success: true, data: filteredBooks };
                 }

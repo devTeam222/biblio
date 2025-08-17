@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS public.livres
     id serial NOT NULL,
     titre character varying(255) COLLATE pg_catalog."default" NOT NULL,
     auteur_id integer NOT NULL,
-    categorie_id integer,
+    departement_id integer,
     disponible boolean DEFAULT true,
     cover_image_id integer,
     date_publication bigint DEFAULT EXTRACT(epoch FROM CURRENT_TIMESTAMP),
@@ -54,14 +54,14 @@ CREATE TABLE IF NOT EXISTS public.academic_year
     CONSTRAINT academic_year_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.categories
+CREATE TABLE IF NOT EXISTS public.departement
 (
     id serial NOT NULL,
     nom character varying(100) COLLATE pg_catalog."default" NOT NULL,
     description text COLLATE pg_catalog."default",
     date_creation bigint DEFAULT EXTRACT(epoch FROM CURRENT_TIMESTAMP),
-    CONSTRAINT categories_pkey PRIMARY KEY (id),
-    CONSTRAINT categories_nom_key UNIQUE (nom)
+    CONSTRAINT departement_pkey PRIMARY KEY (id),
+    CONSTRAINT departement_nom_key UNIQUE (nom)
 );
 
 CREATE TABLE IF NOT EXISTS public.fichiers
@@ -155,8 +155,8 @@ ALTER TABLE IF EXISTS public.livres
 
 
 ALTER TABLE IF EXISTS public.livres
-    ADD CONSTRAINT livres_categorie_id_fkey FOREIGN KEY (categorie_id)
-    REFERENCES public.categories (id) MATCH SIMPLE
+    ADD CONSTRAINT livres_departement_id_fkey FOREIGN KEY (departement_id)
+    REFERENCES public.departement (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 

@@ -1,32 +1,52 @@
 import { apiClient } from "../../util/ocho-api.js";
 import { TimeFormatter } from "../../util/formatter.js";
 import { showCustomModal, addLoader, removeLoader, isAuth, updateNavBar } from "../../util/utils.js";
-import { loadSubscriptions, openSubscriptionModal, closeSubscriptionModal, handleSubscriptionFormSubmit, deleteSubscription } from "./subscriptions.js"; // Import subscription functions
+// Removed subscription imports: import { loadSubscriptions, openSubscriptionModal, closeSubscriptionModal, handleSubscriptionFormSubmit, deleteSubscription } from "./subscriptions.js";
+// Removed study_areas import, as it will be managed by books.js
+// Removed books import: import { loadBooks, openBookModal, closeBookModal, handleBookFormSubmit, deleteBook } from "./books.js"; // Nouveau: Importer les fonctions des livres
 
 // DOM elements from page.php
 const usersTabBtn = document.getElementById('usersTabBtn');
 const authorsTabBtn = document.getElementById('authorsTabBtn');
-const subscriptionsTabBtn = document.getElementById('subscriptionsTabBtn'); // New tab button
+// Removed subscriptionsTabBtn from here as it's now an <a> tag
+// Removed studyAreasTabBtn from here
+// Removed booksTabBtn from here as it's already an <a> tag
+
 const usersContent = document.getElementById('usersContent');
 const authorsContent = document.getElementById('authorsContent');
-const subscriptionsContent = document.getElementById('subscriptionsContent'); // New content area
+// Removed subscriptionsContent
+// Removed studyAreasContent
+// Removed booksContent
+
 const usersTableBody = document.querySelector('#usersTable tbody');
 const authorsTableBody = document.querySelector('#authorsTable tbody');
-const subscriptionsTableBody = document.querySelector('#subscriptionsTable tbody'); // New table body
+// Removed subscriptionsTableBody
+// Removed studyAreasTableBody
+// Removed booksTableBody
+
 const entitySearchInput = document.getElementById('entitySearchInput');
 const addEntityBtn = document.getElementById('addEntityBtn');
 const lastUpdateTimeEl = document.getElementById('lastUpdateTime');
 
-// Modal elements
+// Modal elements (existing, no change needed here as bookModal is in books.js)
 const userModal = document.getElementById('userModal');
 const authorModal = document.getElementById('authorModal');
-const subscriptionModal = document.getElementById('subscriptionModal'); // New modal
+// Removed subscriptionModal
+// Removed studyAreaModal
+// Removed bookModal
+
 const userForm = document.getElementById('userForm');
 const authorForm = document.getElementById('authorForm');
-const subscriptionForm = document.getElementById('subscriptionForm'); // New form
+// Removed subscriptionForm
+// Removed studyAreaForm
+// Removed bookForm
+
 const cancelUserModalBtn = document.getElementById('cancelUserModalBtn');
 const cancelAuthorModalBtn = document.getElementById('cancelAuthorModalBtn');
-const cancelSubscriptionModalBtn = document.getElementById('cancelSubscriptionModalBtn'); // New cancel button
+// Removed cancelSubscriptionModalBtn
+// Removed cancelStudyAreaModalBtn
+// Removed cancelBookModalBtn
+
 const confirmationModal = document.getElementById('confirmationModal');
 const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
@@ -38,9 +58,9 @@ const usersPageInfo = document.getElementById('usersPageInfo');
 const authorsPrevPageBtn = document.getElementById('authorsPrevPageBtn');
 const authorsNextPageBtn = document.getElementById('authorsNextPageBtn');
 const authorsPageInfo = document.getElementById('authorsPageInfo');
-const subscriptionsPrevPageBtn = document.getElementById('subscriptionsPrevPageBtn'); // New pagination buttons
-const subscriptionsNextPageBtn = document.getElementById('subscriptionsNextPageBtn');
-const subscriptionsPageInfo = document.getElementById('subscriptionsPageInfo');
+// Removed subscriptions pagination elements
+// Removed studyAreas pagination elements
+// Removed books pagination elements
 
 // Global state variables
 let currentActiveTab = sessionStorage.getItem('admin-tab') ?? 'users';
@@ -86,22 +106,23 @@ function debounce(func, delay) {
 
 /**
  * Updates the UI based on the active tab.
- * @param {string} tabName - 'users', 'authors' or 'subscriptions'.
+ * @param {string} tabName - 'users' or 'authors'.
  */
 async function switchTab(tabName) {
     currentActiveTab = tabName;
 
+    // Remove active classes from all tab buttons
     usersTabBtn.classList.remove('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
     usersTabBtn.classList.add('bg-gray-100', 'text-gray-700');
     authorsTabBtn.classList.remove('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
     authorsTabBtn.classList.add('bg-gray-100', 'text-gray-700');
-    subscriptionsTabBtn.classList.remove('active', 'bg-white', 'text-indigo-700', 'border-indigo-500'); // New
-    subscriptionsTabBtn.classList.add('bg-gray-100', 'text-gray-700'); // New
+    // Study Areas tab is now handled by books.js
 
+    // Hide all tab contents
     usersContent.classList.add('hidden');
     authorsContent.classList.add('hidden');
-    subscriptionsContent.classList.add('hidden'); // New
 
+    // Show active tab content and set button text
     if (tabName === 'users') {
         usersTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
         usersContent.classList.remove('hidden');
@@ -123,15 +144,6 @@ async function switchTab(tabName) {
             document.getElementById('authorForm').reset();
         };
         sessionStorage.setItem('admin-tab', 'authors');
-    } else if (tabName === 'subscriptions') { // New tab logic
-        subscriptionsTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
-        subscriptionsContent.classList.remove('hidden');
-        await loadSubscriptions();
-        addEntityBtn.textContent = 'Ajouter un abonnement';
-        addEntityBtn.onclick = () => {
-            openSubscriptionModal(); // Call the specific modal function for subscriptions
-        };
-        sessionStorage.setItem('admin-tab', 'subscriptions');
     }
 }
 
@@ -288,22 +300,29 @@ function updateLastModifiedTime() {
 document.addEventListener('DOMContentLoaded', () => {
     isAuth().then(isAuthenticated => {
         if (isAuthenticated) {
-            updateNavBar("admin", 'users'); // Mettre en surbrillance le lien actif
-            loadUsers();
-            loadAuthors();
-            loadSubscriptions(); // Load subscriptions on page load
-            switchTab(currentActiveTab);
+            // Update the navigation bar based on the current path, not a hardcoded "admin"
+            const currentPath = window.location.pathname;
+            updateNavBar("admin", currentPath); 
+            
+            // If the current path is the main admin page, load the default tab (users)
+            // Otherwise, assume another script is managing the content for that path.
+            if (currentPath === '/admin' || currentPath === '/admin/users') { // Assuming /admin is also for users by default
+                loadUsers();
+                loadAuthors();
+                // Removed loadStudyAreas();
+                switchTab(currentActiveTab);
+            }
             updateLastModifiedTime();
         } else {
             window.location.href = '/login';
         }
     });
 
-    // Tab switching
+    // Tab switching for current page tabs
     usersTabBtn.addEventListener('click', () => switchTab('users'));
     authorsTabBtn.addEventListener('click', () => switchTab('authors'));
-    subscriptionsTabBtn.addEventListener('click', () => switchTab('subscriptions')); // New tab event listener
-
+    // Removed studyAreasTabBtn event listener
+    
     // Debounced search functionality
     const debouncedSearch = debounce((e) => {
         const searchQuery = e.target.value;
@@ -311,9 +330,8 @@ document.addEventListener('DOMContentLoaded', () => {
             loadUsers(searchQuery);
         } else if (currentActiveTab === 'authors') {
             loadAuthors(searchQuery);
-        } else if (currentActiveTab === 'subscriptions') { // New search for subscriptions
-            loadSubscriptions(searchQuery);
         }
+        // Removed study_areas search
     }, 500); // 500ms delay
     entitySearchInput.addEventListener('input', debouncedSearch);
 
@@ -341,17 +359,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Pagination for Subscriptions (New)
-    subscriptionsPrevPageBtn.addEventListener('click', () => {
-        if (subscriptionsState.currentPage > 1) {
-            loadSubscriptions(subscriptionsState.searchQuery, subscriptionsState.currentPage - 1);
-        }
-    });
-    subscriptionsNextPageBtn.addEventListener('click', () => {
-        if (subscriptionsState.currentPage < subscriptionsState.totalPages) {
-            loadSubscriptions(subscriptionsState.searchQuery, subscriptionsState.currentPage + 1);
-        }
-    });
+    // Removed Pagination for Study Areas
+    // Removed Pagination for Books
 
     // Confirmation modal logic
     confirmDeleteBtn.addEventListener('click', async () => {
@@ -359,9 +368,8 @@ document.addEventListener('DOMContentLoaded', () => {
             await deleteUser(currentItemToDelete);
         } else if (currentDeleteType === 'author' && currentItemToDelete) {
             await deleteAuthor(currentItemToDelete);
-        } else if (currentDeleteType === 'subscription' && currentItemToDelete) { // New delete for subscriptions
-            await deleteSubscription(currentItemToDelete);
-        }
+        } 
+        // Removed study_area delete logic
         closeModal(confirmationModal);
         currentItemToDelete = null;
         currentDeleteType = null;
@@ -383,20 +391,19 @@ document.addEventListener('DOMContentLoaded', () => {
         await saveAuthor();
     });
 
-    subscriptionForm.addEventListener('submit', async (e) => { // New subscription form submission
-        e.preventDefault();
-        await handleSubscriptionFormSubmit(e);
-    });
+    // Removed studyAreaForm submission
+    // Removed bookForm submission
 
     // Modal close buttons
     cancelUserModalBtn.addEventListener('click', () => closeModal(userModal));
     cancelAuthorModalBtn.addEventListener('click', () => closeModal(authorModal));
-    cancelSubscriptionModalBtn.addEventListener('click', () => closeSubscriptionModal()); // New cancel button
+    // Removed cancelStudyAreaModalBtn
+    // Removed cancelBookModalBtn
 });
 
 /**
  * Displays a custom confirmation modal.
- * @param {string} type - 'user', 'author' or 'subscription'.
+ * @param {string} type - 'user' or 'author'.
  * @param {string} id - The ID of the item to delete.
  * @param {string} [name='cet élément'] - The name of the item to delete (for user-friendly message).
  */
@@ -420,10 +427,10 @@ function openModal(modal, isNew = false) {
     if (modal === userModal) {
         document.getElementById('userModalTitle').textContent = isNew ? 'Ajouter un nouvel utilisateur' : 'Modifier un utilisateur';
         isNew && document.getElementById('userEmail').removeAttribute('readonly');
-        document.getElementById('userPassword').classList.toggle('hidden', !isNew); // Show password field only for new users
     } else if (modal === authorModal) {
         document.getElementById('authorModalTitle').textContent = isNew ? 'Ajouter un nouvel auteur' : 'Modifier un auteur';
-    }
+    } 
+    // Removed studyAreaModal logic
     modal.classList.remove('hidden');
 }
 

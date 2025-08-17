@@ -34,10 +34,12 @@ export default class OchoClient {
 
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
-            xhr.open(
-                method.toUpperCase(),
-                `${this.baseUrl}/${endpoint.replace(/^\//, "")}`
-            );
+            let finalUrl = endpoint;
+            if (!/^https?:\/\//.test(endpoint) && !endpoint.startsWith("//")) {
+                finalUrl = `${this.baseUrl.replace(/\/$/, "")}/${endpoint.replace(/^\//, "")}`;
+            }
+            xhr.open(method.toUpperCase(), finalUrl);
+
 
             // Application des en-têtes HTTP
             Object.entries(mergedOptions.headers).forEach(([key, value]) => {
