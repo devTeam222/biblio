@@ -1,0 +1,25 @@
+{
+    "routes": [
+        {
+            "pattern": "/@(?<username>[a-zA-Z0-9_]+)",
+            "target": "pages/users/page.php",
+            "query_params": {
+                "username": "$username"
+            }
+        },
+        {
+            "pattern": "/profile/(?<userid>[0-9]+)",
+            "target": "pages/users/page.php",
+            "query_params": {
+                "userid": "$userid"
+            }
+        },
+         {
+            "pattern": "/livre/(?<id>\\d+)",
+            "target": "pages/books/page.php",
+            "query_params": {
+                "id": "$id"
+            }
+        }
+    ]
+}

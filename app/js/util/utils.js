@@ -4,8 +4,8 @@ import { apiClient } from "./ocho-api.js";
  * Affiche une modale personnalisée avec un message, des actions et un corps personnalisé.
  * @param {string|null} message - Le message à afficher dans la modale. Peut être une chaîne ou null si un corps personnalisé est fourni.
  * @param {Object} options - Options pour la modale.
- * @param {string} [options.type='alert'] - Le type de la modale ('alert', 'confirm', 'success').
- * @param {Array} [options.actions=[]] - Un tableau d'actions personnalisées pour la modale. Chaque action doit être un objet avec les propriétés `label`, `callback`, et `className`.
+ * @param {"success"|"alert"|"confirm"} [options.type='alert'] - Le type de la modale ('alert', 'confirm', 'success').
+ * @param {{label:string,callback:()=>void,className?:string,value:boolean}[]} [options.actions=[]] - Un tableau d'actions personnalisées pour la modale. Chaque action doit être un objet avec les propriétés `label`, `callback`, et `className`.
  * @param {HTMLElement|null} [options.body=null] - Un élément HTML personnalisé à afficher dans la modale. Si fourni, le message et les actions seront ignorés.
  * @returns {Promise} - Une promesse qui résout avec la valeur de l'action sélectionnée ou une fonction de fermeture si un corps personnalisé est fourni.
  */

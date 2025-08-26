@@ -45,7 +45,7 @@ function renderPaginatedStudyAreas() {
             
             let mapLinkHtml = 'N/A';
             if (area.latitude && area.longitude) {
-                const mapUrl = `https://www.google.com/maps/search/?api=1&query=${area.latitude},${area.longitude}`;
+                const mapUrl = `https://www.google.com/maps/@${area.latitude},${area.longitude},5000m/`;
                 // Enhanced styling for the map button
                 mapLinkHtml = `<a href="${mapUrl}" target="_blank" 
                     class="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition duration-200">

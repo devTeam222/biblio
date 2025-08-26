@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Récupérer l'ID du livre depuis l'URL
     const urlParams = new URLSearchParams(window.location.search);
-    const bookId = urlParams.get('id');
+    const bookId = urlParams.get('id') || location.href.split('livre/')[1]; // Supporter les deux formats d'URL (?id=123 et /livre/123);
 
     if (bookId) {
         currentBookId = bookId; // Stocker l'ID du livre
@@ -158,7 +158,7 @@ function renderBookDetails(book, userRole, lecteurId) {
         studyAreaHtml = `
             <p class="text-lg text-gray-600 mb-2"><strong>Zone d'étude:</strong> ${book.study_area_name || 'N/A'}`;
         if (book.study_area_latitude && book.study_area_longitude) {
-            const mapUrl = `https://www.google.com/maps/search/?api=1&query=${book.study_area_latitude},${book.study_area_longitude}`;
+            const mapUrl = `https://www.google.com/maps/@${book.study_area_latitude},${book.study_area_longitude},5000m/`;
             studyAreaHtml += ` 
                 <a href="${mapUrl}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition duration-200 ml-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin-icon lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>

@@ -283,7 +283,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                     </div>
                 </div>
 
-                <div class="flex justify-end space-x-3 mt-6">
+                <div class="flex justify-end gap-3 max-sm:flex-wrap max-sm:justify-between mt-6">
                     <button type="button" id="cancelBookModalBtn"
                         class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Annuler</button>
                     <button type="button" id="prevStepBtn"

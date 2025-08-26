@@ -179,7 +179,7 @@ function createBookCard(book) {
     card.className = 'bg-white rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-lg';
 
     // Construire l'URL vers la page de détails du livre
-    const detailPageUrl = `/books?id=${book.id}`;
+    const detailPageUrl = `/livre/${book.id}`;
     const cover = book.cover_url ? `<img src="${book.cover_url}" alt="Couverture de ${book.titre}" class="w-full h-48 object-cover">` :     `<svg xmlns="http://www.w3.org/2000/svg" width="800px" height="800px" viewBox="0 0 120 120" fill="none" class="w-full h-48 book-cover-detail mx-auto md:mx-0 mb-6 md:mb-0" title="Pas de couverture disponible">
             <rect width="120" height="120" fill="#aeb0b1"></rect>
             <path fill-rule="evenodd" clip-rule="evenodd" d="M33.2503 38.4816C33.2603 37.0472 34.4199 35.8864 35.8543 35.875H83.1463C84.5848 35.875 85.7503 37.0431 85.7503 38.4816V80.5184C85.7403 81.9528 84.5807 83.1136 83.1463 83.125H35.8543C34.4158 83.1236 33.2503 81.957 33.2503 80.5184V38.4816ZM80.5006 41.1251H38.5006V77.8751L62.8921 53.4783C63.9172 52.4536 65.5788 52.4536 66.6039 53.4783L80.5006 67.4013V41.1251ZM43.75 51.6249C43.75 54.5244 46.1005 56.8749 49 56.8749C51.8995 56.8749 54.25 54.5244 54.25 51.6249C54.25 48.7254 51.8995 46.3749 43.75 46.3749C46.1005 46.3749 43.75 48.7254 43.75 51.6249Z" fill="#687787"></path>
@@ -246,7 +246,7 @@ function createLoanCard(loan) {
     const dateRetour = loan.date_retour ? new TimeFormatter(loan.date_retour * 1000).formatFullTime() : 'N/A';
 
     // Construire l'URL vers la page de détails du livre emprunté
-    const detailPageUrl = `/books?id=${loan.livre_id}`;
+    const detailPageUrl = `/livre/${loan.livre_id}`;
 
     const cover = loan.cover_url ? `<img src="${loan.cover_url}" alt="Couverture de ${loan.titre}" class="w-20 h-24 object-cover rounded-md">` :     `
         <div class="w-24 overflow-hidden h-24 min-w-24  flex items-center justify-center bg-gray-200 rounded-md">

@@ -419,10 +419,11 @@ function renderBooks(booksToDisplay) {
         const row = document.createElement('tr');
         const availabilityClass = book.disponible ? 'text-green-600' : 'text-red-600';
         const availabilityText = book.disponible ? 'Oui' : 'Non';
+        const titleLink = `<a href="/livre/${book.id}" class="text-indigo-600 hover:underline line-clamp-3 text-ellipsis overflow-hidden">${book.titre}</a>`;
 
         row.innerHTML = `
             <td class="py-3 px-2">${book.id}</td>
-            <td class="py-3 px-2 line-clamp-3 text-ellipsis overflow-hidden">${book.titre}</td>
+            <td class="py-3 px-2">${titleLink}</td>
             <td class="py-3 px-2">${book.auteur_nom || 'N/A'}</td>
             <td class="py-3 px-2">${book.emplacement || 'N/A'}</td>
             <td class="py-3 px-2">${book.annee_academique || 'N/A'}</td>
@@ -433,7 +434,7 @@ function renderBooks(booksToDisplay) {
                 </span>
             </td>
             <td class="py-3 px-2 flex space-x-2">
-                <a href="/books?id=${book.id}" class="action-button bg-blue-100 text-blue-700 hover:bg-blue-200 text-sm info-book-btn" data-book-id="${book.id}">Info</a>
+                <a href="/livre/${book.id}" class="action-button bg-blue-100 text-blue-700 hover:bg-blue-200 text-sm info-book-btn" data-book-id="${book.id}">Détails</a>
                 <button class="action-button bg-yellow-100 text-yellow-700 hover:bg-yellow-200 text-sm edit-book-btn" data-book-id="${book.id}">Éditer</button>
                 <button class="action-button bg-red-100 text-red-700 hover:bg-red-200 text-sm delete-book-btn" data-book-id="${book.id}" data-book-title="${book.titre}">Supprimer</button>
             </td>
@@ -688,11 +689,11 @@ async function handleBookFormSubmit(event) {
         }
 
         if (response.data.success) {
-            showCustomModal(`Livre ${bookData.id ? 'modifié' : 'ajouté'} avec succès !`);
+            showCustomModal(`Livre ${bookData.id ? 'modifié' : 'ajouté'} avec succès !`, { type: "success" });
             closeBookModal();
             await loadBooks();
         } else {
-            showCustomModal(`Erreur: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
+            showCustomModal(`Erreur: ${response.data.message || 'Erreur inconnue'}`);
             console.error("Erreur lors de l'enregistrement du livre:", response.data);
         }
     } catch (error) {
@@ -773,7 +774,7 @@ function renderPaginatedStudyAreas() {
             // Générer le HTML pour la zone d'étude et le bouton de carte
             let studyAreaHtml = '';
             if ((studyArea.latitude && studyArea.longitude)) {
-                    const mapUrl = `https://www.google.com/maps/search/?api=1&query=${studyArea.latitude},${studyArea.longitude}`;
+                    const mapUrl = `https://www.google.com/maps/@${studyArea.latitude},${studyArea.longitude},5000m/`;
                 studyAreaHtml = `
                     <p class="text-gray-600 mb-2">
                         <a href="${mapUrl}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition duration-200 ml-2">

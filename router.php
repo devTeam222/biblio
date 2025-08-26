@@ -25,7 +25,7 @@ function send_error_page($code, $message, $details = '', $bookTitle = null)
     // Définition des titres par défaut pour chaque code d'erreur
     $errorTitles = [
         400 => "Requête Invalide",
-        403 => "Accès Interdit", // Ajouté pour une meilleure couverture, même si non utilisé directement dans book-details.php
+        403 => "Accès Interdit",
         404 => "Page Non Trouvée",
         500 => "Erreur Interne du Serveur"
     ];
@@ -75,12 +75,11 @@ function send_error_page($code, $message, $details = '', $bookTitle = null)
         <p class="text-gray-600">Une erreur est survenue. Si vous êtes développeur, ouvrez la console pour plus de détails.</p>
         <script>
             console.error("{$pageTitle} : {$subtitle}");
-            const details = decodeURIComponent("{$details}"
+            const details = `{$details}`
                 .replace(/<br\s*\/?>/g, '%0A')
                 .replace(/<[^>]*>/g, '')
                 .replace(/"/g, '\\"')
-                .trim()
-            );
+                .trim();
             if (details !== '') console.error(details);
         </script>
         <a href="/" class="mt-6 inline-block bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
@@ -94,94 +93,75 @@ HTML;
 }
 
 // --- Serve Static Files Directly ---
-// This is crucial for CSS, images, etc.
+// Ceci est crucial pour les fichiers CSS, images, etc.
 $static_file_path = __DIR__ . $request_uri;
 
-// If the requested URI corresponds to an existing file AND it's not a PHP file,
-// let the PHP built-in server (or web server like Nginx/Apache) handle it.
-// This is the most efficient way to serve static assets.
 if (file_exists($static_file_path) && !is_dir($static_file_path) && pathinfo($static_file_path, PATHINFO_EXTENSION) !== 'php') {
-    return false; // Tells the PHP built-in server to serve the file
+    return false; // Indique au serveur PHP intégré de servir le fichier
 }
 
-
-// --- Root case ---
+// --- Cas de la racine ---
 if ($request_uri === '/') {
     require __DIR__ . '/index.php';
     exit;
 }
 
-// --- Normalize URI for internal use ---
-// Remove leading/trailing slashes for easier path manipulation
 $normalized_uri = trim($request_uri, '/');
 $base_dir = __DIR__;
 $target_file = null;
 
-// --- Debugging aid (uncomment to see what paths are being checked) ---
-// error_log("Request URI: " . $request_uri);
-// error_log("Normalized URI: " . $normalized_uri);
+// --- D'abord, vérifier le routage basé sur le système de fichiers (prioritaire) ---
 
-// --- Path Resolution Strategy: Ordered by specificity/priority ---
-
-// 1. Check for explicit PHP or JS files in common application directories
-// Priorité : pages > base > app/api
-
-$potential_paths = [];
+// 1. Chercher des fichiers PHP ou JS explicites dans les répertoires d'application courants
+$potential_fs_paths = [];
 
 // --- Priorité 1 : pages/ ---
-$potential_paths[] = "$base_dir/pages/$normalized_uri.php";
-$potential_paths[] = "$base_dir/pages/$normalized_uri.js";
+$potential_fs_paths[] = "$base_dir/pages/$normalized_uri.php";
+$potential_fs_paths[] = "$base_dir/pages/$normalized_uri.js";
 
-// --- Priorité 2 : base directory (fallback) ---
-$potential_paths[] = "$base_dir/$normalized_uri.php";
-$potential_paths[] = "$base_dir/$normalized_uri.js";
+// --- Priorité 2 : répertoire de base (fallback) ---
+$potential_fs_paths[] = "$base_dir/$normalized_uri.php";
+$potential_fs_paths[] = "$base_dir/$normalized_uri.js";
 
-// --- Priorité 3 : api/ uniquement si URI commence par 'api/' ---
+// --- Priorité 3 : api/ uniquement si l'URI commence par 'api/' ---
 if (str_starts_with($normalized_uri, 'api/')) {
     $api_path_segment = substr($normalized_uri, 4);
-    $potential_paths[] = "$base_dir/api/$api_path_segment.php";
-    // $potential_paths[] = "$base_dir/api/$api_path_segment.js";
+    $potential_fs_paths[] = "$base_dir/api/$api_path_segment.php";
 }
 
-// --- Priorité 4 : app/ uniquement si URI commence par 'app/' ---
-// Note: This 'app/' block is now primarily for PHP/JS files that are part of the *routing logic*,
-// not for static assets like CSS which are handled by the 'Serve Static Files Directly' block above.
+// --- Priorité 4 : app/ uniquement si l'URI commence par 'app/' ---
 if (str_starts_with($normalized_uri, 'app/')) {
     $app_path_segment = substr($normalized_uri, 4);
-    $potential_paths[] = "$base_dir/app/$app_path_segment.php";
-    $potential_paths[] = "$base_dir/app/$app_path_segment.js";
+    $potential_fs_paths[] = "$base_dir/app/$app_path_segment.php";
+    $potential_fs_paths[] = "$base_dir/app/$app_path_segment.js";
 }
 
-
-// Iteratively check for explicit files first
-foreach ($potential_paths as $path_to_check) {
-    // error_log("Checking explicit path: " . $path_to_check);
+// Vérifier itérativement les fichiers explicites en premier
+foreach ($potential_fs_paths as $path_to_check) {
     if (file_exists($path_to_check)) {
         $target_file = $path_to_check;
-        break; // Found the most specific file, no need to check further
+        break; 
     }
 }
 
-// 2. If no explicit file found, check for directory index files
+// 2. Si aucun fichier explicite n'est trouvé, chercher les fichiers d'index de répertoire
 if ($target_file === null) {
-    // For a request like /pages/admin/, try to find index files inside it
     $potential_directory_indexes = [
-        "$base_dir/$normalized_uri/page.php",     // Specific for your 'pages' subfolders
+        "$base_dir/$normalized_uri/page.php",     // Spécifique pour vos sous-dossiers 'pages'
         "$base_dir/$normalized_uri/index.php",
-        "$base_dir/pages/$normalized_uri/page.php", // Handles /pages/admin -> /pages/admin/page.php
+        "$base_dir/pages/$normalized_uri/page.php", // Gère /pages/admin -> /pages/admin/page.php
         "$base_dir/pages/$normalized_uri/index.php",
     ];
 
     foreach ($potential_directory_indexes as $path_to_check) {
-        // error_log("Checking directory index path: " . $path_to_check);
         if (file_exists($path_to_check)) {
             $target_file = $path_to_check;
-            break; // Found an index file
+            break; 
         }
     }
 }
 
-// --- Handle Found Target ---
+// --- Traiter la cible trouvée (du système de fichiers) ---
 if ($target_file !== null) {
     $ext = pathinfo($target_file, PATHINFO_EXTENSION);
 
@@ -193,20 +173,75 @@ if ($target_file !== null) {
     } elseif ($ext === 'css') {
         header("Content-Type: text/css");
         readfile($target_file);
-        // This block will now primarily catch CSS files that might be found via the previous PHP/JS search
-        // (e.g., if you had a custom rule to look for .css files in specific PHP/JS related paths).
-        // For general static CSS, the 'return false' at the top is more effective.
     } else {
-        // If it's another static file type, it would ideally be handled by 'return false' at the top.
-        // This else block acts as a fallback for other extensions if they somehow reach here.
         $mime = mime_content_type($target_file);
         header("Content-Type: " . $mime);
         readfile($target_file);
     }
-    exit;
+    exit; // Arrêter l'exécution, car une route basée sur le système de fichiers a été trouvée et servie.
 }
 
-// --- API not found ---
+
+// --- Ensuite, traiter les routes personnalisées du fichier de configuration (si aucune route système de fichiers n'a été trouvée) ---
+
+// Charger la configuration des routes
+$routes_config_path = __DIR__ . '/routes.json';
+$routes_config = [];
+if (file_exists($routes_config_path)) {
+    $routes_json = file_get_contents($routes_config_path);
+    $routes_config = json_decode($routes_json, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        error_log("Erreur de décodage de routes.json: " . json_last_error_msg());
+        if ($isAjax) {
+            send_json(500, ['error' => 'Erreur de configuration du routeur', 'details' => 'Le fichier routes.json est mal formé.']);
+            exit;
+        }else{
+            send_error_page(500, 'Erreur de configuration du routeur', 'Le fichier routes.json est mal formé.');
+        }
+    }
+}
+
+// Traiter les routes personnalisées du fichier de configuration (La première route qui correspond gagne)
+// L'ordre des routes dans routes.json est crucial : les routes plus spécifiques doivent être définies avant les routes plus génériques.
+if (isset($routes_config['routes']) && is_array($routes_config['routes'])) {
+    foreach ($routes_config['routes'] as $route) {
+        $pattern = $route['pattern'] ?? null;
+        $target_php = $route['target'] ?? null;
+        $query_params_map = $route['query_params'] ?? [];
+
+        if ($pattern && $target_php) {
+            $full_regex_pattern = '~^' . str_replace('~', '\\~', $pattern) . '$~';
+            
+            if (preg_match($full_regex_pattern, $request_uri, $matches)) {
+                // Route trouvée ! Cette route est prioritaire sur les autres routes personnalisées.
+                
+                // Définir les paramètres $_GET basés sur la map query_params_map
+                foreach ($query_params_map as $get_key => $param_source) {
+                    if (str_starts_with($param_source, '$')) {
+                        $param_name = substr($param_source, 1); 
+                        if (isset($matches[$param_name])) {
+                            $_GET[$get_key] = $matches[$param_name];
+                        }
+                    } else {
+                        $_GET[$get_key] = $param_source;
+                    }
+                }
+                
+                $target_file = $base_dir . '/' . $target_php;
+                if (file_exists($target_file)) {
+                    require $target_file;
+                    exit; 
+                } else {
+                    error_log("Fichier cible pour la route personnalisée '{$pattern}' non trouvé : {$target_file}");
+                    send_error_page(500, 'Erreur de configuration de route', "Le fichier cible '{$target_php}' pour la route '{$pattern}' est introuvable.");
+                }
+            }
+        }
+    }
+}
+
+
+// --- Gestion des API non trouvées ---
 if (str_starts_with($normalized_uri, 'api/')) {
     if ($isAjax) {
         send_json(404, ['error' => 'Ressource API introuvable']);
@@ -216,7 +251,7 @@ if (str_starts_with($normalized_uri, 'api/')) {
     exit;
 }
 
-// --- Generic 404 ---
+// --- 404 Générique si aucune route ne correspond ---
 if ($isAjax) {
     send_json(404, ['error' => 'Ressource introuvable']);
 } else {
