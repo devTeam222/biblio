@@ -3,7 +3,7 @@
 BEGIN;
 
 
-CREATE TABLE IF NOT EXISTS public.abonnements
+CREATE TABLE IF NOT EXISTS abonnements
 (
     id serial NOT NULL,
     lecteur_id integer NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS public.abonnements
     CONSTRAINT abonnements_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.academic_year
+CREATE TABLE IF NOT EXISTS academic_year
 (
     start bigint NOT NULL,
     "end" bigint NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS public.academic_year
     CONSTRAINT academic_year_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.administrateurs
+CREATE TABLE IF NOT EXISTS administrateurs
 (
     id serial NOT NULL,
     date_inscription bigint DEFAULT EXTRACT(epoch FROM CURRENT_TIMESTAMP),
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS public.administrateurs
     CONSTRAINT administrateurs_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.auteurs
+CREATE TABLE IF NOT EXISTS auteurs
 (
     id serial NOT NULL,
     nom character varying(100) COLLATE pg_catalog."default" NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS public.auteurs
     CONSTRAINT auteurs_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.departement
+CREATE TABLE IF NOT EXISTS departement
 (
     id integer NOT NULL DEFAULT nextval('categories_id_seq'::regclass),
     nom character varying(100) COLLATE pg_catalog."default" NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS public.departement
     CONSTRAINT categories_nom_key UNIQUE (nom)
 );
 
-CREATE TABLE IF NOT EXISTS public.emprunts
+CREATE TABLE IF NOT EXISTS emprunts
 (
     id serial NOT NULL,
     lecteur_id integer NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS public.emprunts
     CONSTRAINT emprunts_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.fichiers
+CREATE TABLE IF NOT EXISTS fichiers
 (
     id serial NOT NULL,
     nom character varying(255) COLLATE pg_catalog."default" NOT NULL,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS public.fichiers
     CONSTRAINT fichiers_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.lecteurs
+CREATE TABLE IF NOT EXISTS lecteurs
 (
     id serial NOT NULL,
     user_id integer NOT NULL,
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS public.lecteurs
     CONSTRAINT lecteurs_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.livres
+CREATE TABLE IF NOT EXISTS livres
 (
     id serial NOT NULL,
     titre character varying(255) COLLATE pg_catalog."default" NOT NULL,
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS public.livres
     CONSTRAINT livres_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.notifications
+CREATE TABLE IF NOT EXISTS notifications
 (
     id serial NOT NULL,
     lecteur_id integer NOT NULL,
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS public.notifications
     CONSTRAINT notifications_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.paiements
+CREATE TABLE IF NOT EXISTS paiements
 (
     id serial NOT NULL,
     lecteur_id integer NOT NULL,
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS public.paiements
     CONSTRAINT paiements_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.study_areas
+CREATE TABLE IF NOT EXISTS study_areas
 (
     id serial NOT NULL,
     name character varying(255) COLLATE pg_catalog."default" NOT NULL,
@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS public.study_areas
     CONSTRAINT study_areas_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.users
+CREATE TABLE IF NOT EXISTS users
 (
     id serial NOT NULL,
     nom character varying(100) COLLATE pg_catalog."default",
@@ -146,100 +146,100 @@ CREATE TABLE IF NOT EXISTS public.users
     CONSTRAINT users_email_key UNIQUE (email)
 );
 
-ALTER TABLE IF EXISTS public.abonnements
+ALTER TABLE IF EXISTS abonnements
     ADD CONSTRAINT abonnements_lecteur_id_fkey FOREIGN KEY (lecteur_id)
-    REFERENCES public.lecteurs (id) MATCH SIMPLE
+    REFERENCES lecteurs (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
 
-ALTER TABLE IF EXISTS public.administrateurs
+ALTER TABLE IF EXISTS administrateurs
     ADD CONSTRAINT administrateurs_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
+    REFERENCES users (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
 
-ALTER TABLE IF EXISTS public.auteurs
+ALTER TABLE IF EXISTS auteurs
     ADD CONSTRAINT auteurs_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
+    REFERENCES users (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
 
-ALTER TABLE IF EXISTS public.emprunts
+ALTER TABLE IF EXISTS emprunts
     ADD CONSTRAINT emprunts_lecteur_id_fkey FOREIGN KEY (lecteur_id)
-    REFERENCES public.lecteurs (id) MATCH SIMPLE
+    REFERENCES lecteurs (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
 
-ALTER TABLE IF EXISTS public.emprunts
+ALTER TABLE IF EXISTS emprunts
     ADD CONSTRAINT emprunts_livre_id_fkey FOREIGN KEY (livre_id)
-    REFERENCES public.livres (id) MATCH SIMPLE
+    REFERENCES livres (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
 
-ALTER TABLE IF EXISTS public.lecteurs
+ALTER TABLE IF EXISTS lecteurs
     ADD CONSTRAINT lecteurs_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
+    REFERENCES users (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
 
-ALTER TABLE IF EXISTS public.livres
+ALTER TABLE IF EXISTS livres
     ADD CONSTRAINT fk_livres_annee FOREIGN KEY (annee_id)
-    REFERENCES public.academic_year (id) MATCH SIMPLE
+    REFERENCES academic_year (id) MATCH SIMPLE
     ON UPDATE CASCADE
     ON DELETE SET NULL;
 
 
-ALTER TABLE IF EXISTS public.livres
+ALTER TABLE IF EXISTS livres
     ADD CONSTRAINT fk_study_area FOREIGN KEY (study_area_id)
-    REFERENCES public.study_areas (id) MATCH SIMPLE
+    REFERENCES study_areas (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE SET NULL;
 
 
-ALTER TABLE IF EXISTS public.livres
+ALTER TABLE IF EXISTS livres
     ADD CONSTRAINT livres_auteur_id_fkey FOREIGN KEY (auteur_id)
-    REFERENCES public.auteurs (id) MATCH SIMPLE
+    REFERENCES auteurs (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
 
-ALTER TABLE IF EXISTS public.livres
+ALTER TABLE IF EXISTS livres
     ADD CONSTRAINT livres_categorie_id_fkey FOREIGN KEY (departement_id)
-    REFERENCES public.departement (id) MATCH SIMPLE
+    REFERENCES departement (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
 
-ALTER TABLE IF EXISTS public.livres
+ALTER TABLE IF EXISTS livres
     ADD CONSTRAINT livres_cover_image_id_fkey FOREIGN KEY (cover_image_id)
-    REFERENCES public.fichiers (id) MATCH SIMPLE
+    REFERENCES fichiers (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
 
-ALTER TABLE IF EXISTS public.livres
+ALTER TABLE IF EXISTS livres
     ADD CONSTRAINT livres_file_id_fkey FOREIGN KEY (file_id)
-    REFERENCES public.fichiers (id) MATCH SIMPLE
+    REFERENCES fichiers (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
 
-ALTER TABLE IF EXISTS public.notifications
+ALTER TABLE IF EXISTS notifications
     ADD CONSTRAINT notifications_lecteur_id_fkey FOREIGN KEY (lecteur_id)
-    REFERENCES public.lecteurs (id) MATCH SIMPLE
+    REFERENCES lecteurs (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
 
-ALTER TABLE IF EXISTS public.paiements
+ALTER TABLE IF EXISTS paiements
     ADD CONSTRAINT paiements_lecteur_id_fkey FOREIGN KEY (lecteur_id)
-    REFERENCES public.lecteurs (id) MATCH SIMPLE
+    REFERENCES lecteurs (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
