@@ -140,7 +140,7 @@ function renderBookDetails(book, userRole, lecteurId) {
     const availabilityText = book.disponible ? 'Disponible' : 'Non disponible';
 
     const buttonHtml = `<button id="borrowButton" class="mt-6 px-6 py-3 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105
-                        ${book.disponible ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-gray-400 text-gray-800 cursor-not-allowed'}"
+                        ${book.disponible ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-gray-400 text-gray-800 cursor-not-allowed'}"
                         ${!book.disponible ? 'disabled' : ''}>
                         ${book.disponible ? 'Emprunter cet ouvrage' : 'Non disponible à l\'emprunt'}
                        </button>`;
@@ -297,8 +297,8 @@ function createProgressBarUI(imageUrl = null, messageText = '', uploadStartCallb
         ${messageText ? `<p class="text-lg mb-4 text-gray-800 font-semibold">${messageText}</p>` : ''}
         ${imageOrSvgHtml}
         <p id="uploadProgressText" class="text-lg mb-2 text-gray-700">0%</p>
-        <progress id="uploadProgressBar" value="0" max="100" class="w-full h-4 rounded-full appearance-none bg-gray-200 [&::-webkit-progress-bar]:rounded-full [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:bg-indigo-600 [&::-moz-progress-bar]:rounded-full [&::-moz-progress-bar]:bg-indigo-600"></progress>
-        ${uploadStartCallback ? `<button id="startUploadBtn" class="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Démarrer le téléversement</button>` : ''}
+        <progress id="uploadProgressBar" value="0" max="100" class="w-full h-4 rounded-full appearance-none bg-gray-200 [&::-webkit-progress-bar]:rounded-full [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:bg-green-600 [&::-moz-progress-bar]:rounded-full [&::-moz-progress-bar]:bg-green-600"></progress>
+        ${uploadStartCallback ? `<button id="startUploadBtn" class="mt-4 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Démarrer le téléversement</button>` : ''}
     `;
     const progressBar = progressDiv.querySelector('#uploadProgressBar');
     const progressText = progressDiv.querySelector('#uploadProgressText');
@@ -491,7 +491,7 @@ async function handleBorrowBook(bookId) {
             },
             {
                 label: 'Oui, emprunter',
-                className: 'bg-indigo-600 hover:bg-indigo-700 text-white',
+                className: 'bg-green-600 hover:bg-green-700 text-white',
                 callback: async () => {
                     const button = document.getElementById('borrowButton');
                     if (button) {

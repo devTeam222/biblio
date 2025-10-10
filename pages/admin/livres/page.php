@@ -49,7 +49,7 @@
 </head>
 <body class="flex flex-col min-h-screen">
     <!-- En-tête de la page -->
-    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-4 shadow-lg">
+    <header class="bg-gradient-to-r from-blue-600 to-green-700 text-white p-4 shadow-lg">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
             <h1 class="text-3xl font-bold mb-2 md:mb-0">
                 <i class="fas fa-book-reader mr-2"></i> Système de Gestion de Bibliothèque

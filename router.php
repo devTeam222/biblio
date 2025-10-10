@@ -18,7 +18,7 @@ function send_json($code, $data)
 }
 
 // Styled Error HTML Page
-function send_error_page($code, $message, $details = '', $bookTitle = null)
+function send_error_page(int $code, $message, $details = '', $bookTitle = null)
 {
     http_response_code($code);
 
@@ -82,7 +82,7 @@ function send_error_page($code, $message, $details = '', $bookTitle = null)
                 .trim();
             if (details !== '') console.error(details);
         </script>
-        <a href="/" class="mt-6 inline-block bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
+        <a href="/" class="mt-6 inline-block bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition">
             Retour à l'accueil
         </a>
     </div>

@@ -71,11 +71,11 @@ document.addEventListener('DOMContentLoaded', async () => {
  */
 function switchTab(tabName) {
     // Remove active classes from all tab buttons
-    profileDetailsTabBtn.classList.remove('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+    profileDetailsTabBtn.classList.remove('active', 'bg-white', 'text-green-700', 'border-green-500');
     profileDetailsTabBtn.classList.add('bg-gray-100', 'text-gray-700');
-    loanHistoryTabBtn.classList.remove('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+    loanHistoryTabBtn.classList.remove('active', 'bg-white', 'text-green-700', 'border-green-500');
     loanHistoryTabBtn.classList.add('bg-gray-100', 'text-gray-700');
-    subscriptionHistoryTabBtn.classList.remove('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+    subscriptionHistoryTabBtn.classList.remove('active', 'bg-white', 'text-green-700', 'border-green-500');
     subscriptionHistoryTabBtn.classList.add('bg-gray-100', 'text-gray-700');
 
     // Hide all tab contents
@@ -85,13 +85,13 @@ function switchTab(tabName) {
 
     // Show active tab content and add active class to button
     if (tabName === 'details') {
-        profileDetailsTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+        profileDetailsTabBtn.classList.add('active', 'bg-white', 'text-green-700', 'border-green-500');
         profileDetailsContent.classList.remove('hidden');
     } else if (tabName === 'loans') {
-        loanHistoryTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+        loanHistoryTabBtn.classList.add('active', 'bg-white', 'text-green-700', 'border-green-500');
         loanHistoryContent.classList.remove('hidden');
     } else if (tabName === 'subscriptions') {
-        subscriptionHistoryTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+        subscriptionHistoryTabBtn.classList.add('active', 'bg-white', 'text-green-700', 'border-green-500');
         subscriptionHistoryContent.classList.remove('hidden');
     }
 }
@@ -235,6 +235,13 @@ function renderSubscriptionHistory(subscriptions) {
         subscriptionHistoryTableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Aucun abonnement trouvé.</td></tr>';
         return;
     }
+    const subStatuses = {
+        'actif': 'Actif',
+        'expire': 'Expiré',
+        'annule': 'Annulé',
+        'inconnu': 'Inconnu'
+    };
+    const status = subStatuses[sub.statut] ?? subStatuses.inconnu
 
     subscriptions.forEach(sub => {
         const row = document.createElement('tr');
@@ -246,7 +253,7 @@ function renderSubscriptionHistory(subscriptions) {
             <td class="text-sm font-medium text-gray-900">${sub.abonnement_id}</td>
             <td class="text-sm text-gray-600">${startDate}</td>
             <td class="text-sm text-gray-600">${endDate}</td>
-            <td class="text-sm ${statusClass} capitalize">${sub.statut}</td>
+            <td class="text-sm ${statusClass} capitalize">${status}</td>
         `;
         subscriptionHistoryTableBody.appendChild(row);
     });

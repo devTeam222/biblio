@@ -377,7 +377,7 @@ function updateNavBar(
             (link.href === "/" && !currentPagePath.split("/")?.[1]);
 
         const activeClass = isActive
-            ? "bg-purple-600 hover:bg-purple-700 text-white"
+            ? "bg-blue-600 hover:bg-blue-700 text-white"
             : "bg-gray-200 hover:bg-gray-300 text-gray-800";
 
         const linkElement = document.createElement("a");

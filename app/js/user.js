@@ -124,7 +124,7 @@ function switchTab(tabName) {
     // Supprimer les classes actives de tous les boutons d'onglet
     const allTabButtons = document.querySelectorAll('.tab-button');
     allTabButtons.forEach(btn => {
-        btn.classList.remove('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+        btn.classList.remove('active', 'bg-white', 'text-green-700', 'border-green-500');
         btn.classList.add('bg-gray-100', 'text-gray-700');
     });
 
@@ -135,17 +135,17 @@ function switchTab(tabName) {
     // Afficher le contenu de l'onglet actif et ajouter la classe active au bouton
     if (tabName === 'details') {
         if (profileDetailsTabBtn) {
-            profileDetailsTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+            profileDetailsTabBtn.classList.add('active', 'bg-white', 'text-green-700', 'border-green-500');
         }
         if (profileDetailsContent) profileDetailsContent.classList.remove('hidden');
     } else if (tabName === 'loans') {
         if (loanHistoryTabBtn) {
-            loanHistoryTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+            loanHistoryTabBtn.classList.add('active', 'bg-white', 'text-green-700', 'border-green-500');
         }
         if (loanHistoryContent) loanHistoryContent.classList.remove('hidden');
     } else if (tabName === 'subscriptions') {
         if (subscriptionHistoryTabBtn) {
-            subscriptionHistoryTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+            subscriptionHistoryTabBtn.classList.add('active', 'bg-white', 'text-green-700', 'border-green-500');
         }
         if (subscriptionHistoryContent) subscriptionHistoryContent.classList.remove('hidden');
     }
@@ -348,7 +348,7 @@ function renderLoanHistory(loans) {
         const statusClass = loan.rendu ? 'text-green-600' : 'text-orange-600';
 
         row.innerHTML = `
-            <td class="text-sm font-medium text-gray-900"><a href="/livre/${loan.livre_id}" class="text-indigo-600 hover:underline">${loan.livre_titre}</a></td>
+            <td class="text-sm font-medium text-gray-900"><a href="/livre/${loan.livre_id}" class="text-green-600 hover:underline">${loan.livre_titre}</a></td>
             <td class="text-sm text-gray-600">${borrowDate}</td>
             <td class="text-sm text-gray-600">${returnDate}</td>
             <td class="text-sm ${statusClass}">${statusText}</td>
@@ -373,12 +373,19 @@ function renderSubscriptionHistory(subscriptions) {
         const startDate = new TimeFormatter(sub.date_debut * 1000).format();
         const endDate = new TimeFormatter(sub.date_fin * 1000).format();
         const statusClass = sub.statut === 'actif' ? 'text-green-600' : (sub.statut === 'expire' ? 'text-red-600' : 'text-gray-600');
+        const subStatuses = {
+            'actif': 'Actif',
+            'expire': 'Expiré',
+            'annule': 'Annulé',
+            'inconnu': 'Inconnu'
+        };
+        const status = subStatuses[sub.statut] ?? subStatuses.inconnu
 
         row.innerHTML = `
             <td class="text-sm font-medium text-gray-900">${sub.abonnement_id}</td>
             <td class="text-sm text-gray-600">${startDate}</td>
             <td class="text-sm text-gray-600">${endDate}</td>
-            <td class="text-sm ${statusClass} capitalize">${sub.statut}</td>
+            <td class="text-sm ${statusClass} capitalize">${status}</td>
         `;
         subscriptionHistoryTableBody.appendChild(row);
     });

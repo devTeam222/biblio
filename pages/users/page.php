@@ -182,7 +182,7 @@ try {
 
 <body class="flex flex-col min-h-screen">
     <!-- En-tête de la page -->
-    <header class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white shadow-lg">
+    <header class="bg-gradient-to-r from-green-600 to-blue-700 text-white shadow-lg">
         <div class="container mx-auto px-4 py-4">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="flex items-center mb-4 md:mb-0 gap-1">
@@ -195,7 +195,7 @@ try {
                     <?php if ($is_logged_in): ?>
                     <div class="text-right hidden md:block">
                         <p id="userNameDisplay" class="font-medium"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Utilisateur'); ?></p>
-                        <p class="text-xs text-indigo-200" id="userRoleDisplay"><?php echo htmlspecialchars($_SESSION['user_role'] ?? 'Inconnu'); ?></p>
+                        <p class="text-xs text-green-200" id="userRoleDisplay"><?php echo htmlspecialchars($_SESSION['user_role'] ?? 'Inconnu'); ?></p>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -225,7 +225,7 @@ try {
 
                 <!-- Onglets de navigation -->
                 <div class="flex border-b border-gray-200 mb-4">
-                    <button id="profileDetailsTabBtn" class="tab-button active bg-white text-indigo-700 border-indigo-500">Détails du Profil</button>
+                    <button id="profileDetailsTabBtn" class="tab-button active bg-white text-green-700 border-green-500">Détails du Profil</button>
                     <?php if ($is_viewing_own_profile || $is_admin): ?>
                         <button id="loanHistoryTabBtn" class="tab-button bg-gray-100 text-gray-700">Historique des Emprunts</button>
                         <button id="subscriptionHistoryTabBtn" class="tab-button bg-gray-100 text-gray-700">Abonnements</button>
@@ -245,7 +245,7 @@ try {
                             <p class="text-gray-700 mb-2"><strong>Bio:</strong> <span id="publicProfileBio"><?php echo htmlspecialchars($initial_profile_data['user']['bio'] ?? 'Aucune bio.'); ?></span></p>
                             
                             <?php if ($is_viewing_own_profile): ?>
-                                <button id="editProfileBtn" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                                <button id="editProfileBtn" class="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
                                     <span class="loader hidden"></span> Modifier le profil
                                 </button>
                             <?php endif; ?>
@@ -258,7 +258,7 @@ try {
                                 <p class="text-gray-700 mb-2"><strong>Pseudonyme:</strong> <span id="publicAuthorPseudo"><?php echo htmlspecialchars($initial_profile_data['author']['pseudo'] ?? 'N/A'); ?></span></p>
                                 <p class="text-gray-700 mb-2"><strong>Biographie d'auteur:</strong> <span id="publicAuthorBio"><?php echo htmlspecialchars($initial_profile_data['author']['biographie'] ?? 'Aucune biographie d\'auteur.'); ?></span></p>
                                 <?php if ($is_viewing_own_profile): ?>
-                                    <button id="editAuthorProfileBtn" class="mt-4 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                                    <button id="editAuthorProfileBtn" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                                         Gérer mon profil auteur
                                     </button>
                                 <?php endif; ?>
@@ -277,18 +277,18 @@ try {
                                 <div>
                                     <label for="updateName" class="block text-sm font-medium text-gray-700 text-left">Nom</label>
                                     <input type="text" id="updateName"
-                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                                         value="<?php echo htmlspecialchars($initial_profile_data['user']['nom'] ?? ''); ?>" required>
                                 </div>
                                 <div>
                                     <label for="updateBio" class="block text-sm font-medium text-gray-700 text-left">Biographie (optionnel)</label>
                                     <textarea id="updateBio" rows="3"
-                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"><?php echo htmlspecialchars($initial_profile_data['user']['bio'] ?? ''); ?></textarea>
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"><?php echo htmlspecialchars($initial_profile_data['user']['bio'] ?? ''); ?></textarea>
                                 </div>
                                 <div>
                                     <label for="updateBirthdate" class="block text-sm font-medium text-gray-700 text-left">Date de Naissance (optionnel)</label>
                                     <input type="date" id="updateBirthdate"
-                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                                         value="<?php echo htmlspecialchars($initial_profile_data['user']['date_naissance'] ? date('Y-m-d', $initial_profile_data['user']['date_naissance']) : ''); ?>">
                                 </div>
 
@@ -298,20 +298,20 @@ try {
                                         <div>
                                             <label for="updateAuthorPseudo" class="block text-sm font-medium text-gray-700 text-left">Pseudonyme</label>
                                             <input type="text" id="updateAuthorPseudo"
-                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                                                 value="<?php echo htmlspecialchars($initial_profile_data['author']['pseudo'] ?? ''); ?>" required>
                                         </div>
                                         <div>
                                             <label for="updateAuthorBiographie" class="block text-sm font-medium text-gray-700 text-left">Biographie d'auteur</label>
                                             <textarea id="updateAuthorBiographie" rows="4"
-                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"><?php echo htmlspecialchars($initial_profile_data['author']['biographie'] ?? ''); ?></textarea>
+                                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"><?php echo htmlspecialchars($initial_profile_data['author']['biographie'] ?? ''); ?></textarea>
                                         </div>
                                     </div>
                                 <?php endif; ?>
 
                                 <div class="flex justify-end space-x-3">
                                     <button type="button" id="cancelUpdateProfileBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Annuler</button>
-                                    <button type="submit" id="saveProfileChangesBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center justify-center gap-2">
+                                    <button type="submit" id="saveProfileChangesBtn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center justify-center gap-2">
                                         <span class="loader hidden"></span> Enregistrer
                                     </button>
                                 </div>
@@ -322,24 +322,24 @@ try {
                                 <div>
                                     <label for="currentPassword" class="block text-sm font-medium text-gray-700 text-left">Mot de passe actuel</label>
                                     <input type="password" id="currentPassword"
-                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                                         required>
                                 </div>
                                 <div>
                                     <label for="newPassword" class="block text-sm font-medium text-gray-700 text-left">Nouveau mot de passe</label>
                                     <input type="password" id="newPassword"
-                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                                         required>
                                 </div>
                                 <div>
                                     <label for="confirmNewPassword" class="block text-sm font-medium text-gray-700 text-left">Confirmer le nouveau mot de passe</label>
                                     <input type="password" id="confirmNewPassword"
-                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                                         required>
                                 </div>
                                 <div class="flex justify-end">
                                     <button type="submit" id="changePasswordBtn"
-                                        class="px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 flex items-center justify-center gap-2">
+                                        class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center gap-2">
                                         <span class="loader hidden"></span> Changer le mot de passe
                                     </button>
                                 </div>
@@ -353,7 +353,7 @@ try {
                             <form id="contactAdminForm" class="space-y-4">
                                 <div>
                                     <label for="adminMessage" class="block text-sm font-medium text-gray-700 text-left">Votre message</label>
-                                    <textarea id="adminMessage" rows="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Décrivez votre demande ici..." required></textarea>
+                                    <textarea id="adminMessage" rows="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" placeholder="Décrivez votre demande ici..." required></textarea>
                                 </div>
                                 <div class="flex justify-end">
                                     <button type="submit" id="sendAdminMessageBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center gap-2">
@@ -384,7 +384,7 @@ try {
                                     <?php else: ?>
                                         <?php foreach ($initial_profile_data['loan_history'] as $loan): ?>
                                             <tr>
-                                                <td class="text-sm font-medium text-gray-900"><a href="/livre/<?php echo htmlspecialchars($loan['livre_id']); ?>" class="text-indigo-600 hover:underline"><?php echo htmlspecialchars($loan['livre_titre']); ?></a></td>
+                                                <td class="text-sm font-medium text-gray-900"><a href="/livre/<?php echo htmlspecialchars($loan['livre_id']); ?>" class="text-green-600 hover:underline"><?php echo htmlspecialchars($loan['livre_titre']); ?></a></td>
                                                 <td class="text-sm text-gray-600"><?php echo date('d/m/Y', $loan['date_emprunt']); ?></td>
                                                 <td class="text-sm text-gray-600"><?php echo date('d/m/Y', $loan['date_retour']); ?></td>
                                                 <td class="text-sm <?php echo $loan['rendu'] ? 'text-green-600' : 'text-orange-600'; ?>"><?php echo $loan['rendu'] ? 'Rendu' : 'En cours'; ?></td>

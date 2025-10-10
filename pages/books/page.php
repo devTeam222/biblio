@@ -103,7 +103,7 @@ try {
 
 <body class="flex flex-col min-h-screen">
     <!-- En-tête de la page (Style Admin) -->
-    <header class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white shadow-lg">
+    <header class="bg-gradient-to-r from-green-600 to-blue-700 text-white shadow-lg">
         <div class="container mx-auto px-4 py-4">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="flex items-center mb-4 md:mb-0 gap-1">
@@ -115,7 +115,7 @@ try {
                 <div class="flex items-center space-x-4">
                     <div class="text-right hidden md:block">
                         <p id="userNameDisplay" class="font-medium">Bienvenue, Lecteur !</p>
-                        <p class="text-xs text-indigo-200" id="userRoleDisplay"></p>
+                        <p class="text-xs text-green-200" id="userRoleDisplay"></p>
                     </div>
                 </div>
             </div>
@@ -154,9 +154,9 @@ try {
                             file:mr-4 file:py-2 file:px-4
                             file:rounded-full file:border-0
                             file:text-sm file:font-semibold
-                            file:bg-indigo-50 file:text-indigo-700
+                            file:bg-green-50 file:text-green-700
                             file:cursor-pointer
-                            hover:file:bg-indigo-100 mb-3" />
+                            hover:file:bg-green-100 mb-3" />
                         <button id="deleteCoverBtn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
                             <span class="loader hidden"></span> Supprimer la couverture
                         </button>
@@ -172,9 +172,9 @@ try {
                             file:mr-4 file:py-2 file:px-4
                             file:rounded-full file:border-0
                             file:text-sm file:font-semibold
-                            file:bg-indigo-50 file:text-indigo-700
+                            file:bg-green-50 file:text-green-700
                             file:cursor-pointer
-                            hover:file:bg-indigo-100 mb-3" />
+                            hover:file:bg-green-100 mb-3" />
                         <button id="deleteElectronicBtn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
                             <span class="loader hidden"></span> Supprimer le fichier
                         </button>

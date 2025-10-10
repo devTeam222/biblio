@@ -61,7 +61,7 @@ function renderPaginatedStudyAreas() {
                 <td class="text-sm text-gray-600">${mapLinkHtml}</td>
                 <td class="text-sm text-gray-600">${createdAt}</td>
                 <td class="flex space-x-2">
-                    <button class="rounded-md edit-study-area-btn text-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200 action-button" data-study-area-id="${area.id}">Modifier</button>
+                    <button class="rounded-md edit-study-area-btn text-sm bg-green-100 text-green-700 hover:bg-green-200 action-button" data-study-area-id="${area.id}">Modifier</button>
                     <button class="rounded-md delete-study-area-btn text-sm bg-red-100 text-red-700 hover:bg-red-200 action-button" data-study-area-id="${area.id}" data-study-area-name="${area.name}">Supprimer</button>
                 </td>
             `;

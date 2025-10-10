@@ -35,7 +35,7 @@
 </head>
 <body class="flex flex-col min-h-screen">
     <!-- En-tête de la page -->
-    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-4 shadow-lg">
+    <header class="bg-gradient-to-r from-blue-600 to-green-700 text-white p-4 shadow-lg">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
             <h1 class="text-3xl font-bold mb-2 md:mb-0">
                 <i class="fas fa-pen-nib mr-2"></i> Mon Espace Auteur <span class="text-xl opacity-80">(Auteur)</span>
@@ -94,9 +94,9 @@
                     <h4 class="text-2xl font-bold text-green-800">120</h4>
                     <p class="text-sm text-green-600">Total Emprunts</p>
                 </div>
-                <div class="bg-purple-100 p-4 rounded-lg shadow-sm text-center">
-                    <h4 class="text-2xl font-bold text-purple-800">4.5 <span class="text-lg">/ 5</span></h4>
-                    <p class="text-sm text-purple-600">Note Moyenne</p>
+                <div class="bg-blue-100 p-4 rounded-lg shadow-sm text-center">
+                    <h4 class="text-2xl font-bold text-blue-800">4.5 <span class="text-lg">/ 5</span></h4>
+                    <p class="text-sm text-blue-600">Note Moyenne</p>
                 </div>
             </div>
         </div>
@@ -111,7 +111,7 @@
                     <h4 class="font-bold text-gray-900 text-lg">Mon Premier Roman</h4>
                     <p class="text-sm text-gray-600">Département : Fiction</p>
                     <span class="inline-block bg-orange-200 text-orange-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mt-2">En cours de révision</span>
-                    <button class="mt-3 bg-indigo-500 hover:bg-indigo-600 text-white py-1.5 px-4 rounded-md text-sm transition duration-200 ease-in-out">Modifier</button>
+                    <button class="mt-3 bg-green-500 hover:bg-green-600 text-white py-1.5 px-4 rounded-md text-sm transition duration-200 ease-in-out">Modifier</button>
                 </div>
                 <!-- Livre de l'auteur 2 -->
                 <div class="bg-gray-100 p-4 rounded-lg shadow-sm text-center">

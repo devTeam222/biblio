@@ -90,7 +90,7 @@
 
 <body class="flex flex-col min-h-screen">
     <!-- En-tête de la page (Style Admin) -->
-    <header class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white shadow-lg">
+    <header class="bg-gradient-to-r from-green-600 to-blue-700 text-white shadow-lg">
         <div class="container mx-auto px-4 py-4">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="flex items-center mb-4 md:mb-0 gap-1">
@@ -102,7 +102,7 @@
                 <div class="flex items-center space-x-4">
                     <div class="text-right hidden md:block">
                         <p id="userNameDisplay" class="font-medium">Bienvenue, Lecteur !</p>
-                        <p class="text-xs text-indigo-200" id="userRoleDisplay"></p>
+                        <p class="text-xs text-green-200" id="userRoleDisplay"></p>
                     </div>
                 </div>
             </div>
@@ -124,9 +124,9 @@
             <h2 class="text-2xl font-semibold text-gray-800 mb-4">Rechercher des Ouvrages</h2>
             <div class="flex flex-col md:flex-row gap-4">
                 <input type="text" id="searchInput" placeholder="Rechercher un ouvrage, un auteur ou un département..."
-                    class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
                 <button id="searchButton"
-                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105">
+                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105">
                     Rechercher
                 </button>
             </div>
@@ -139,7 +139,7 @@
             <div id="current-loans-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Les emprunts seront chargés ici par JavaScript -->
             </div>
-            <p id="noLoansMessage" class="text-gray-500 hidden">Vous n'avez aucun emprunt en cours.</p>
+            <p id="noLoansMessage" class="text-gray-500 hidden">Vos emprunts seront affichés ici.</p>
         </div>
 
         <!-- Section Ouvrages Tendances / Résultats de recherche (Style Admin) -->

@@ -1,4 +1,5 @@
 <?php
+session_start();
     // Si l'utilisateur est déjà authentifié, rediriger vers la page d'accueil
     if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
         header('Location: /'); // Rediriger vers la page d'accueil

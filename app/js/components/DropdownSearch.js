@@ -61,7 +61,7 @@ export function createDropdownSearch(options) {
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down text-gray-400"><path d="m6 9 6 6 6-6"/></svg>
                 </div>
                 <div class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 hidden" id="${targetElementId}-options-container">
-                    <input type="text" placeholder="Rechercher..." class="w-full p-2 border-b border-gray-200 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" id="${targetElementId}-search-input">
+                    <input type="text" placeholder="Rechercher..." class="w-full p-2 border-b border-gray-200 focus:outline-none focus:ring-green-500 focus:border-green-500" id="${targetElementId}-search-input">
                     <ul class="max-h-60 overflow-y-auto" id="${targetElementId}-options-list">
                         <!-- Options will be loaded here -->
                     </ul>
@@ -193,7 +193,7 @@ export function createDropdownSearch(options) {
         }
         filteredData.forEach(item => {
             const li = document.createElement('li');
-            li.className = `p-2 cursor-pointer hover:bg-indigo-100 ${String(item[idField]) === String(selectedValue) ? 'bg-indigo-50 text-indigo-700' : ''}`;
+            li.className = `p-2 cursor-pointer hover:bg-green-100 ${String(item[idField]) === String(selectedValue) ? 'bg-green-50 text-green-700' : ''}`;
             li.dataset.id = item[idField];
             li.textContent = item[textField];
             optionsList.appendChild(li);

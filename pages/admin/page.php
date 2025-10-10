@@ -1,8 +1,12 @@
 <?php
 // Si l'utilisateur n'est pas authentifié ou n'est pas un administrateur, rediriger vers la page de connexion
 session_start();
-if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
     header('Location: /login'); // Rediriger vers la page de connexion
+    exit();
+}
+if ($_SESSION['user_role'] !== 'admin') {
+    send_error_page(403, "Page reservée aux administrateurs");
     exit();
 }
 ?>
@@ -87,7 +91,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
 
 <body class="min-h-screen flex flex-col">
     <!-- En-tête de la page -->
-    <header class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white shadow-lg">
+    <header class="bg-gradient-to-r from-green-600 to-blue-700 text-white shadow-lg">
         <div class="container mx-auto px-4 py-4">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="flex items-center mb-4 md:mb-0 gap-1">
@@ -102,7 +106,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                     <h1 class="text-2xl md:text-3xl font-bold">Tableau de Bord Admin</h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-2 text-white bg-indigo-700/50 px-3 py-1 rounded-full">
+                    <div class="flex items-center space-x-2 text-white bg-green-700/50 px-3 py-1 rounded-full">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                             fill="currentColor" fill-rule="evenOdd" stroke-linecap="round" stroke-linejoin="round"
                             class="lucide lucide-bell-icon lucide-bell">
@@ -115,7 +119,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                     <div class="flex items-center space-x-3">
                         <div class="text-right hidden md:block">
                             <p id="userNameDisplay" class="font-medium"></p>
-                            <p class="text-xs text-indigo-200">Administrateur</p>
+                            <p class="text-xs text-green-200">Administrateur</p>
                         </div>
                     </div>
                 </div>
@@ -172,8 +176,8 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                 </div>
 
                 <!-- Carte Utilisateurs -->
-                <div class="stat-card bg-white rounded-xl shadow p-6 flex items-center space-x-4 border-l-4 border-purple-500">
-                    <div class="bg-purple-100 p-3 rounded-full text-purple-600">
+                <div class="stat-card bg-white rounded-xl shadow p-6 flex items-center space-x-4 border-l-4 border-blue-500">
+                    <div class="bg-blue-100 p-3 rounded-full text-blue-600">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             class="lucide lucide-users-round-icon lucide-users-round">
@@ -214,7 +218,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold text-gray-800">Activité Récente</h3>
                         <div class="flex space-x-2">
-                            <button class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">7 jours</button>
+                            <button class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">7 jours</button>
                             <button class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">30 jours</button>
                             <button class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">Tout</button>
                         </div>
@@ -249,7 +253,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                             </svg>
                             <span>Ajouter un auteur</span>
                         </button>
-                        <a href="/admin/loans" class="quick-action-btn bg-purple-50 text-purple-700 hover:bg-purple-100 flex items-center gap-0.5">
+                        <a href="/admin/loans" class="quick-action-btn bg-blue-50 text-blue-700 hover:bg-blue-100 flex items-center gap-0.5">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                 class="lucide lucide-book-open-check-icon lucide-book-open-check">
@@ -309,11 +313,11 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                         <ul id="recentActivityList" class="space-y-3">
                             <li class="activity-item">
                                 <div class="flex items-start">
-                                    <div class="bg-indigo-100 p-2 rounded-full mr-3">
+                                    <div class="bg-green-100 p-2 rounded-full mr-3">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                             stroke-linejoin="round"
-                                            class="animate-spin text-indigo-600 lucide lucide-refresh-cw-icon lucide-refresh-cw">
+                                            class="animate-spin text-green-600 lucide lucide-refresh-cw-icon lucide-refresh-cw">
                                             <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
                                             <path d="M21 3v5h-5" />
                                             <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
@@ -329,7 +333,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                         </ul>
                     </div>
                     <button id="loadMoreActivities"
-                        class="mt-4 text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
+                        class="mt-4 text-sm text-green-600 hover:text-green-800 font-medium flex items-center gap-1">
                         <span>Charger plus d'activités</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -356,7 +360,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                         </ul>
                     </div>
                     <button id="viewAllOverdueBtn"
-                        class="mt-4 w-full text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
+                        class="mt-4 w-full text-sm text-green-600 hover:text-green-800 font-medium flex items-center">
                         <span>Voir tous les emprunts en retard</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"

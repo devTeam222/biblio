@@ -71,6 +71,16 @@ try {
             $params[] = $offset;
             $stmt->execute($params);
             $subscriptions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($subscriptions as $subscription) {
+                $expireDate = $subscription["date_fin"];
+                $now = time();
+                if ($expireDate < $now) {
+                    $sql = "UPDATE abonnements SET statut = ? WHERE id = ?";
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute(["expire", $subscription["id"]]);
+
+                }
+            }
             
             echo json_encode([
                 "success" => true,

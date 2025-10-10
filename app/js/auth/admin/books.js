@@ -332,9 +332,9 @@ async function switchTab(tabName) {
     sessionStorage.setItem('books-admin-tab', tabName);
 
     // Mettre à jour les classes actives des boutons d'onglet
-    booksTabBtn.classList.remove('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+    booksTabBtn.classList.remove('active', 'bg-white', 'text-green-700', 'border-green-500');
     booksTabBtn.classList.add('bg-gray-100', 'text-gray-700');
-    studyAreasTabBtn.classList.remove('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+    studyAreasTabBtn.classList.remove('active', 'bg-white', 'text-green-700', 'border-green-500');
     studyAreasTabBtn.classList.add('bg-gray-100', 'text-gray-700');
 
     // Cacher tous les contenus d'onglet
@@ -343,7 +343,7 @@ async function switchTab(tabName) {
 
     // Afficher le contenu de l'onglet actif et mettre à jour le bouton "Ajouter"
     if (tabName === 'books') {
-        booksTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+        booksTabBtn.classList.add('active', 'bg-white', 'text-green-700', 'border-green-500');
         booksContent.classList.remove('hidden');
         document.getElementById('entitySearchInput').placeholder = 'Rechercher par titre, auteur, ISBN...';
         document.getElementById('addEntityBtn').textContent = 'Ajouter un livre';
@@ -357,7 +357,7 @@ async function switchTab(tabName) {
         // `;
         await loadBooks();
     } else if (tabName === 'study_areas') {
-        studyAreasTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+        studyAreasTabBtn.classList.add('active', 'bg-white', 'text-green-700', 'border-green-500');
         studyAreasContent.classList.remove('hidden');
         document.getElementById('entitySearchInput').placeholder = 'Rechercher par nom, description...';
         document.getElementById('addEntityBtn').textContent = 'Ajouter une zone d\'étude';
@@ -419,7 +419,7 @@ function renderBooks(booksToDisplay) {
         const row = document.createElement('tr');
         const availabilityClass = book.disponible ? 'text-green-600' : 'text-red-600';
         const availabilityText = book.disponible ? 'Oui' : 'Non';
-        const titleLink = `<a href="/livre/${book.id}" class="text-indigo-600 hover:underline line-clamp-3 text-ellipsis overflow-hidden">${book.titre}</a>`;
+        const titleLink = `<a href="/livre/${book.id}" class="text-green-600 hover:underline line-clamp-3 text-ellipsis overflow-hidden">${book.titre}</a>`;
 
         row.innerHTML = `
             <td class="py-3 px-2">${book.id}</td>
@@ -498,7 +498,7 @@ function updateStepIndicators(currentStep) {
     stepIndicatorsContainer.innerHTML = '';
     for (let i = 1; i <= totalSteps; i++) {
         const indicator = document.createElement('span');
-        indicator.className = `h-3 w-3 rounded-full mx-1 ${i === currentStep ? 'bg-indigo-600' : 'bg-gray-300'}`;
+        indicator.className = `h-3 w-3 rounded-full mx-1 ${i === currentStep ? 'bg-green-600' : 'bg-gray-300'}`;
         stepIndicatorsContainer.appendChild(indicator);
     }
 }
@@ -792,7 +792,7 @@ function renderPaginatedStudyAreas() {
                 <td class="text-sm text-gray-600">${studyAreaHtml}</td>
                 <td class="text-sm text-gray-600">${creationDate}</td>
                 <td class="flex space-x-2">
-                    <button class="rounded-md edit-study-area-btn text-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200 action-button" data-study-area-id="${studyArea.id}">Modifier</button>
+                    <button class="rounded-md edit-study-area-btn text-sm bg-green-100 text-green-700 hover:bg-green-200 action-button" data-study-area-id="${studyArea.id}">Modifier</button>
                     <button class="rounded-md delete-study-area-btn text-sm bg-red-100 text-red-700 hover:bg-red-200 action-button" data-study-area-id="${studyArea.id}" data-study-area-name="${studyArea.name}">Supprimer</button>
                 </td>
             `;

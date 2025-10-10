@@ -112,9 +112,9 @@ async function switchTab(tabName) {
     currentActiveTab = tabName;
 
     // Remove active classes from all tab buttons
-    usersTabBtn.classList.remove('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+    usersTabBtn.classList.remove('active', 'bg-white', 'text-green-700', 'border-green-500');
     usersTabBtn.classList.add('bg-gray-100', 'text-gray-700');
-    authorsTabBtn.classList.remove('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+    authorsTabBtn.classList.remove('active', 'bg-white', 'text-green-700', 'border-green-500');
     authorsTabBtn.classList.add('bg-gray-100', 'text-gray-700');
     // Study Areas tab is now handled by books.js
 
@@ -124,7 +124,7 @@ async function switchTab(tabName) {
 
     // Show active tab content and set button text
     if (tabName === 'users') {
-        usersTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+        usersTabBtn.classList.add('active', 'bg-white', 'text-green-700', 'border-green-500');
         usersContent.classList.remove('hidden');
         await loadUsers();
         addEntityBtn.textContent = 'Ajouter un utilisateur';
@@ -135,7 +135,7 @@ async function switchTab(tabName) {
         };
         sessionStorage.setItem('admin-tab', 'users');
     } else if (tabName === 'authors') {
-        authorsTabBtn.classList.add('active', 'bg-white', 'text-indigo-700', 'border-indigo-500');
+        authorsTabBtn.classList.add('active', 'bg-white', 'text-green-700', 'border-green-500');
         authorsContent.classList.remove('hidden');
         await loadAuthors();
         addEntityBtn.textContent = 'Ajouter un auteur';
@@ -166,7 +166,7 @@ function renderPaginatedUsers() {
                 <td class="text-sm text-gray-600">${user.email}</td>
                 <td class="text-sm text-gray-600 capitalize">${roleName}</td>
                 <td class="flex space-x-2">
-                    <button class="rounded-md edit-user-btn text-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200 action-button">Modifier</button>
+                    <button class="rounded-md edit-user-btn text-sm bg-green-100 text-green-700 hover:bg-green-200 action-button">Modifier</button>
                     <button class="rounded-md delete-user-btn text-sm bg-red-100 text-red-700 hover:bg-red-200 action-button">Supprimer</button>
                 </td>
             `;
@@ -200,7 +200,7 @@ function renderPaginatedAuthors() {
                 <td class="text-sm text-gray-600">${author.nom_complet || 'N/A'}</td>
                 <td class="text-sm text-gray-600">${author.biographie ? author.biographie.substring(0, 50) + '...' : 'N/A'}</td>
                 <td class="flex space-x-2">
-                    <button class="rounded-md edit-author-btn text-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200 action-button">Modifier</button>
+                    <button class="rounded-md edit-author-btn text-sm bg-green-100 text-green-700 hover:bg-green-200 action-button">Modifier</button>
                     <button class="rounded-md delete-author-btn text-sm bg-red-100 text-red-700 hover:bg-red-200 action-button">Supprimer</button>
                 </td>
             `;

@@ -61,7 +61,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
 
 <body class="min-h-screen flex flex-col">
     <!-- En-tête de la page (Copie du tableau de bord admin) -->
-    <header class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white shadow-lg">
+    <header class="bg-gradient-to-r from-green-600 to-blue-700 text-white shadow-lg">
         <div class="container mx-auto px-4 py-4">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="flex items-center mb-4 md:mb-0 gap-1">
@@ -76,7 +76,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                     <h1 class="text-2xl md:text-3xl font-bold">Gérer les Emprunts</h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-2 text-white bg-indigo-700/50 px-3 py-1 rounded-full">
+                    <div class="flex items-center space-x-2 text-white bg-green-700/50 px-3 py-1 rounded-full">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                             fill="currentColor" fill-rule="evenOdd" stroke-linecap="round" stroke-linejoin="round"
                             class="lucide lucide-bell-icon lucide-bell">
@@ -90,7 +90,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                     <div class="flex items-center space-x-3">
                         <div class="text-right hidden md:block">
                             <p id="userNameDisplay" class="font-medium"></p>
-                            <p class="text-xs text-indigo-200">Administrateur</p>
+                            <p class="text-xs text-green-200">Administrateur</p>
                         </div>
                     </div>
                 </div>
@@ -114,7 +114,7 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
                 <h2 class="text-2xl font-semibold text-gray-800 mb-4 md:mb-0">Liste des Emprunts</h2>
                 <div class="w-full md:w-1/3">
                     <input type="text" id="loanSearchInput" placeholder="Rechercher par titre, lecteur, auteur..."
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
                 </div>
             </div>
 

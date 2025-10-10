@@ -147,7 +147,7 @@ function updateOverdueLoans(loans) {
                         <span>Retour attendu: ${returnDate}</span>
                     </p>
                 </div>
-                <button class="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center">
+                <button class="text-green-600 hover:text-green-800 text-sm font-medium flex items-center">
                     <span>Gérer</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon lucide-chevron-right">
                         <path d="m9 18 6-6-6-6" />
@@ -182,7 +182,7 @@ function updateRecentActivities(activities) {
             activityEl.className = 'activity-item';
             activityEl.innerHTML = `
                 <div class="flex items-start">
-                    <div class="bg-indigo-100 p-2 rounded-full mr-3">
+                    <div class="bg-green-100 p-2 rounded-full mr-3">
                         ${getActivityIcon(activity.type)}
                     </div>
                     <div>
@@ -219,7 +219,7 @@ function updateRecentActivities(activities) {
 
 function getActivityIcon(activityType) {
     const icons = {
-        'loan': `<svg xmlns="http://www.w3.org/2000/svg" class="text-indigo-600" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open-check-icon lucide-book-open-check">
+        'loan': `<svg xmlns="http://www.w3.org/2000/svg" class="text-green-600" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open-check-icon lucide-book-open-check">
                     <path d="M12 21V7" />
                     <path d="m16 12 2 2 4-4" />
                     <path d="M22 6V4a1 1 0 0 0-1-1h-5a4 4 0 0 0-4 4 4 4 0 0 0-4-4H3a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h6a3 3 0 0 1 3 3 3 3 0 0 1 3-3h6a1 1 0 0 0 1-1v-1.3" />
@@ -235,7 +235,7 @@ function getActivityIcon(activityType) {
                     <path d="M19 16v6" />
                     <path d="M22 19h-6" />
                 </svg>`,
-        'system': `<svg xmlns="http://www.w3.org/2000/svg" class="text-purple-600" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings">
+        'system': `<svg xmlns="http://www.w3.org/2000/svg" class="text-blue-600" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings">
                     <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
                     <circle cx="12" cy="12" r="3" />
                 </svg>`,
@@ -288,7 +288,7 @@ async function initActivityChart() {
                         {
                             label: 'Emprunts',
                             data: loanData,
-                            borderColor: '#4f46e5', // Indigo-600
+                            borderColor: '#4f46e5', // green-600
                             backgroundColor: 'rgba(79, 70, 229, 0.1)',
                             tension: 0.3,
                             fill: true,

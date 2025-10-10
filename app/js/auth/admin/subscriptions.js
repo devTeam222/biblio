@@ -205,6 +205,13 @@ function renderPaginatedSubscriptions() {
             const startDate = new TimeFormatter(sub.date_debut * 1000).format();
             const endDate = new TimeFormatter(sub.date_fin * 1000).format();
             const statusClass = sub.statut === 'actif' ? 'bg-green-100 text-green-800' : (sub.statut === 'expire' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800');
+            const subStatuses = {
+                'actif': 'Actif',
+                'expire': 'Expiré',
+                'annule': 'Annulé',
+                'inconnu': 'Inconnu'
+            };
+            const status = subStatuses[sub.statut] ?? subStatuses.inconnu
 
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -212,9 +219,9 @@ function renderPaginatedSubscriptions() {
                 <td class="text-sm text-gray-600">${sub.lecteur_nom}</td>
                 <td class="text-sm text-gray-600">${startDate}</td>
                 <td class="text-sm text-gray-600">${endDate}</td>
-                <td class="text-sm text-gray-600 capitalize"><span class="px-2 py-1 rounded-full text-xs font-semibold ${statusClass}">${sub.statut}</span></td>
+                <td class="text-sm text-gray-600 capitalize"><span class="px-2 py-1 rounded-full text-xs font-semibold ${statusClass}">${status}</span></td>
                 <td class="flex space-x-2">
-                    <button class="rounded-md edit-subscription-btn text-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200 action-button" data-subscription-id="${sub.id}">Modifier</button>
+                    <button class="rounded-md edit-subscription-btn text-sm bg-green-100 text-green-700 hover:bg-green-200 action-button" data-subscription-id="${sub.id}">Modifier</button>
                     <button class="rounded-md delete-subscription-btn text-sm bg-red-100 text-red-700 hover:bg-red-200 action-button" data-subscription-id="${sub.id}" data-reader-name="${sub.lecteur_nom}">Supprimer</button>
                 </td>
             `;
