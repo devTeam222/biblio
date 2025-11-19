@@ -469,7 +469,7 @@ async function saveUser() {
         nom: document.getElementById('userName').value,
         email: document.getElementById('userEmail').value,
         role: document.getElementById('userRole').value,
-        password: document.getElementById('userPassword').value.trim() || null // Allow empty password for updates
+        password: document.getElementById('userPassword')?.value.trim() || null // Allow empty password for updates
     };
     addLoader(userModal, "absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]");
     try {

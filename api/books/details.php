@@ -42,8 +42,7 @@ try {
             ay.start || '-' || ay.\"end\" AS annee_academique, -- Ajout de l'année académique
             sa.id AS study_area_id,
             sa.name AS study_area_name,
-            sa.latitude AS study_area_latitude,
-            sa.longitude AS study_area_longitude
+            sa.shapefile_id
         FROM livres l
         JOIN auteurs a ON l.auteur_id = a.id
         LEFT JOIN departement c ON l.departement_id = c.id
@@ -51,7 +50,8 @@ try {
         LEFT JOIN fichiers f_electronic ON l.file_id = f_electronic.id -- Jointure pour le fichier électronique
         LEFT JOIN academic_year ay ON l.annee_id = ay.id -- Jointure pour l'année académique
         LEFT JOIN study_areas sa ON l.study_area_id = sa.id -- Nouvelle jointure pour la zone d'étude
-        WHERE l.id = :id
+        LEFT JOIN fichiers f ON sa.shapefile_id = f.id
+       WHERE l.id = :id
     ");
     $stmt->bindParam(':id', $id, PDO::PARAM_INT);
     $stmt->execute();

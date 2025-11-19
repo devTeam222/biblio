@@ -110,9 +110,7 @@ try {
                     f.chemin AS cover_url,
                     ay.start || '-' || ay.\"end\" AS annee_academique,
                     sa.id AS study_area_id,
-                    sa.name AS study_area_name,
-                    sa.latitude AS study_area_latitude,
-                    sa.longitude AS study_area_longitude
+                    sa.name AS study_area_name
                 FROM livres l
                 JOIN auteurs a ON l.auteur_id = a.id
                 LEFT JOIN fichiers f ON l.cover_image_id = f.id
@@ -158,9 +156,7 @@ try {
                     a.nom AS auteur_nom,
                     c.nom AS departement_nom,
                     ay.start || '-' || ay.\"end\" AS annee_academique,
-                    sa.name AS study_area_name, -- Nom de la zone d'étude
-                    sa.latitude AS study_area_latitude,
-                    sa.longitude AS study_area_longitude
+                    sa.name AS study_area_name -- Nom de la zone d'étude
                 FROM livres l
                 JOIN auteurs a ON l.auteur_id = a.id
                 LEFT JOIN departement c ON l.departement_id = c.id

@@ -6,21 +6,15 @@ import { createDropdownSearch } from "../../components/DropdownSearch.js"; // Im
 window.modalContainer = document.getElementById('modalContainer');
 
 const userNameDisplay = document.getElementById('userNameDisplay');
-const notificationCountEl = document.getElementById('notificationCount');
 const adminAvatarEl = document.getElementById('adminAvatar');
 const lastUpdateTimeEl = document.getElementById('lastUpdateTime');
 const booksTableBody = document.querySelector('#booksTable tbody');
 const bookSearchInput = document.getElementById('bookSearchInput');
 const addBookBtn = document.getElementById('addBookBtn');
-
 // Éléments spécifiques à la modale du livre et au formulaire multi-étapes
 const bookIdInput = document.getElementById('bookId');
 const bookTitleInput = document.getElementById('bookTitle');
 // Les éléments de sélection seront des conteneurs DIV pour DropdownSearch
-const bookAuthorSelectContainer = document.getElementById('bookAuthorSelectContainer');
-const bookCategorySelectContainer = document.getElementById('bookCategorySelectContainer');
-const bookAcademicYearSelectContainer = document.getElementById('bookAcademicYearSelectContainer');
-const bookStudyAreaSelectContainer = document.getElementById('bookStudyAreaSelectContainer');
 const bookISBNInput = document.getElementById('bookISBN');
 const bookDescriptionTextarea = document.getElementById('bookDescription');
 const bookLocationInput = document.getElementById('bookLocation');
@@ -207,7 +201,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (currentActiveTab === 'books') {
             openBookModal();
         } else if (currentActiveTab === 'study_areas') {
-            openStudyAreaModal();
+            location.replace('/admin/books/study-area/new');
         }
     });
 
@@ -386,8 +380,8 @@ async function switchTab(tabName) {
 async function loadBooks() {
     addLoader(booksTableBody);
     try {
-        const response = await apiClient.get(`/api/admin/books?action=list&search=${encodeURIComponent(bookSearchInput?.value || '')}`);
-
+        const encodedSearch = encodeURIComponent(bookSearchInput?.value || '');
+        const response = await apiClient.get(`/api/admin/books?action=list&search=${encodedSearch}`);
         if (response.data.success) {
             allBooks = response.data.data;
             renderBooks(allBooks);
@@ -769,12 +763,14 @@ function renderPaginatedStudyAreas() {
     } else {
         data.forEach(studyArea => {
             const row = document.createElement('tr');
+            console.log(studyArea);
+            
             
             const creationDate = studyArea.created_at ? new TimeFormatter(studyArea.created_at * 1000).format() : 'N/A';
             // Générer le HTML pour la zone d'étude et le bouton de carte
             let studyAreaHtml = '';
-            if ((studyArea.latitude && studyArea.longitude)) {
-                    const mapUrl = `https://www.google.com/maps/@${studyArea.latitude},${studyArea.longitude},5000m/`;
+            if ((studyArea.shapefile_id)) {
+                    const mapUrl = `/study-area?area_ids=${studyArea.id}`;
                 studyAreaHtml = `
                     <p class="text-gray-600 mb-2">
                         <a href="${mapUrl}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition duration-200 ml-2">

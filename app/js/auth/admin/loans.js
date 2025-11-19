@@ -13,7 +13,31 @@ const loanSearchInput = document.getElementById('loanSearchInput');
 
 let allLoans = []; // Pour stocker tous les emprunts et permettre la recherche côté client
 
+const userRoleDisplay = document.getElementById('userRoleDisplay');
+
 document.addEventListener('DOMContentLoaded', async () => {
+    // Mettre à jour la barre de navigation et le message de bienvenue
+    const authResult = await isAuth();
+    const userId = authResult?.user?.id; // Correction: userId est sous authResult.user.id
+    const userName = authResult?.user?.name;
+    const userRole = authResult?.user?.role || 'guest';
+    const possibleRoles = {
+        admin: 'Administrateur',
+        user: 'Lecteur',
+        author: 'Auteur',
+        guest: 'Visiteur',
+    }
+
+
+    if (authResult && userId) {
+
+        updateNavBar(userRole, window.location.pathname); // Utilisez window.location.pathname pour la page active
+        userNameDisplay.textContent = `Bienvenue, ${userName || 'Lecteur'}!`;
+        
+    } else {
+        updateNavBar('guest', window.location.pathname); // 'guest' si non connecté
+        userNameDisplay.textContent = `Bienvenue, Lecteur !`;
+    }
     const authStatus = await isAuth();
 
     if (!authStatus.success || !authStatus.roles.includes('admin')) {
@@ -24,7 +48,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     userNameDisplay.textContent = authStatus.user.name || 'Admin';
     updateAdminAvatar(authStatus.user.name);
-    updateNavBar(authStatus, 'manage-loans'); // Mettre en surbrillance le lien actif
     updateLastModifiedTime();
 
     await loadLoans();
