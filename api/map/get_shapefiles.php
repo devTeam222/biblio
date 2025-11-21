@@ -31,20 +31,21 @@ try {
     }
 
     // 3. Construction de la requête SQL complète
-    // La clause `WHERE` initiale concernant le type de fichier est conservée.
+    // Accepter à la fois les shapefiles (ZIP) et les GeoJSON
     $sql = "
         SELECT 
             sa.id AS study_area_id, 
             sa.name AS study_area_name, 
             sa.description,
             f.chemin AS shapefile_url,
-            f.nom AS file_name
+            f.nom AS file_name,
+            f.type AS file_type
         FROM 
             study_areas sa
         JOIN 
             fichiers f ON sa.shapefile_id = f.id
         WHERE
-            (f.type LIKE 'application/zip' OR f.nom LIKE '%.zip')
+            (f.type LIKE 'application/zip' OR f.nom LIKE '%.zip' OR f.type LIKE 'application/geo+json' OR f.nom LIKE '%.geojson')
             {$where_clause} -- Ajout de la nouvelle clause WHERE optionnelle
         ORDER BY 
             sa.id DESC

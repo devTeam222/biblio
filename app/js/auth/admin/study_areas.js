@@ -209,9 +209,16 @@ export async function handleStudyAreaFormSubmit(event) {
         }
 
         if (response.data.success) {
+            const createdId = response.data.id;
+            const isCreation = !studyAreaId && Boolean(createdId);
             showCustomModal(`Zone d'étude ${studyAreaId ? 'modifiée' : 'ajoutée'} avec succès !`, { type: 'success' });
             closeStudyAreaModal();
             await loadStudyAreas(studyAreasState.searchQuery, studyAreasState.currentPage);
+            if (isCreation) {
+                setTimeout(() => {
+                    window.location.href = `/study-area?area_ids=${createdId}`;
+                }, 1200);
+            }
         } else {
             showCustomModal(`Erreur: ${response.data.message || 'Erreur inconnue'}`, { type: 'alert' });
             console.error("Erreur lors de l'enregistrement de la zone d'étude:", response.data);

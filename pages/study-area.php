@@ -1,38 +1,62 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualisation des Zones d'Étude (Shapefiles)</title>
-    <!-- Chargement de Tailwind CSS -->
-    <script src="/app/js/tailwind"></script>
-    <!-- Chargement de Leaflet CSS -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content" />
+    <title>Visualisation des Zones d'Étude - GeoLib</title>
+    
+    <!-- Tailwind CSS & Config -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            750: '#2d3748',
+                            850: '#1a202c',
+                            950: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        /* Style obligatoire pour que la carte Leaflet ait une taille */
-        #map {
-            height: 80vh; 
-            width: 100%;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f4f7f9;
+            font-family: "Inter", sans-serif;
         }
-        /* Style des popups Leaflet */
-        .leaflet-popup-content-wrapper, .leaflet-control-layers-expanded {
-            border-radius: 0.5rem;
+        
+        #map {
+            height: calc(100vh - 128px);
+            width: 100%;
+            z-index: 1;
         }
-        .leaflet-container a {
-            color: #10B981; /* Couleur d'un lien Tailwind vert 500 */
+        
+        .leaflet-container {
+            background-color: #e2e8f0;
+            font-family: "Inter", sans-serif;
         }
+        
+        .dark .leaflet-container {
+            background-color: #1e293b;
+        }
+        
         .loading-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.9);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -40,75 +64,92 @@
             border-radius: 0.5rem;
             transition: opacity 0.3s;
         }
+        
+        .dark .loading-overlay {
+            background: rgba(15, 23, 42, 0.9);
+        }
+        
         .loader {
             border: 4px solid #f3f3f3;
-            border-top: 4px solid #10B981;
+            border-top: 4px solid #3b82f6;
             border-radius: 50%;
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
         }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        #messageContainer {
+            z-index: 2000;
+            pointer-events: none;
+        }
     </style>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <!-- Chargement de la librairie shpjs (shapefile-js) -->
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- JSZip -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- shp.js -->
     <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
 </head>
-<body>
-    <!-- En-tête de la page (Style Admin) -->
-    <header class="bg-gradient-to-r from-green-600 to-blue-700 text-white shadow-lg">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="flex items-center mb-4 md:mb-0 gap-1">
-                    <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
-                    </svg>
-                    <h1 class="text-2xl md:text-3xl font-bold">GéoLib</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="text-right hidden md:block">
-                        <p id="userNameDisplay" class="font-medium">Bienvenue, Lecteur !</p>
-                        <p class="text-xs text-green-200" id="userRoleDisplay"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+<body class="flex flex-col h-screen overflow-hidden text-sm bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300">
 
-    <!-- Barre de navigation (Style Admin) -->
-    <nav class="bg-white shadow-sm">
-        <div class="container mx-auto p-4">
-            <div class="container mx-auto flex flex-wrap justify-center md:justify-start gap-4 px-4" id="mainNav">
-                <!-- Les liens seront injectés ici par JavaScript -->
-            </div>
+<!-- HEADER -->
+<header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 shadow-sm z-[1100] shrink-0 relative">
+    <div class="flex items-center gap-3">
+        <div class="bg-blue-600 text-white p-1.5 rounded-lg shadow-sm">
+            <i data-lucide="map" class="w-6 h-6"></i>
         </div>
-    </nav>
-    <div class="max-w-7xl mx-auto">
-        <div id="map-container" class="relative">
-            <div id="map"></div>
-            <div id="loading-overlay" class="loading-overlay hidden">
-                <div class="loader"></div>
-                <p class="ml-4 text-gray-600 font-semibold">Chargement des shapefiles...</p>
-            </div>
+        <div class="flex flex-col leading-tight">
+            <h1 class="text-lg font-bold tracking-tight hidden sm:block">GeoLib <span class="text-slate-400 font-normal text-sm">Visualisation</span></h1>
+            <h1 class="text-lg font-bold tracking-tight sm:hidden">GeoLib</h1>
+            <p class="text-xs text-slate-400 -mt-1 hidden sm:block" id="userNameChip">Invité</p>
         </div>
-        
-        <p id="status-message" class="mt-4 text-gray-600"></p>
     </div>
+    <div class="flex items-center gap-3">
+        <a href="/" id="homeLink" class="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-600 dark:text-slate-200 rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <i data-lucide="home" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Accueil</span>
+        </a>
+        <div id="editToolbar" class="hidden sm:flex items-center">
+            <button id="openEditorBtn" type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow">
+                <i data-lucide="wand" class="w-4 h-4"></i>
+                Modifier
+            </button>
+        </div>
+        <div class="flex items-center gap-3">
+            <button id="btnDarkModeToggle" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+                <i id="darkModeIcon" data-lucide="moon" class="w-5 h-5"></i>
+            </button>
+            <button id="userAvatar" class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-200 bg-white dark:bg-slate-800 shadow-sm">
+                <i data-lucide="user-round" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </div>
+</header>
+<p id="editNotice" class="hidden text-xs sm:text-sm text-amber-600 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 border-b border-amber-100 dark:border-amber-800"></p>
 
-    <!-- Chargement des librairies JS -->
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20n6a9KxI6X8w2N0q5f3z4Gmsxah8y29g5wz9X2mO7g="
-        crossorigin=""></script>
-    <!-- JSZip (pour dézipper le shapefile) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- shp.js (pour parser le shapefile en GeoJSON) -->
-    <script src="https://cdn.jsdelivr.net/npm/shpjs@3.6.3/dist/shp.js"></script>
+<!-- CONTAINER -->
+<div class="flex-1 relative overflow-hidden">
+    <div id="map-container" class="relative h-full">
+        <div id="map"></div>
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="flex flex-col items-center gap-4">
+                <div class="loader"></div>
+                <p class="text-slate-600 dark:text-slate-300 font-semibold">Chargement des zones d'étude...</p>
+            </div>
+        </div>
+    </div>
+    <p id="status-message" class="absolute bottom-4 left-4 right-4 text-sm text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-4 py-2 rounded-lg shadow-md z-[500]"></p>
+</div>
 
-    <script type="module" src="/app/js/study-area.js"></script>
+<div id="messageContainer" class="fixed top-20 left-1/2 transform -translate-x-1/2 hidden flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl transition-all duration-300 text-white font-medium min-w-[300px] justify-center"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script type="module" src="/app/js/study-area.js"></script>
 </body>
 </html>

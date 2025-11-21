@@ -31,8 +31,7 @@ try {
         case 'create':
             $name = trim($input['name'] ?? '');
             $description = trim($input['description'] ?? '');
-            // shapefile_id peut être NULL
-            $shapefile_id = filter_var($input['shapefile_id'] ?? null, FILTER_VALIDATE_INT); 
+            $geojson_data = $input['geojson'] ?? null;
             
             if (empty($name) || strlen($name) < 3) {
                 http_response_code(400);
@@ -40,19 +39,80 @@ try {
                 exit();
             }
 
-            // Vérification si shapefile_id est valide ou NULL
-            $shapefile_id_param = $shapefile_id === false ? null : $shapefile_id;
+            $shapefile_id = null;
             
+            // Si GeoJSON est fourni, sauvegarder le fichier
+            if ($geojson_data) {
+                try {
+                    // Valider que c'est du JSON valide
+                    $geojson = json_decode($geojson_data, true);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        throw new Exception("GeoJSON invalide: " . json_last_error_msg());
+                    }
+                    
+                    // Vérifier que c'est un FeatureCollection valide
+                    if (!isset($geojson['type']) || $geojson['type'] !== 'FeatureCollection') {
+                        throw new Exception("Le GeoJSON doit être de type FeatureCollection");
+                    }
+                    
+                    // Créer le répertoire de destination pour les GeoJSON
+                    $upload_dir = __DIR__ . '/../../public/uploads/geojson/';
+                    if (!is_dir($upload_dir)) {
+                        if (!mkdir($upload_dir, 0777, true)) {
+                            throw new Exception("Impossible de créer le répertoire d'upload.");
+                        }
+                    }
+                    
+                    // Générer un nom de fichier unique
+                    $filename = uniqid("geojson_") . '.geojson';
+                    $filepath = $upload_dir . $filename;
+                    $public_url = '/public/uploads/geojson/' . $filename;
+                    
+                    // Sauvegarder le fichier GeoJSON
+                    if (file_put_contents($filepath, $geojson_data) === false) {
+                        throw new Exception("Erreur lors de l'écriture du fichier GeoJSON.");
+                    }
+                    
+                    // Insérer l'entrée dans la table fichiers
+                    $stmt_file = $pdo->prepare("
+                        INSERT INTO fichiers (nom, chemin, type, taille, date_telechargement) 
+                        VALUES (:nom, :chemin, :type, :taille, :date_telechargement)
+                    ");
+                    
+                    $file_name = $name . '.geojson';
+                    $file_type = 'application/geo+json';
+                    $file_size = filesize($filepath);
+                    $current_timestamp = time();
+                    
+                    $stmt_file->bindParam(':nom', $file_name);
+                    $stmt_file->bindParam(':chemin', $public_url);
+                    $stmt_file->bindParam(':type', $file_type);
+                    $stmt_file->bindParam(':taille', $file_size, PDO::PARAM_INT);
+                    $stmt_file->bindParam(':date_telechargement', $current_timestamp, PDO::PARAM_INT);
+                    
+                    if (!$stmt_file->execute()) {
+                        unlink($filepath); // Supprimer le fichier en cas d'erreur
+                        throw new Exception("Erreur lors de l'insertion du fichier dans la base de données.");
+                    }
+                    
+                    $shapefile_id = $pdo->lastInsertId();
+                } catch (Exception $e) {
+                    echo json_encode(["success" => false, "message" => $e->getMessage()]);
+                    exit();
+                }
+            }
+            
+            // Insérer la zone d'étude
             $stmt = $pdo->prepare("
                 INSERT INTO public.study_areas (name, description, shapefile_id, created_at, updated_at) 
                 VALUES (:name, :description, :shapefile_id, :created_at, :updated_at)
             ");
 
-            $current_timestamp = time(); // Utilisation du timestamp epoch
+            $current_timestamp = time();
             
             $stmt->bindParam(':name', $name);
             $stmt->bindParam(':description', $description);
-            $stmt->bindParam(':shapefile_id', $shapefile_id_param, $shapefile_id_param === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+            $stmt->bindParam(':shapefile_id', $shapefile_id, $shapefile_id === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
             $stmt->bindParam(':created_at', $current_timestamp, PDO::PARAM_INT);
             $stmt->bindParam(':updated_at', $current_timestamp, PDO::PARAM_INT);
             
