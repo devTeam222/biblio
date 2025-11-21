@@ -321,12 +321,29 @@ window.toggleAttributePanel = function () {
 
 window.switchSidebarTab = function(tabName) {
     const isLayers = tabName === 'layers';
-    document.getElementById('tab-layers').className = isLayers ? 'flex-1 py-3 text-center font-semibold text-blue-600 border-b-2 border-blue-600 transition-colors' : 'flex-1 py-3 text-center font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors';
-    document.getElementById('tab-attributes').className = !isLayers ? 'flex-1 py-3 text-center font-semibold text-blue-600 border-b-2 border-blue-600 transition-colors' : 'flex-1 py-3 text-center font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors';
-    document.getElementById('view-layers').classList.toggle('hidden', !isLayers);
-    document.getElementById('view-attributes').classList.toggle('hidden', isLayers);
-    document.getElementById('footer-attributes').classList.toggle('hidden', isLayers);
-    if(isLayers) refreshLayerListUI();
+    const tabLayers = document.getElementById('tab-layers');
+    const tabAttributes = document.getElementById('tab-attributes');
+    const viewLayers = document.getElementById('view-layers');
+    const viewAttributes = document.getElementById('view-attributes');
+    const footerAttributes = document.getElementById('footer-attributes');
+
+    if (tabLayers) {
+        tabLayers.className = isLayers
+            ? 'flex-1 py-3 text-center font-semibold text-blue-600 border-b-2 border-blue-600 transition-colors'
+            : 'flex-1 py-3 text-center font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors';
+    }
+
+    if (tabAttributes) {
+        tabAttributes.className = !isLayers
+            ? 'flex-1 py-3 text-center font-semibold text-blue-600 border-b-2 border-blue-600 transition-colors'
+            : 'flex-1 py-3 text-center font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors';
+    }
+
+    if (viewLayers) viewLayers.classList.toggle('hidden', !isLayers);
+    if (viewAttributes) viewAttributes.classList.toggle('hidden', isLayers);
+    if (footerAttributes) footerAttributes.classList.toggle('hidden', isLayers);
+
+    if (isLayers) refreshLayerListUI();
 };
 
 function initMapTooltips() {
