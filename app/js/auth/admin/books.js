@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (currentActiveTab === 'books') {
             openBookModal();
         } else if (currentActiveTab === 'study_areas') {
-            location.replace('/admin/books/study-area/new');
+            location.replace('/admin/study-areas/new');
         }
     });
 

@@ -78,8 +78,8 @@ function configureEditToolbar(canEdit, isAuthenticated) {
     if (canEdit) {
         toolbar.classList.remove("hidden");
         const editorUrl = requestedAreaIds
-            ? `/pages/admin/books/study-area/new?prefill=${encodeURIComponent(requestedAreaIds)}`
-            : "/pages/admin/books/study-area/new";
+            ? `/admin/study-areas/edit/${encodeURIComponent(requestedAreaIds)}`
+            : "/admin/study-areas/new";
         editorBtn.onclick = () => {
             window.location.href = editorUrl;
         };

@@ -29,65 +29,7 @@
     
     <!-- Google Fonts (Inter) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        body {
-            font-family: "Inter", sans-serif;
-        }
-        
-        #map {
-            height: calc(100vh - 128px);
-            width: 100%;
-            z-index: 1;
-        }
-        
-        .leaflet-container {
-            background-color: #e2e8f0;
-            font-family: "Inter", sans-serif;
-        }
-        
-        .dark .leaflet-container {
-            background-color: #1e293b;
-        }
-        
-        .loading-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            border-radius: 0.5rem;
-            transition: opacity 0.3s;
-        }
-        
-        .dark .loading-overlay {
-            background: rgba(15, 23, 42, 0.9);
-        }
-        
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        #messageContainer {
-            z-index: 2000;
-            pointer-events: none;
-        }
-    </style>
+    <link rel="stylesheet" href="/app/css/editor-theme.css">
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />

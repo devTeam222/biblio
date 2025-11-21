@@ -20,6 +20,17 @@
             "query_params": {
                 "id": "$id"
             }
+        },
+        {
+            "pattern": "/admin/study-areas/new",
+            "target": "pages/admin/books/study-area/new.php"
+        },
+        {
+            "pattern": "/admin/study-areas/edit/(?<prefill>[0-9,]+)",
+            "target": "pages/admin/books/study-area/new.php",
+            "query_params": {
+                "prefill": "$prefill"
+            }
         }
     ]
 }

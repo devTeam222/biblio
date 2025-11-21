@@ -4,6 +4,18 @@ import { updateNavBar, isAuth } from "../../util/utils.js";
 const THEME_STORAGE_KEY = "geolib-theme";
 const LIGHT_TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 const DARK_TILE_URL = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+const editorParams = new URLSearchParams(window.location.search);
+let prefillAreaIdsParam = editorParams.get("prefill");
+if (!prefillAreaIdsParam) {
+    const pathMatch = window.location.pathname.match(/\/admin\/study-areas\/(?:edit|new)\/([\d,]+)/);
+    if (pathMatch) {
+        prefillAreaIdsParam = pathMatch[1];
+    }
+}
+const prefillIdList = prefillAreaIdsParam
+    ? prefillAreaIdsParam.split(",").map((id) => id.trim()).filter(Boolean)
+    : [];
+let prefillMetadata = null;
 
 applyStoredTheme();
 
@@ -190,6 +202,69 @@ function setUserBadge(user) {
         if (chip) chip.textContent = "Invité";
         refreshIcons();
     }
+}
+
+async function fetchStudyAreaDetails(areaId) {
+    try {
+        const response = await apiClient.get(`/api/admin/study_areas?action=details&id=${areaId}`);
+        if (response?.data?.success) {
+            return response.data.data;
+        }
+    } catch (error) {
+        console.error("Erreur récupération métadonnées zone:", error);
+    }
+    return null;
+}
+
+async function fetchGeoJsonFromDescriptor(fileDescriptor) {
+    const response = await fetch(fileDescriptor.shapefile_url);
+    if (!response.ok) {
+        throw new Error(`Téléchargement impossible (${response.status})`);
+    }
+
+    if (
+        (fileDescriptor.file_type && fileDescriptor.file_type.includes("geo+json")) ||
+        fileDescriptor.shapefile_url.toLowerCase().endsWith(".geojson")
+    ) {
+        const text = await response.text();
+        return JSON.parse(text);
+    }
+
+    const buffer = await response.arrayBuffer();
+    return await shp(buffer);
+}
+
+async function importPrefillShapes(areaIdsString) {
+    try {
+        const response = await fetch(`/api/map/get_shapefiles?area_ids=${encodeURIComponent(areaIdsString)}`);
+        const payload = await response.json();
+        if (!payload.success) {
+            throw new Error(payload.message || "Impossible de charger les couches existantes.");
+        }
+
+        for (const file of payload.data) {
+            const geoJsonResult = await fetchGeoJsonFromDescriptor(file);
+            if (Array.isArray(geoJsonResult)) {
+                geoJsonResult.forEach((geo, index) => {
+                    addImportedLayer(`${file.study_area_name} - Partie ${index + 1}`, geo);
+                });
+            } else if (geoJsonResult?.features) {
+                addImportedLayer(`${file.study_area_name}`, geoJsonResult);
+            }
+        }
+        showMessage("Zone importée pour modification.");
+    } catch (error) {
+        console.error("Erreur lors de l'import préfill:", error);
+        showMessage(`Pré-chargement impossible: ${error.message}`, "error");
+    }
+}
+
+async function bootstrapPrefillIfNeeded() {
+    if (!prefillIdList.length) return;
+    const firstId = prefillIdList[0];
+
+    prefillMetadata = await fetchStudyAreaDetails(firstId);
+    await importPrefillShapes(prefillIdList.join(","));
 }
 
 function showMessage(text, type = "success") {
@@ -1034,8 +1109,8 @@ window.openSaveStudyAreaModal = function() {
     }
     
     document.getElementById('saveStudyAreaModal').classList.add('open');
-    document.getElementById('studyAreaName').value = '';
-    document.getElementById('studyAreaDescription').value = '';
+    document.getElementById('studyAreaName').value = prefillMetadata?.name || '';
+    document.getElementById('studyAreaDescription').value = prefillMetadata?.description || '';
 };
 
 window.closeSaveStudyAreaModal = function(e) {
@@ -1113,6 +1188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialiser la carte et les icônes
     initMap();
     refreshIcons();
+    await bootstrapPrefillIfNeeded();
 
     // Restaurer l'état du panneau
     const savedHidden = localStorage.getItem('geoEditor_panel_hidden');
