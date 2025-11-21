@@ -39,8 +39,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (authResult && userId) {
         // Indiquer 'home' comme page active pour la navigation
         updateNavBar(userRole, 'home');
-        userNameDisplay.textContent = `Bienvenue, ${userName || 'Lecteur'}!`;
-        userRoleDisplay.textContent = possibleRoles[userRole] || possibleRoles.guest;
 
         // Afficher la section des emprunts actuels pour les utilisateurs connectés
         if (userRole !== 'guest' && lecteurId) {
@@ -176,7 +174,7 @@ async function fetchBooksBySearch(query) {
  */
 function createBookCard(book) {
     const card = document.createElement('div');
-    card.className = 'bg-white rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-lg';
+    card.className = 'bg-white dark:bg-slate-600 dark:text-white rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-lg';
 
     // Construire l'URL vers la page de détails du livre
     const detailPageUrl = `/livre/${book.id}`;
@@ -192,9 +190,9 @@ function createBookCard(book) {
         <a href="${detailPageUrl}" class="block">
             ${cover}
             <div class="p-4">
-                <h4 class="text-lg font-semibold text-gray-800 truncate line-clamp-3 text-ellipsis overflow-hidden">${book.titre}</h4>
-                <p class="text-sm text-gray-600">${book.auteur || 'Auteur inconnu'}</p>
-                <p class="text-sm text-gray-500 mt-2">Département: ${book.departement || 'Non spécifiée'}</p>
+                <h4 class="text-lg font-semibold text-gray-800 dark:text-white truncate line-clamp-3 text-ellipsis overflow-hidden">${book.titre}</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-400">${book.auteur || 'Auteur inconnu'}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Département: ${book.departement || 'Non spécifiée'}</p>
                 <span class="inline-block px-2 py-1 mt-3 rounded-full text-xs font-semibold ${availabilityClass}">
                     ${availabilityText}
                 </span>

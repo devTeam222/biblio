@@ -1,9 +1,12 @@
+import { updateNavBar, isAuth, attachGlobalListeners } from "./utils";
+
 /**
  * @file ocho-api.js
  * @description Cette classe permet de gérer les requêtes HTTP avec des fonctionnalités avancées
  * comme la gestion de la progression de téléchargement, les en-têtes personnalisés, les timeouts
  * et la gestion des erreurs HTTP. Elle offre une API Promise-based pour des interactions plus modernes.
  */
+const THEME_STORAGE_KEY = "geolib-theme";
 
 /**
  * @class OchoClient
@@ -367,6 +370,108 @@ export const apiClient = new OchoClient("/", {
     },
     throwHttpErrors: false,
 });
+
+function applyStoredTheme() {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    const prefersDark =
+        typeof window !== "undefined" &&
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const shouldUseDark = stored ? stored === "dark" : prefersDark;
+    document.documentElement.classList.toggle("dark", shouldUseDark);
+}
+function refreshIcons() {
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+function syncThemeArtifacts() {
+    const isDark = document.documentElement.classList.contains("dark");
+    const icon = document.getElementById("darkModeIcon");
+    if (icon) {
+        icon.setAttribute("data-lucide", isDark ? "sun" : "moon");
+    }
+    refreshIcons();
+}
+document.addEventListener("DOMContentLoaded",async () => {
+    applyStoredTheme(); 
+    syncThemeArtifacts();
+      // Dark mode
+    const darkBtn = document.getElementById('btnDarkModeToggle');
+    if (darkBtn) {
+        darkBtn.addEventListener('click', toggleDarkMode);
+    }
+        updateNavBar()
+    const mobileMenuBtn = document.getElementById('btnMobileMenu');
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', () => {
+            const nav = document.getElementById('nav-menu');
+            const icon = document.getElementById('menuIcon');
+            nav.classList.toggle('hidden');
+            if (nav.classList.contains('hidden')) {
+                icon.setAttribute('data-lucide', 'menu');
+            } else {
+                icon.setAttribute('data-lucide', 'x');
+            }
+            refreshIcons();
+        });
+    }
+    // Mettre à jour la barre de navigation
+    const authResult = await isAuth();
+    const userRole = authResult?.user?.role || 'guest';
+    updateNavBar(userRole, window.location.pathname);
+    setUserBadge(authResult?.user || null);
+    attachGlobalListeners()
+});
+
+
+function setUserBadge(user) {
+    const avatar = document.getElementById("userAvatar");
+    const chip = document.getElementById("userNameChip");
+    if (!avatar) return;
+
+    
+    
+    if (user?.name) {
+        const initials = user.name
+            .split(" ")
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((chunk) => chunk[0])
+            .join("")
+            .toUpperCase();
+        avatar.textContent = initials || "✓";
+        avatar.classList.add("bg-blue-600", "text-white");
+        avatar.title = user.name;
+        console.log(chip);
+        
+        if (chip) chip.textContent = user.name;
+    } else {
+        avatar.innerHTML = `<i data-lucide="user-round" class="w-4 h-4"></i>`;
+        avatar.classList.remove("bg-blue-600", "text-white");
+        avatar.title = "Utilisateur invité";
+        if (chip) chip.textContent = "Invité";
+        refreshIcons();
+    }
+}
+
+function toggleDarkMode() {
+    const html = document.documentElement;
+    const shouldBeDark = !html.classList.contains('dark');
+    html.classList.toggle('dark', shouldBeDark);
+    localStorage.setItem(THEME_STORAGE_KEY, shouldBeDark ? 'dark' : 'light');
+    syncThemeArtifacts();
+}
+
+window.toggleMobileMenu = function() {
+    const nav = document.getElementById('nav-menu');
+    const icon = document.getElementById('menuIcon');
+    nav.classList.toggle('hidden');
+    if (nav.classList.contains('hidden')) {
+        icon.setAttribute('data-lucide', 'menu');
+    } else {
+        icon.setAttribute('data-lucide', 'x');
+    }
+    refreshIcons();
+};
 
 /*
  * Ce bloc de commentaires décrit les options possibles pour le constructeur de apiClient

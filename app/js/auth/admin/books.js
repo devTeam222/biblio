@@ -94,7 +94,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = '/login';
         return;
     }
-    userNameDisplay.textContent = authStatus.user.name || 'Admin';
     updateAdminAvatar(authStatus.user.name);
     updateNavBar('admin'); // Mettre en surbrillance le lien actif
     updateLastModifiedTime();

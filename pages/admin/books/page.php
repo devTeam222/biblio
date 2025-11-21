@@ -73,54 +73,178 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id']) || $_SESSION['us
     <!-- Tailwind CSS CDN -->
     <script src="/app/js/tailwind.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+        }
+
+        .nav-link {
+            padding: 10px 20px;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 200px;
+            /* Fixed height for covers */
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+
+        /* Style pour le spinner de chargement */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 8px;
+            /* Adjusted margin */
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Overlay pour les messages modaux (déjà dans modal.css mais inclus ici pour visibilité) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+    </style>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            750: '#2d3748',
+                            850: '#1a202c',
+                            950: '#0f172a'
+                        }
+                    },
+                    zIndex: {
+                        'nav': '1050',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 
-<body class="min-h-screen flex flex-col">
-    <header class="bg-gradient-to-r from-green-600 to-blue-700 text-white shadow-lg">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="flex items-center mb-4 md:mb-0 gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="lucide lucide-shield-user-icon lucide-shield-user">
-                        <path
-                            d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
-                        <path d="M6.376 18.91a6 6 0 0 1 11.249.003" />
-                        <circle cx="12" cy="11" r="4" />
-                    </svg>
-                    <h1 class="text-2xl md:text-3xl font-bold">Gérer les Livres</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-2 text-white bg-green-700/50 px-3 py-1 rounded-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                            fill="currentColor" fill-rule="evenOdd" stroke-linecap="round" stroke-linejoin="round"
-                            class="lucide lucide-bell-icon lucide-bell">
-                            <path d="M10.268 21a2 2 0 0 0 3.464 0" />
-                            <path
-                                d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
-                        </svg>
-                        <span id="notificationCount"
-                            class="bg-red-500 text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <div class="text-right hidden md:block">
-                            <p id="userNameDisplay" class="font-medium"></p>
-                            <p class="text-xs text-green-200">Administrateur</p>
-                        </div>
-                    </div>
-                </div>
+<body class="flex flex-col min-h-screen bg-slate-200 dark:bg-slate-950">
+    <!-- HEADER -->
+    <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 shadow-sm z-[1100] shrink-0 relative">
+        <!-- Logo & Titre -->
+        <a class="flex items-center gap-3 dark:text-white" href="/">
+            <div class="bg-blue-600 text-white p-1.5 rounded-lg shadow-sm">
+                <i data-lucide="map" class="w-6 h-6"></i>
             </div>
-        </div>
-    </header>
+            <h1 class="text-lg font-bold tracking-tight hidden sm:block">GeoLib <span class="text-slate-400 font-normal text-sm">Accueil</span></h1>
+            <h1 class="text-lg font-bold tracking-tight sm:hidden">GeoLib</h1>
+        </a>
+        
+        <!-- Menu de Navigation -->
+        <div id="nav-menu" class="hidden md:flex flex-col md:flex-row absolute md:static top-16 left-0 w-full md:w-auto bg-white dark:bg-slate-900 md:bg-transparent shadow-xl md:shadow-none border-b md:border-0 border-slate-200 dark:border-slate-700 p-4 md:p-0 gap-4 md:gap-2 items-stretch md:items-center z-nav transition-all duration-200 ease-in-out">
+            <!-- Apparence + Utilisateur -->
+            <div class="flex flex-col md:flex-row md:items-center md:gap-2 gap-3">
+                <div class="flex items-center justify-between md:justify-start">
+                    <span class="md:hidden text-sm font-bold text-slate-500 uppercase tracking-wider">Apparence</span>
+                    <div class="relative group">
+                        <button id="btnDarkModeToggle" class="p-2 mr-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+                            <i id="darkModeIcon" data-lucide="moon" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <nav class="md:flex flex-col md:flex-row gap-2" id="mainNav">
+                        <a href="/" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-transparent bg-blue-500 text-white shadow-md transition-colors">
+                            <i data-lucide="home" class="w-5 h-5"></i>
+                            <span class="hidden md:inline">Accueil</span>
+                        </a>
+                        <a href="/" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                            <i data-lucide="home" class="w-5 h-5"></i>
+                            <span class="hidden md:inline">Accueil</span>
+                        </a>
+                    </nav>
+                    
+                    <span id="userNameChip" class="text-xs font-semibold text-slate-400 hidden md:inline">Invité</span>
+                    <div class="relative ml-2" id="profileContainer">
+                    <!-- Statut/Nom de l'utilisateur (optionnel, affiché avant l'avatar sur desktop) -->
 
-    <!-- Barre de navigation Admin -->
-    <nav class="bg-white shadow-sm">
-        <div class="container mx-auto p-4">
-            <div class="container mx-auto flex flex-wrap justify-center md:justify-start gap-4 px-4" id="mainNav">
-                <!-- Les liens seront injectés ici par JavaScript -->
-            </div>
+                    <!-- Bouton Avatar qui ouvre le menu -->
+                    <button id="userAvatar" aria-expanded="false" aria-controls="userDropdown" class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-200 bg-white dark:bg-slate-800 shadow-sm transition-colors hover:border-blue-500 dark:hover:border-blue-500">
+                        <i data-lucide="user-round" class="w-4 h-4"></i>
+                    </button>
+
+                    <!-- Menu Popover (initialement caché) -->
+                    <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl py-1 hidden z-20">
+                        <div class="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 border-b dark:border-slate-700 font-medium truncate" id="dropdownUserName">
+                            Invité
+                        </div>
+                        
+                        <!-- Bouton Profil -->
+                        <a href="/profile" id="profileButton" class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                            <i data-lucide="settings" class="w-4 h-4"></i>
+                            Mon Compte
+                        </a>
+                        
+                        <!-- Bouton Déconnexion (Affiché uniquement si connecté, géré par JS) -->
+                        <button id="logoutButton" class="flex items-center gap-2 w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                            Déconnexion
+                        </button>
+                    </div>
+                </div>
+                </div>
+            </div>           
         </div>
-    </nav>
+        
+        <!-- Bouton Hamburger (Mobile) -->
+        <button id="btnMobileMenu" class="md:hidden p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 focus:outline-none">
+            <i id="menuIcon" data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+    </header>
 
     <!-- Contenu principal -->
     <main class="flex-grow container mx-auto px-4 py-6">

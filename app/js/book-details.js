@@ -44,18 +44,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (authResult && userId) {
         
-        updateNavBar(userRole, window.location.pathname); // Utilisez window.location.pathname pour la page active
-        userNameDisplay.textContent = `Bienvenue, ${userName || 'Lecteur'}!`;
-        userRoleDisplay.textContent = possibleRoles[userRole] || possibleRoles.guest;
         if (userRole === 'admin') {
             if (adminFileManagement) adminFileManagement.classList.remove('hidden'); // Afficher la section de gestion des fichiers pour les admins
         } else {
             if (adminFileManagement) adminFileManagement.classList.add('hidden'); // Cacher la section de gestion des fichiers pour les autres rôles
         }
     } else {
-        updateNavBar('guest', window.location.pathname); // 'guest' si non connecté
-        userNameDisplay.textContent = `Bienvenue, Lecteur !`;
-        userRoleDisplay.textContent = '';
     }
 
     // Récupérer l'ID du livre depuis l'URL

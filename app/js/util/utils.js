@@ -346,12 +346,6 @@ const navLinksConfig = {
         },
     ],
 };
-
-/**
- * Met à jour la barre de navigation en fonction du rôle de l'utilisateur et de la page active.
- * @param {string} userRole - Le rôle de l'utilisateur ('admin', 'author', 'user', 'guest').
- * @param {string} currentPagePath - Le chemin de la page actuelle (ex: "/admin/books", "/profile.html").
- */
 function updateNavBar(
     userRole = "guest",
     currentPagePath = window.location.pathname
@@ -364,45 +358,118 @@ function updateNavBar(
         return;
     }
 
+    // Mise à jour de l'affichage du menu déroulant (PAS d'ajout d'écouteur ici)
+    updateUserDropdown(userRole); 
+    
     mainNav.innerHTML = ""; // Vider la navigation existante pour éviter les doublons
 
     const linksToRender = navLinksConfig[userRole] || navLinksConfig.guest;
+    
+    // Simplification du chemin actuel pour la comparaison (retire les slashes début/fin)
+    const currentPath = currentPagePath.replace(/^\/|\/$/g, '').replace(/\.html$/, '');
 
     linksToRender.forEach((link) => {
-        // Déterminer si le lien est actif
+        // Préparer le chemin du lien pour la comparaison
+        const linkPath = link.pageMatch.replace(/^\/|\/$/g, '').replace(/\.html$/, '');
+        
+          // Déterminer si le lien est actif
         const isActive =
             (link.href !== "/" &&
                 currentPagePath.includes(link.pageMatch) &&
                 link.pageMatch) && !currentPagePath.split(link.href)?.[1] ||
             (link.href === "/" && !currentPagePath.split("/")?.[1]);
-
+        
+        // --- CLASSES DE STYLE MISE À JOURS ---
         const activeClass = isActive
-            ? "bg-blue-600 hover:bg-blue-700 text-white"
-            : "bg-gray-200 hover:bg-gray-300 text-gray-800";
+            ? "bg-blue-500 text-white shadow-md hover:bg-blue-600" // Style actif bleu et blanc
+            : "text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"; // Style inactif neutre
 
         const linkElement = document.createElement("a");
         linkElement.href = link.href;
-        linkElement.className = `nav-link font-semibold py-2 px-4 rounded-lg flex items-center gap-2 ${activeClass}`;
+        linkElement.className = `inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-transparent text-sm font-semibold ${activeClass}`;
         linkElement.innerHTML = `${link.icon} ${link.text}`;
 
         mainNav.appendChild(linkElement);
     });
+}
 
-    // Ajouter le bouton de déconnexion séparément pour les rôles authentifiés
-    if (userRole !== "guest") {
-        const logoutButton = document.createElement("button");
-        logoutButton.id = "logoutButton";
-        logoutButton.className =
-            "nav-link bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center";
-        logoutButton.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Déconnexion
-        `;
-        mainNav.appendChild(logoutButton);
-        logoutButton.addEventListener("click", handleLogout);
+
+/**
+ * MET À JOUR l'affichage du menu déroulant du profil (pas les écouteurs).
+ * @param {string} userRole - Le rôle de l'utilisateur ('admin', 'author', 'user', 'guest').
+ */
+function updateUserDropdown(userRole) {
+    const logoutButton = document.getElementById("logoutButton");
+    const profileButton = document.getElementById("profileButton");
+    const userNameChip = document.getElementById("userNameChip");
+    const dropdownUserName = document.getElementById("dropdownUserName");
+
+    if (!logoutButton || !profileButton || !userNameChip || !dropdownUserName) {
+        // Les logs d'erreur sont déplacés dans attachGlobalListeners pour éviter la redondance
+        return; 
     }
+
+    // 1. Définir le texte de l'utilisateur
+    const userName = userRole === 'guest' ? 'Invité' : `${userRole.charAt(0).toUpperCase() + userRole.slice(1)}`;
+    userNameChip.textContent = userName;
+    dropdownUserName.textContent = userName;
+
+    // 2. Gérer la visibilité des boutons
+    if (userRole === 'guest') {
+        // L'invité n'a pas de profil ni de déconnexion dans le dropdown
+        logoutButton.classList.add('hidden');
+        profileButton.classList.add('hidden');
+    } else {
+        // Utilisateur connecté : affiche Déconnexion et Profil
+        logoutButton.classList.remove('hidden');
+        profileButton.classList.remove('hidden');
+    }
+    
+    // 3. Ajuster le lien du bouton Profil
+    if (userRole === 'admin') {
+        profileButton.href = '/admin/profile';
+    } else if (userRole !== 'guest') {
+        profileButton.href = '/profile';
+    }
+}
+
+
+/**
+ * AJOUTE les écouteurs d'événements UNIQUEMENT UNE FOIS au chargement de la page.
+ */
+export function attachGlobalListeners() {
+    const userAvatar = document.getElementById("userAvatar");
+    const userDropdown = document.getElementById("userDropdown");
+    const logoutButton = document.getElementById("logoutButton");
+
+    if (!userAvatar || !userDropdown || !logoutButton) {
+        console.error("Impossible d'attacher les écouteurs : Éléments du profil (avatar/dropdown/logout) non trouvés.");
+        return;
+    }
+
+    // --- Écouteur 1 : Afficher/Masquer le Popover au clic sur l'avatar ---
+    userAvatar.addEventListener('click', (e) => {
+        e.stopPropagation(); // Empêche la propagation du clic vers le document
+        const isExpanded = userAvatar.getAttribute('aria-expanded') === 'true';
+        if (isExpanded) {
+            userDropdown.classList.add('hidden');
+            userAvatar.setAttribute('aria-expanded', 'false');
+        } else {
+            userDropdown.classList.remove('hidden');
+            userAvatar.setAttribute('aria-expanded', 'true');
+        }
+    });
+
+    // --- Écouteur 2 : Fermer le Popover si on clique n'importe où ailleurs ---
+    document.addEventListener('click', (e) => {
+        if (!userDropdown.contains(e.target) && !userAvatar.contains(e.target)) {
+            userDropdown.classList.add('hidden');
+            userAvatar.setAttribute('aria-expanded', 'false');
+        }
+    });
+    
+    // --- Écouteur 3 : Gérer la Déconnexion ---
+    logoutButton.addEventListener("click", handleLogout);
 }
 
 // Create a custom event to handle user authentication state

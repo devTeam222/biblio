@@ -50,7 +50,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = '/login';
         return;
     }
-    document.getElementById('userNameDisplay').textContent = authStatus.user.name || 'Admin';
     updateNavBar('admin', window.location.pathname); // Highlight the active link (subscriptions)
     updateLastModifiedTime();
 

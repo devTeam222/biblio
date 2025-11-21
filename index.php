@@ -6,13 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GéoLib - Accueil</title>
     <!-- Tailwind CSS CDN -->
-    <script src="/app/js/tailwind.js"></script>
+    <!-- Tailwind CSS & Config -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/app/css/modal.css">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
         }
 
         .card {
@@ -86,42 +88,107 @@
             width: 90%;
         }
     </style>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            750: '#2d3748',
+                            850: '#1a202c',
+                            950: '#0f172a'
+                        }
+                    },
+                    zIndex: {
+                        'nav': '1050',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 
-<body class="flex flex-col min-h-screen">
-    <!-- En-tête de la page (Style Admin) -->
-    <header class="bg-gradient-to-r from-green-600 to-blue-700 text-white shadow-lg">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="flex items-center mb-4 md:mb-0 gap-1">
-                    <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
-                    </svg>
-                    <h1 class="text-2xl md:text-3xl font-bold">GéoLib</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="text-right hidden md:block">
-                        <p id="userNameDisplay" class="font-medium">Bienvenue, Lecteur !</p>
-                        <p class="text-xs text-green-200" id="userRoleDisplay"></p>
+<body class="flex flex-col min-h-screen bg-slate-200 dark:bg-slate-950">
+    <!-- HEADER -->
+    <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 shadow-sm z-[1100] shrink-0 relative">
+        <!-- Logo & Titre -->
+        <a class="flex items-center gap-3 dark:text-white" href="/">
+            <div class="bg-blue-600 text-white p-1.5 rounded-lg shadow-sm">
+                <i data-lucide="map" class="w-6 h-6"></i>
+            </div>
+            <h1 class="text-lg font-bold tracking-tight hidden sm:block">GeoLib <span class="text-slate-400 font-normal text-sm">Accueil</span></h1>
+            <h1 class="text-lg font-bold tracking-tight sm:hidden">GeoLib</h1>
+        </a>
+        
+        <!-- Menu de Navigation -->
+        <div id="nav-menu" class="hidden md:flex flex-col md:flex-row absolute md:static top-16 left-0 w-full md:w-auto bg-white dark:bg-slate-900 md:bg-transparent shadow-xl md:shadow-none border-b md:border-0 border-slate-200 dark:border-slate-700 p-4 md:p-0 gap-4 md:gap-2 items-stretch md:items-center z-nav transition-all duration-200 ease-in-out">
+            <!-- Apparence + Utilisateur -->
+            <div class="flex flex-col md:flex-row md:items-center md:gap-2 gap-3">
+                <div class="flex items-center justify-between md:justify-start">
+                    <span class="md:hidden text-sm font-bold text-slate-500 uppercase tracking-wider">Apparence</span>
+                    <div class="relative group">
+                        <button id="btnDarkModeToggle" class="p-2 mr-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+                            <i id="darkModeIcon" data-lucide="moon" class="w-5 h-5"></i>
+                        </button>
                     </div>
                 </div>
-            </div>
-        </div>
-    </header>
+                <div class="flex items-center gap-2">
+                    <nav class="md:flex flex-col md:flex-row gap-2" id="mainNav">
+                        <a href="/" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-transparent bg-blue-500 text-white shadow-md transition-colors">
+                            <i data-lucide="home" class="w-5 h-5"></i>
+                            <span class="hidden md:inline">Accueil</span>
+                        </a>
+                        <a href="/" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                            <i data-lucide="home" class="w-5 h-5"></i>
+                            <span class="hidden md:inline">Accueil</span>
+                        </a>
+                    </nav>
+                    
+                    <span id="userNameChip" class="text-xs font-semibold text-slate-400 hidden md:inline">Invité</span>
+                    <div class="relative ml-2" id="profileContainer">
+                    <!-- Statut/Nom de l'utilisateur (optionnel, affiché avant l'avatar sur desktop) -->
 
-    <!-- Barre de navigation (Style Admin) -->
-    <nav class="bg-white shadow-sm">
-        <div class="container mx-auto p-4">
-            <div class="container mx-auto flex flex-wrap justify-center md:justify-start gap-4 px-4" id="mainNav">
-                <!-- Les liens seront injectés ici par JavaScript -->
-            </div>
+                    <!-- Bouton Avatar qui ouvre le menu -->
+                    <button id="userAvatar" aria-expanded="false" aria-controls="userDropdown" class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-200 bg-white dark:bg-slate-800 shadow-sm transition-colors hover:border-blue-500 dark:hover:border-blue-500">
+                        <i data-lucide="user-round" class="w-4 h-4"></i>
+                    </button>
+
+                    <!-- Menu Popover (initialement caché) -->
+                    <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl py-1 hidden z-20">
+                        <div class="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 border-b dark:border-slate-700 font-medium truncate" id="dropdownUserName">
+                            Invité
+                        </div>
+                        
+                        <!-- Bouton Profil -->
+                        <a href="/profile" id="profileButton" class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                            <i data-lucide="settings" class="w-4 h-4"></i>
+                            Mon Compte
+                        </a>
+                        
+                        <!-- Bouton Déconnexion (Affiché uniquement si connecté, géré par JS) -->
+                        <button id="logoutButton" class="flex items-center gap-2 w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                            Déconnexion
+                        </button>
+                    </div>
+                </div>
+                </div>
+            </div>           
         </div>
-    </nav>
+        
+        <!-- Bouton Hamburger (Mobile) -->
+        <button id="btnMobileMenu" class="md:hidden p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 focus:outline-none">
+            <i id="menuIcon" data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+    </header>
 
     <!-- Contenu principal (Style Admin) -->
     <main class="flex-grow container mx-auto px-4 py-6">
-        <div class="bg-white rounded-xl shadow p-6 mb-6">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Rechercher des Ouvrages</h2>
+        <div class="bg-white dark:bg-slate-800 rounded-xl shadow p-6 mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4">Rechercher des Ouvrages</h2>
             <div class="flex flex-col md:flex-row gap-4">
                 <input type="text" id="searchInput" placeholder="Rechercher un ouvrage, un auteur ou un département..."
                     class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
@@ -133,7 +200,7 @@
         </div>
 
         <!-- Section Mes Emprunts Actuels (Style Admin) -->
-        <div class="bg-white rounded-xl shadow p-6 mb-6 hidden" id="current-loans-section">
+        <div class="bg-white dark:bg-slate-800 dark:text-white rounded-xl shadow p-6 mb-6 hidden" id="current-loans-section">
             <h3 class="text-xl font-semibold text-gray-800 mb-4">Mes Emprunts Actuels <span id="loansLoading"
                     class="loader hidden"></span></h3>
             <div id="current-loans-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -143,7 +210,7 @@
         </div>
 
         <!-- Section Ouvrages Tendances / Résultats de recherche (Style Admin) -->
-        <div class="bg-white rounded-xl shadow p-6">
+        <div class="bg-white dark:bg-slate-800 dark:text-white rounded-xl shadow p-6">
             <h3 class="text-xl font-semibold text-gray-800 mb-4"><span id="trendingTitle">Ouvrages Tendances</span> <span id="trendingLoading"
                     class="loader hidden"></span></h3>
             <div id="trending-books-container"
