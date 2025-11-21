@@ -23,14 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? null;
 
     if (empty($name) || empty($email) || empty($password)) {
-        http_response_code(400);
         echo json_encode(["success" => false, "message" => "Veuillez remplir tous les champs."]);
         exit();
     }
 
     // Validation simple de l'email
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        http_response_code(400);
         echo json_encode(["success" => false, "message" => "Format d'email invalide."]);
         exit();
     }
@@ -41,7 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':email', $email);
         $stmt->execute();
         if ($stmt->fetchColumn() > 0) {
-            http_response_code(409); // Conflict
             echo json_encode(["success" => false, "message" => "Cet email est déjà enregistré."]);
             exit();
         }
@@ -71,7 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $user = $stmt->fetch();
         if (!$user) {
-            http_response_code(404); // Not Found
             echo json_encode(["success" => false, "message" => "Utilisateur non trouvé après l'inscription."]);
             exit();
         }
@@ -85,11 +81,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } catch (PDOException $e) {
         $pdo->rollBack(); // Annuler la transaction en cas d'erreur
-        http_response_code(500);
         echo json_encode(["success" => false, "message" => "Erreur lors de l'inscription" , "error"=> $e->getMessage()]);
     }
 } else {
-    http_response_code(405); // Method Not Allowed
     echo json_encode(["success" => false, "message" => "Méthode non autorisée."]);
 }
 ?>

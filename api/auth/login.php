@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? null;
 
     if (empty($email) || empty($password)) {
-        http_response_code(400);
         echo json_encode(["success" => false, "message" => "Veuillez fournir l'email et le mot de passe."]);
         exit();
     }
@@ -50,15 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 "redirect" => $page // Indiquer la page de redirection
             ]);
         } else {
-            http_response_code(401); // Unauthorized
             echo json_encode(["success" => false, "message" => "Email ou mot de passe incorrect."]);
         }
     } catch (PDOException $e) {
-        http_response_code(500);
         echo json_encode(["success" => false, "message" => "Erreur lors de la connexion", "error"=>  $e->getMessage()]);
     }
 } else {
-    http_response_code(405); // Method Not Allowed
     echo json_encode(["success" => false, "message" => "Erreur inconue.", "error"=> "Methode non autorisée."]);
 }
 ?>
