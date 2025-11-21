@@ -515,5 +515,4 @@ if ($_SESSION['user_role'] !== 'admin') {
     <!-- Importation des modules JS -->
     <script type="module" src="/app/js/auth/admin.js"></script>
 </body>
-
 </html>

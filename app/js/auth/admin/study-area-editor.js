@@ -1,5 +1,5 @@
 import { apiClient } from "../../util/ocho-api.js";
-import { updateNavBar, isAuth } from "../../util/utils.js";
+import { updateNavBar, isAuth, handleLogout } from "../../util/utils.js";
 
 const THEME_STORAGE_KEY = "geolib-theme";
 const LIGHT_TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
@@ -1222,13 +1222,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ---- Écouteurs d'évènements au lieu des attributs onclick ----
 
     // Dark mode
-    const darkBtn = document.getElementById('btnDarkModeToggle');
+    const darkBtn = document.getElementById('darkModeToggle');
     if (darkBtn) {
         darkBtn.addEventListener('click', toggleDarkMode);
     }
 
     // Menu mobile
-    const mobileMenuBtn = document.getElementById('btnMobileMenu');
+    const mobileMenuBtn = document.getElementById('mobileMenu');
     if (mobileMenuBtn) {
         mobileMenuBtn.addEventListener('click', () => {
             const nav = document.getElementById('nav-menu');
@@ -1410,6 +1410,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const importSelectAllCheckbox = document.getElementById('importSelectAll');
     if (importSelectAllCheckbox) {
         importSelectAllCheckbox.addEventListener('change', () => window.toggleAllImportSelection());
+    }
+    window.modalContainer = document.getElementById('logoutModal');
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => handleLogout(logoutBtn));
     }
 });
 

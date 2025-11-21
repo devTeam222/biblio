@@ -427,7 +427,7 @@ function updateUserDropdown(userRole) {
     
     // 3. Ajuster le lien du bouton Profil
     if (userRole === 'admin') {
-        profileButton.href = '/admin/profile';
+        profileButton.href = '/profile';
     } else if (userRole !== 'guest') {
         profileButton.href = '/profile';
     }
@@ -442,7 +442,7 @@ export function attachGlobalListeners() {
     const userDropdown = document.getElementById("userDropdown");
     const logoutButton = document.getElementById("logoutButton");
 
-    if (!userAvatar || !userDropdown || !logoutButton) {
+    if (!userAvatar || !userDropdown) {
         console.error("Impossible d'attacher les écouteurs : Éléments du profil (avatar/dropdown/logout) non trouvés.");
         return;
     }
@@ -469,7 +469,7 @@ export function attachGlobalListeners() {
     });
     
     // --- Écouteur 3 : Gérer la Déconnexion ---
-    logoutButton.addEventListener("click", handleLogout);
+   logoutButton && logoutButton.addEventListener("click", handleLogout);
 }
 
 // Create a custom event to handle user authentication state
@@ -516,8 +516,9 @@ document.addEventListener("authchange", (event) => {
 // and then trigger the 'authchange' event).
 // No direct call here, as the 'authchange' listener will handle it.
 
-async function handleLogout() {
-    const logoutButton = document.getElementById("logoutButton");
+async function handleLogout(logoutButton = document.getElementById("logoutButton")) {
+    if (logoutButton) {
+        logoutButton.disabled = true; // Désactiver le bouton pour éviter les clics multiples
     await showCustomModal("Êtes-vous sûr de vouloir vous déconnecter ?", {
         type: "confirm",
         actions: [
@@ -527,18 +528,24 @@ async function handleLogout() {
                     addLoader(logoutButton); // Ajouter un loader au bouton de déconnexion
                     await logout();
                     removeLoader(logoutButton); // Retirer le loader après la déconnexion
+
                 },
                 className: "bg-red-600 hover:bg-red-700 text-white",
                 value: true, // valeur de retour explicite
             },
             {
                 label: "Annuler",
-                callback: () => { },
+                callback: () => {
+                    logoutButton.disabled = false; // Réactiver le bouton si annulé
+                 },
                 className: "bg-gray-400 hover:bg-gray-500 text-white",
                 value: false, // valeur de retour explicite
             },
         ],
     });
+
+    }
+    
 }
 async function logout() {
     try {

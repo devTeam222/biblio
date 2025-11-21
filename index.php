@@ -141,10 +141,6 @@
                             <i data-lucide="home" class="w-5 h-5"></i>
                             <span class="hidden md:inline">Accueil</span>
                         </a>
-                        <a href="/" class="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                            <i data-lucide="home" class="w-5 h-5"></i>
-                            <span class="hidden md:inline">Accueil</span>
-                        </a>
                     </nav>
                     
                     <span id="userNameChip" class="text-xs font-semibold text-slate-400 hidden md:inline">Invité</span>

@@ -392,10 +392,12 @@ function syncThemeArtifacts() {
     refreshIcons();
 }
 document.addEventListener("DOMContentLoaded",async () => {
+    
     applyStoredTheme(); 
     syncThemeArtifacts();
       // Dark mode
     const darkBtn = document.getElementById('btnDarkModeToggle');
+    
     if (darkBtn) {
         darkBtn.addEventListener('click', toggleDarkMode);
     }
@@ -441,7 +443,6 @@ function setUserBadge(user) {
         avatar.textContent = initials || "✓";
         avatar.classList.add("bg-blue-600", "text-white");
         avatar.title = user.name;
-        console.log(chip);
         
         if (chip) chip.textContent = user.name;
     } else {
